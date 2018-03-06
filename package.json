@@ -1,11 +1,11 @@
 {
 	"scripts": {
-		"built": "tsc -p ./src -w",
+		"built:src": "tsc -p ./src",
 		"built:tools": "tsc -p ./tools",
 		"built:example:todo": "webpack --config ./examples/todomvc/webpack.config.js --watch",
 		"built:example:counter": "webpack --config ./examples/counter/webpack.config.js --watch"
 	},
-	"description": "Bla bla bla",
+	"description": "A node js module to make standalone reactive web components.",
 	"dependencies": {
 		"acorn-globals": "4.1.0",
 		"escodegen": "1.9.0",
