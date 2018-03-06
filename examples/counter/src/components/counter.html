@@ -1,0 +1,31 @@
+<style>
+	.negative {
+		color: crimson;
+	}
+</style>
+
+<div class="container">
+	<h3 class="title is-3">Counter Example</h3>
+	<label>Counter: </label>
+	<strong :class="negative()">{{count}}</strong>
+	<br/>
+	<button class="button is-primary" @click="increment()">Increment</button>
+	<button class="button is-danger" @click="decrement()">Decrement</button>
+</div>
+
+<script>
+	export default {
+		model: {
+			count: 0,
+			increment(){
+				this.count = this.count + 1;
+			},
+			decrement(){
+				this.count = this.count - 1;
+			},
+			negative() {
+				return { 'negative': this.count < 0 };
+			}
+		}
+	};
+</script>

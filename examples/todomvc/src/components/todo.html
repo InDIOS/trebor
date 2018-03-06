@@ -1,0 +1,46 @@
+<style scoped>
+	.view label {
+		user-select: none;
+		-wmso-user-select: none;
+	}
+</style>
+
+<section class="todoapp">
+	<header class="header">
+		<h1>todos</h1>
+		<input class="new-todo" placeholder="What needs to be done?" autofocus $model="newTodo" @keyup="addTodo($event)">
+	</header>
+	<section class="main" $show="todos.length">
+		<input class="toggle-all" type="checkbox" :checked="allDone" @change="markAll($el.checked)">
+		<label for="toggle-all">Mark all as complete</label>
+		<ul class="todo-list">
+			<li class="todo" $for="(todo, i) in todos | filterByView view" :class="{completed: todo.completed, editing: todo === editedTodo}">
+				<div class="view">
+					<input class="toggle" type="checkbox" $model="todo.completed">
+					<label @dblclick="editTodo(todo, i)">{{ todo.title }}</label>
+					<button class="destroy" @click="removeTodo(todo)"></button>
+				</div>
+				<input type="text" $focus-edit="todo === editedTodo" class="edit" $model="todo.title" @blur="editedTodo = null" @keyup="doneEdit(todo, $event)">
+			</li>
+		</ul>
+	</section>
+	<footer class="footer" $show="todos.length">
+		<span class="todo-count">{{ remaining }} {{ 'item' | pluralize remaining }} left</span>
+		<ul class="filters">
+			<li>
+				<a href="#/" :class="{selected: view === ''}" @click="view = ''">All</a>
+			</li>
+			<li>
+				<a href="#/active" :class="{selected: view === 'active'}" @click="view = 'active'">Active</a>
+			</li>
+			<li>
+				<a href="#/completed" :class="{selected: view === 'completed'}" @click="view = 'completed'">Completed</a>
+			</li>
+		</ul>
+		<button class="clear-completed" @click="removeCompleted()" $show="todos.length > remaining">
+			Clear completed
+		</button>
+	</footer>
+</section>
+
+<script src="./todo.ts"></script>

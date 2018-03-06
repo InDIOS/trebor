@@ -1,0 +1,76 @@
+<style>
+	table {
+		border: 1px solid #333;
+	}
+
+	table tr {
+		margin: 0;
+		padding: 0;
+	}
+
+	table thead tr {
+		color: #EEE;
+		background-color: #000;
+	}
+
+	table td {
+		margin: -1px;
+		cursor: pointer;
+		text-align: center;
+		border-bottom: 1px solid #333;
+	}
+
+	table td.active {
+		color: #fff;
+		background-color: #555
+	}
+
+	table td:hover,
+	table td.active:hover {
+		color: #fff;
+		background-color: #333
+	}
+
+	table td.week,
+	table td.week:hover {
+		color: #EEE;
+		background-color: #000
+	}
+
+	table td.disabled {
+		color: #CCC;
+		background-color: #999
+	}
+
+	.month {
+		text-align: center;
+	}
+
+	table,
+	.month {
+		width: 400px;
+	}
+
+	#years td,
+	#months td {
+		padding: 17.5px 0;
+	}
+
+	#forward,
+	#forward-year {
+		float: right;
+	}
+
+	#backward,
+	#backward-year {
+		float: left;
+	}
+</style>
+
+<table>
+	<tr $for="week in monthWeeks">
+		<td $for="day in week.days" :class="{ active: day.active, disabled: day.disabled }">{{ day.day }}</td>
+	</tr>
+</table>
+
+<script src="./calendar.ts"></script>

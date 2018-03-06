@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+</head>
+
+<body>
+	<main></main>
+	<script src="child.js"></script>
+	<script src="component.js"></script>
+	<script>
+		const app = new Component();
+		app.$mount('main');
+		// app.$observe('user.name', () => console.log('user.name Change to:', app.user.name));
+		// app.$observe('user.name.first', () => console.log('user.name.first Change to:', app.user.name.first));
+	</script>
+	<!-- 
+		<h1 :class="fullName ? 'full' : 'empty'">Your name is: {{ user.name.first && user.name.last ? fullName + '.' : '?' }}</h1>
+		<input type="text" @input="onInput($el, 'first')" :value="user.name.first">
+		<input type="text" @input="onInput($el, 'last')" :value="user.name.last">
+		
+		<script type="text/javascript">
+			const model = {
+				user: { name: { first: '', last: '' } },
+				get fullName() {
+					return `${this.capitalize(this.user.name.first)} ${this.capitalize(this.user.name.last)}`;
+				},
+				onInput(el, prop) {
+					this.user.name[prop] = el.value;
+				},
+				capitalize(str) {
+					return str ? str[0].toUpperCase() + str.slice(1) : str;
+				}
+			};
+		
+			export default { model }
+		</script>
+	 -->
+</body>
+
+</html>

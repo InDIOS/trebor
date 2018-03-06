@@ -1,0 +1,41 @@
+<div class="container">
+	<header>
+		<slot name="header"></slot>
+	</header>
+	<main>
+		<ul>
+			<slot name="item" $for="item in items"></slot>
+		</ul>
+		<slot></slot>
+	</main>
+	<footer>
+		<slot name="footer"></slot>
+	</footer>
+</div>
+
+<script>
+	export default {
+		// ['title']
+		attrs: {
+			items: { type: 'array', default: () => [] }
+		}/* ,
+		filters: {
+			reverse(txt) {
+				return txt.split('').reverse().join('');
+			}
+		},
+		model: {
+			oldTitle: '',
+			get toTitle() {
+				this.hasChange();
+				return (this.title || '').toUpperCase();
+			},
+			hasChange() {
+				if (this.oldTitle !== this.title) {
+					this.oldTitle = this.title;
+					this.$fire('title-change', this.title);
+				}
+			}
+		} */
+	}
+</script>

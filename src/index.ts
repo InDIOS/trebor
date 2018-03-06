@@ -1,0 +1,218 @@
+import glob = require('glob');
+import { Linter } from 'eslint';
+import { minify } from 'uglify-js';
+import { replace } from 'estraverse';
+import { generate } from 'escodegen';
+import { getDoc } from './utilities/html';
+import { genTemplate } from './generators';
+import { CompilerOptions } from './types.d';
+import { transpileModule } from 'typescript';
+import { minify as minifyES } from 'uglify-es';
+import { basename, extname, dirname, join } from 'path';
+import { writeFileSync, readFileSync, statSync } from 'fs';
+import { kebabToCamelCases, capitalize } from './utilities/tools';
+import { TryStatement, FunctionDeclaration, FunctionExpression } from 'estree';
+
+const deps = `import { 
+	_$CompCtr, _$, _$d, _$a, _$r, _$ce,	_$ct, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, 
+	_$e, _$is, _$ds, _$toStr, _$setRef
+} from 'trebor/tools';`;
+const tools = readFileSync(join(__dirname, '../tools/index.js'), 'utf8');
+
+function genSource(html: string, opts: CompilerOptions) {
+	const body = getDoc(html);
+	const { moduleName } = opts;
+	const { imports, template, extras, options } = genTemplate(body, 'state', opts);
+	if (!opts.out) {
+		imports.unshift(deps);
+	}
+	const source = [...imports,
+		template, extras,
+	`function ${moduleName}(attrs) {
+			_$CompCtr.call(this, attrs, _$tpl${moduleName}, ${options});
+		}
+		${moduleName}.prototype = Object.create(_$CompCtr.prototype);
+		${moduleName}.prototype.constructor = ${moduleName};
+		${opts.format === 'es' ? 'export default' : opts.format === 'umd' ? 'export =' : '\nreturn'} ${moduleName};`
+	].filter(c => !!c.length).join('\n');
+	return source;
+}
+
+function compileFile(options: CompilerOptions) {
+	const html = readFileSync(options.input, 'utf8');
+	options.format = options.format || 'umd';
+	const ext = extname(options.input);
+	const dir = dirname(options.input);
+	const file = basename(options.input, ext);
+	let moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
+	options.moduleName = options.moduleName || moduleName;
+	if (!options.out) {
+		options.out = join(dir, `${file}.${options.format}.js`);
+	}
+	const { compilerOptions, uglifyOptions } = getOptions(options);
+	const source = genSource(html, options);
+	let { outputText } = transpileModule(source, { compilerOptions });
+	
+	let fullOutput = optimize([outputText, tools].join('\n'));
+
+	if (options.format === 'umd') {
+		fullOutput = umdTpl(moduleName, fullOutput);
+	} else if (options.format === 'iif') {
+		if (options.minify) {
+			uglifyOptions['compress'] = uglifyOptions['compress'] || {};
+			uglifyOptions['compress']['top_retain'] = [moduleName];
+		}
+		fullOutput = `var ${moduleName} = (function() { ${fullOutput} })();`;
+	}
+	const min = options.format === 'es' ? minifyES : minify;
+	writeFileSync(options.out, options.minify ? min(fullOutput, uglifyOptions).code : outputText, 'utf8');
+	const esModule = optimize([deps, outputText.replace('module.exports =', 'export default')].join('\n'));
+	writeFileSync(options.out.replace('.umd', '.es'), options.minify ? min(esModule, uglifyOptions).code : esModule, 'utf8');
+}
+
+function getOptions(options: CompilerOptions) {
+	let uglifyOptions = {};
+	let compilerOptions = {};
+	uglifyOptions = {
+		...{}, ...{
+			mangle: false,
+			compress: {
+				keep_fnames: true,
+				keep_fargs: false,
+				toplevel: true
+			},
+			output: {
+				beautify: true,
+				indent_level: 2,
+				bracketize: true
+			}
+		}
+	};
+	compilerOptions = {
+		...{}, ...{
+			sourceMap: false,
+			importHelpers: true,
+			target: 1, module: 1,
+			removeComments: true
+		}
+	};
+	if (typeof options.noComments !== 'boolean') {
+		options.noComments = false;
+	}
+	if (options.format === 'es') {
+		compilerOptions['module'] = 5;
+	} else if (options.format === 'amd') {
+		compilerOptions['module'] = 2;
+	} else if (options.format === 'system') {
+		compilerOptions['module'] = 4;
+	}
+	if (typeof options.minify === 'object') {
+		uglifyOptions = { ...{ mangle: {}, compress: {} }, ...options.minify };
+	}
+	return { uglifyOptions, compilerOptions };
+}
+
+function optimize(src) {
+	const linter = new Linter();
+	const messages = linter.verify(src, {
+		parserOptions: { ecmaVersion: 8, sourceType: 'module' },
+		env: { browser: true, amd: true, node: true, es6: true },
+		rules: {
+			'no-empty': [2],
+			'no-debugger': [2],
+			'no-unused-vars': [2, { args: 'all', caughtErrors: 'all' }]
+		}
+	});
+	const ast = linter.getSourceCode().ast;
+
+	function canRemove(node) {
+		const { type, loc } = node;
+		const { start, end } = loc;
+		const found = messages.filter(msg => type === msg.nodeType && start.column + 1 === msg.column && end.column + 1 === msg.endColumn && start.line === msg.line && end.line === msg.endLine);
+		return !!found.length;
+	}
+
+	replace(ast, {
+		enter(node) {
+			switch (true) {
+				case node.type === 'SwitchStatement' && canRemove(node):
+				case node.type === 'WhileStatement' && canRemove(node.body):
+				case node.type === 'FunctionDeclaration' && canRemove(node.id):
+				case node.type === 'IfStatement' && ((canRemove(node.consequent) && node.alternate === null) || (canRemove(node.consequent) && canRemove(node.alternate))):
+					this.remove();
+					break;
+				case node.type === 'TryStatement' && node.finalizer && canRemove(node.finalizer):
+					(<TryStatement>node).finalizer = null;
+					break;
+				case node.type === 'ImportDeclaration' || node.type === 'VariableDeclaration': {
+					const prop = node.type === 'ImportDeclaration' ? 'specifiers' : 'declarations';
+					let subs = node[prop];
+					node[prop] = subs.filter(n => !canRemove(n.local));
+					if (node[prop].length === 0) {
+						this.remove();
+					}
+					break;
+				}
+				case node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression': {
+					const { params } = (<FunctionDeclaration | FunctionExpression>node);
+					for (let i = params.length - 1; i > 0; i--) {
+						if (canRemove(params[i])) {
+							params.splice(i, 1);
+						} else {
+							i = 0;
+						}
+					}
+					break;
+				}
+				case node.type === 'DebuggerStatement':
+					this.remove();
+				default:
+					return node;
+			}
+		}
+	});
+	return generate(ast, { format: { indent: { style: '  '  } } });
+}
+
+function umdTpl(moduleName: string, body: string) {
+	return `!function (global, factory) {
+	if (module !== undefined && typeof module.exports === 'object') {
+		module.exports = factory();
+	} else if (typeof define === 'function' && define.amd) {
+		define('${moduleName}', factory);
+	} else {
+		var module = { exports: {} };
+		global.${moduleName} = factory(module, module.exports);
+	}
+}(this, function (module, exports) {
+	${body}
+	return module.exports;
+});`;
+}
+
+export = function (src: string | CompilerOptions, map, meta) {
+	if (this && this.webpack) {
+		const ext = extname(this.resourcePath);
+		const file = basename(this.resourcePath, ext);
+		let moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
+		const source = genSource(<string>src, { noComments: true, moduleName, format: 'es', input: this.resourcePath });
+		let { outputText } = transpileModule(source, {
+			compilerOptions: { sourceMap: true, importHelpers: true, target: 1, module: 5, removeComments: true }
+		});
+		this.callback(null, optimize(outputText), map, meta);
+	} else {
+		const info = statSync((<CompilerOptions>src).input);
+		if (info.isFile()) {
+			compileFile(<CompilerOptions>src);
+		} else if (info.isDirectory()) {
+			glob(`${(<CompilerOptions>src).input}/**/*.html`, (err, files) => {
+				if (err) {
+					throw err;
+				}
+				files.forEach(file => {
+					compileFile({ ...(<CompilerOptions>src), ...{ input: file } });
+				});
+			});
+		}
+	}
+};

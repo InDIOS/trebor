@@ -1,0 +1,35 @@
+<p>{{ text | number | trim }}</p>
+<p>{{ text | number | type }}</p>
+<input type="text" $model="text">
+
+<script>
+	export default {
+		filters: {
+			number: v => !v || isNaN(+v) ? v : +v,
+			type: v => Array.isArray(v) ? 'array' : typeof v,
+			trim: v => typeof v === 'string' ? v.trim() : v,
+		},
+		model: {
+			text: '',
+			/* static: `<h1>I'm a <strong style="color: green">Title</strong></h1>`,
+			title: 'child 1',
+			title1: 'child 2',
+			titleChange(title) {
+				console.log('New title:', title);
+			},
+			titleChange1(title) {
+				console.log('New title1:', title);
+			},
+			mounted() {
+				this.$once('test', msg => {
+					console.log(msg);
+				});
+				this.$fire('test', 'Test once');
+				this.$fire('test', 'Test once');
+			}*/
+		}, /*
+		children: {
+			'child-component': Child
+		}*/
+	}
+</script>
