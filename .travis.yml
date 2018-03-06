@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - "node"
+install:
+  - npm i
+script:
+  - npm run built:src
+  - npm run built:tools
+cache:
+  directories:
+    - "node_modules"
