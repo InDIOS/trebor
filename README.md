@@ -1,2 +1,2 @@
 # trebor
-Another framework without a framework but like most popular frameworks
+A node js module to make standalone reactive web components.
