@@ -1,0 +1,13 @@
+{
+	"rules": {
+		"semicolon": [
+			true, "always"
+		],
+		"triple-equals": [
+			true
+		],
+		"quotemark": [
+			true, "single"
+		]
+	}
+}
