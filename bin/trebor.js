@@ -2,6 +2,7 @@
 const yargs = require('yargs');
 const gnt = require('../build');
 const { resolve } = require('path');
+const pkg = require('../package.json');
 
 const options = yargs.options({
 	input: {
@@ -26,7 +27,7 @@ const options = yargs.options({
 		type: 'boolean',
 		describe: 'Minify the output.'
 	}
-}).version('0.0.1').argv;
+}).version(pkg.version).argv;
 
 const cwd = process.cwd();
 
