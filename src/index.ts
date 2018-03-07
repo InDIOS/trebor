@@ -32,8 +32,7 @@ function genSource(html: string, opts: CompilerOptions) {
 			_$CompCtr.call(this, attrs, _$tpl${moduleName}, ${options});
 		}
 		${moduleName}.prototype = Object.create(_$CompCtr.prototype);
-		${moduleName}.prototype.constructor = ${moduleName};
-		${opts.format === 'es' ? 'export default' : opts.format === 'umd' ? 'export =' : '\nreturn'} ${moduleName};`
+		${moduleName}.prototype.constructor = ${moduleName};`
 	].filter(c => !!c.length).join('\n');
 	return source;
 }
@@ -51,7 +50,7 @@ function compileFile(options: CompilerOptions) {
 	}
 	const { compilerOptions, uglifyOptions } = getOptions(options);
 	const source = genSource(html, options);
-	let { outputText } = transpileModule([source, tools].join('\n'), { compilerOptions });
+	let { outputText } = transpileModule([source, exportFormat(options.format, moduleName), tools].join('\n'), { compilerOptions });
 
 	outputText = optimize(outputText);
 
@@ -68,10 +67,14 @@ function compileFile(options: CompilerOptions) {
 	writeFileSync(options.out, options.minify ? min(outputText, uglifyOptions).code : outputText, 'utf8');
 	if (options.format !== 'es') {
 		compilerOptions.module = 5;
-		let { outputText: esModule } = transpileModule([deps, source].join('\n'), { compilerOptions });
+		let { outputText: esModule } = transpileModule([deps, source, exportFormat('es', moduleName)].join('\n'), { compilerOptions });
 		esModule = optimize(esModule);
-		writeFileSync(options.out.replace('.umd', '.es'), options.minify ? min(esModule, uglifyOptions).code : esModule, 'utf8');
+		writeFileSync(options.out.replace('.umd', '.es'), options.minify ? minifyES(esModule, uglifyOptions).code : esModule, 'utf8');
 	}
+}
+
+function exportFormat(format:string, moduleName: string) {
+	return `${format === 'es' ? 'export default' : format === 'umd' ? 'export =' : '\nreturn'} ${moduleName};`;
 }
 
 function getOptions(options: CompilerOptions) {
@@ -160,16 +163,16 @@ function optimize(src) {
 function umdTpl(moduleName: string, body: string) {
 	return `!function (global, factory) {
 	if (module !== undefined && typeof module.exports === 'object') {
-		module.exports = factory();
+		factory(module, module.exports);
 	} else if (typeof define === 'function' && define.amd) {
 		define('${moduleName}', factory);
 	} else {
 		var module = { exports: {} };
-		global.${moduleName} = factory(module, module.exports);
+		factory(module, module.exports);
+		global.${moduleName} = module.exports;
 	}
 }(this, function (module, exports) {
 	${body}
-	return module.exports;
 });`;
 }
 
