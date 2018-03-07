@@ -40,12 +40,14 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch CLI",
-			"program": "${workspaceFolder}/bin/run.js",
+			"program": "${workspaceFolder}/bin/trebor.js",
+			"cwd": "D:\\OTHERS\\Downloads\\electric-count",
 			"args": [
 				"-i",
-				"./examples/counter/src/components/counter.html",
-				"-o",
-				"./examples/counter/src/components/counter.umd.js"
+				"electric-count.html",
+				// "./examples/counter/src/components/counter.html",
+				// "-o",
+				// "./examples/counter/src/components/counter.umd.js"
 				// "-i",
 				// "./examples/todomvc/src/components/todo.html",
 				// "-o",

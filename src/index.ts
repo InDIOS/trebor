@@ -17,7 +17,7 @@ const deps = `import {
 	_$CompCtr, _$, _$d, _$a, _$r, _$ce,	_$ct, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, 
 	_$e, _$is, _$ds, _$toStr, _$setRef
 } from 'trebor/tools';`;
-const tools = readFileSync(join(__dirname, '../tools/index.js'), 'utf8');
+const tools = readFileSync(join(__dirname, '../tools/index.ts'), 'utf8');
 
 function genSource(html: string, opts: CompilerOptions) {
 	const body = getDoc(html);
@@ -32,8 +32,7 @@ function genSource(html: string, opts: CompilerOptions) {
 			_$CompCtr.call(this, attrs, _$tpl${moduleName}, ${options});
 		}
 		${moduleName}.prototype = Object.create(_$CompCtr.prototype);
-		${moduleName}.prototype.constructor = ${moduleName};
-		${opts.format === 'es' ? 'export default' : opts.format === 'umd' ? 'export =' : '\nreturn'} ${moduleName};`
+		${moduleName}.prototype.constructor = ${moduleName};`
 	].filter(c => !!c.length).join('\n');
 	return source;
 }
@@ -51,60 +50,47 @@ function compileFile(options: CompilerOptions) {
 	}
 	const { compilerOptions, uglifyOptions } = getOptions(options);
 	const source = genSource(html, options);
-	let { outputText } = transpileModule(source, { compilerOptions });
-	
-	let fullOutput = optimize([outputText, tools].join('\n'));
+	let { outputText } = transpileModule([source, exportFormat(options.format, moduleName), tools].join('\n'), { compilerOptions });
+
+	outputText = optimize(outputText);
 
 	if (options.format === 'umd') {
-		fullOutput = umdTpl(moduleName, fullOutput);
+		outputText = umdTpl(moduleName, outputText);
 	} else if (options.format === 'iif') {
 		if (options.minify) {
-			uglifyOptions['compress'] = uglifyOptions['compress'] || {};
-			uglifyOptions['compress']['top_retain'] = [moduleName];
+			uglifyOptions.compress = uglifyOptions.compress || {};
+			uglifyOptions.compress.top_retain = [moduleName];
 		}
-		fullOutput = `var ${moduleName} = (function() { ${fullOutput} })();`;
+		outputText = `var ${moduleName} = (function() { ${outputText} })();`;
 	}
 	const min = options.format === 'es' ? minifyES : minify;
-	writeFileSync(options.out, options.minify ? min(fullOutput, uglifyOptions).code : outputText, 'utf8');
-	const esModule = optimize([deps, outputText.replace('module.exports =', 'export default')].join('\n'));
-	writeFileSync(options.out.replace('.umd', '.es'), options.minify ? min(esModule, uglifyOptions).code : esModule, 'utf8');
+	writeFileSync(options.out, options.minify ? min(outputText, uglifyOptions).code : outputText, 'utf8');
+	if (options.format !== 'es') {
+		compilerOptions.module = 5;
+		let { outputText: esModule } = transpileModule([deps, source, exportFormat('es', moduleName)].join('\n'), { compilerOptions });
+		esModule = optimize(esModule);
+		writeFileSync(options.out.replace('.umd', '.es'), options.minify ? minifyES(esModule, uglifyOptions).code : esModule, 'utf8');
+	}
+}
+
+function exportFormat(format:string, moduleName: string) {
+	return `${format === 'es' ? 'export default' : format === 'umd' ? 'export =' : '\nreturn'} ${moduleName};`;
 }
 
 function getOptions(options: CompilerOptions) {
-	let uglifyOptions = {};
-	let compilerOptions = {};
-	uglifyOptions = {
-		...{}, ...{
-			mangle: false,
-			compress: {
-				keep_fnames: true,
-				keep_fargs: false,
-				toplevel: true
-			},
-			output: {
-				beautify: true,
-				indent_level: 2,
-				bracketize: true
-			}
-		}
-	};
-	compilerOptions = {
-		...{}, ...{
-			sourceMap: false,
-			importHelpers: true,
-			target: 1, module: 1,
-			removeComments: true
-		}
+	let uglifyOptions: { [key: string]: any } = { compress: { toplevel: true } };
+	let compilerOptions: { [key: string]: any } = {
+		sourceMap: false, importHelpers: true, target: 1, module: 1, removeComments: true
 	};
 	if (typeof options.noComments !== 'boolean') {
 		options.noComments = false;
 	}
 	if (options.format === 'es') {
-		compilerOptions['module'] = 5;
+		compilerOptions.module = 5;
 	} else if (options.format === 'amd') {
-		compilerOptions['module'] = 2;
+		compilerOptions.module = 2;
 	} else if (options.format === 'system') {
-		compilerOptions['module'] = 4;
+		compilerOptions.module = 4;
 	}
 	if (typeof options.minify === 'object') {
 		uglifyOptions = { ...{ mangle: {}, compress: {} }, ...options.minify };
@@ -145,9 +131,9 @@ function optimize(src) {
 					(<TryStatement>node).finalizer = null;
 					break;
 				case node.type === 'ImportDeclaration' || node.type === 'VariableDeclaration': {
-					const prop = node.type === 'ImportDeclaration' ? 'specifiers' : 'declarations';
+					const [subProp, prop] = node.type === 'ImportDeclaration' ? ['local', 'specifiers'] : ['id', 'declarations'];
 					let subs = node[prop];
-					node[prop] = subs.filter(n => !canRemove(n.local));
+					node[prop] = subs.filter(n => !canRemove(n[subProp]));
 					if (node[prop].length === 0) {
 						this.remove();
 					}
@@ -171,22 +157,22 @@ function optimize(src) {
 			}
 		}
 	});
-	return generate(ast, { format: { indent: { style: '  '  } } });
+	return generate(ast, { format: { indent: { style: '  ' } } });
 }
 
 function umdTpl(moduleName: string, body: string) {
 	return `!function (global, factory) {
 	if (module !== undefined && typeof module.exports === 'object') {
-		module.exports = factory();
+		factory(module, module.exports);
 	} else if (typeof define === 'function' && define.amd) {
 		define('${moduleName}', factory);
 	} else {
 		var module = { exports: {} };
-		global.${moduleName} = factory(module, module.exports);
+		factory(module, module.exports);
+		global.${moduleName} = module.exports;
 	}
 }(this, function (module, exports) {
 	${body}
-	return module.exports;
 });`;
 }
 
@@ -194,9 +180,9 @@ export = function (src: string | CompilerOptions, map, meta) {
 	if (this && this.webpack) {
 		const ext = extname(this.resourcePath);
 		const file = basename(this.resourcePath, ext);
-		let moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
+		const moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
 		const source = genSource(<string>src, { noComments: true, moduleName, format: 'es', input: this.resourcePath });
-		let { outputText } = transpileModule(source, {
+		const { outputText } = transpileModule(source, {
 			compilerOptions: { sourceMap: true, importHelpers: true, target: 1, module: 5, removeComments: true }
 		});
 		this.callback(null, optimize(outputText), map, meta);
