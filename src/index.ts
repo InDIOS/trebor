@@ -66,6 +66,12 @@ function compileFile(options: CompilerOptions) {
 	}
 	const min = options.format === 'es' ? minifyES : minify;
 	writeFileSync(options.out, options.minify ? min(outputText, uglifyOptions).code : outputText, 'utf8');
+	if (options.format !== 'es') {
+		compilerOptions.module = 5;
+		let { outputText: esModule } = transpileModule([deps, source].join('\n'), { compilerOptions });
+		esModule = optimize(esModule);
+		writeFileSync(options.out.replace('.umd', '.es'), options.minify ? min(esModule, uglifyOptions).code : esModule, 'utf8');
+	}
 }
 
 function getOptions(options: CompilerOptions) {
