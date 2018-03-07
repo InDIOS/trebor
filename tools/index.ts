@@ -259,32 +259,47 @@ function _$accesor(obj, data, root, pKey) {
 	for (const key in data) {
 		if (_$hasProp(data, key)) {
 			const desc = Object.getOwnPropertyDescriptor(data, key);
-			if (_$isType(desc.value, 'function') || desc.get) {
-				_$def(obj, key, desc);
-			} else {
+			if (_$isType(desc.value, 'undefined') || !_$isType(desc.value, 'function')) {
 				let value = data[key];
+				delete desc.value;
+				delete desc.writable;
 				const k = pKey ? `${pKey}.${key}` : key;
-				_$def(obj, key, {
-					get() {
+				const getter = desc.get ? desc.get.bind(data) : null;
+				const setter = desc.set ? desc.set.bind(data) : null;
+				if (getter && !setter) {
+					desc.get = function () {
+						value = getter();
+						const r = root || this;
+						r.$notify(k);
+						if (r._watchers[k]) {
+							r._watchers[k].forEach(watcher => { watcher(value, value); });
+						}
 						return value;
-					},
-					set(v) {
+					};
+				} else {
+					desc.get = function () {
+						return getter ? getter() : value;
+					};
+					desc.set = function (v) {
 						const oldVal = value;
-						value = v;
+						setter && setter(v);
+						value = getter ? getter() : v;
 						if (_$type(value) === 'array') {
 							value = new _$List(value, root, k);
 						} else if (_$isObject(value)) {
 							_$accesor(value, v, root, k);
 						}
 						_$dispatch(root || this, k, oldVal, value);
-					},
-					enumerable: desc.enumerable, configurable: desc.configurable
-				});
-				if (_$type(value) === 'array') {
-					value = new _$List(value, root, k);
-				} else if (_$isObject(value)) {
-					_$accesor(obj[key], value, root, k);
+					};
+					_$def(obj, key, desc);
+					if (_$type(value) === 'array') {
+						value = new _$List(value, root, k);
+					} else if (_$isObject(value)) {
+						_$accesor(obj[key], value, root, k);
+					}
 				}
+			} else {
+				_$def(obj, key, desc);
 			}
 		}
 	}
