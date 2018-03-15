@@ -65,7 +65,7 @@ function compileFile(options: CompilerOptions) {
 	}
 	const min = options.format === 'es' ? minifyES : minify;
 	writeFileSync(options.out, options.minify ? min(outputText, uglifyOptions).code : outputText, 'utf8');
-	if (options.format !== 'es') {
+	if (options.format !== 'es' && !options.minify) {
 		compilerOptions.module = 5;
 		let { outputText: esModule } = transpileModule([deps, source, exportFormat('es', moduleName)].join('\n'), { compilerOptions });
 		esModule = optimize(esModule);
@@ -92,8 +92,8 @@ function getOptions(options: CompilerOptions) {
 	} else if (options.format === 'system') {
 		compilerOptions.module = 4;
 	}
-	if (typeof options.minify === 'object') {
-		uglifyOptions = { ...{ mangle: {}, compress: {} }, ...options.minify };
+	if (options.minify) {
+		uglifyOptions.mangle = {};
 	}
 	return { uglifyOptions, compilerOptions };
 }
