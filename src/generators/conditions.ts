@@ -85,6 +85,10 @@ function genCondition(scope: string, { ifCond, elseIfConds, elseCond }: Conditio
 	}
 	if (elseCond) {
 		condition += `else return else${capitalize(funcName)}(${scope});`;
+	} else {
+		condition += `else return {
+			type: 'empty-else', $create: _$noop, $mount: _$noop, $update: _$noop, $destroy: _$noop
+		};`;
 	}
 	condition += '}';
 	return condition;
