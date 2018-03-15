@@ -2,7 +2,28 @@ import { genBlockAreas } from './commons';
 import { ctx } from '../utilities/context';
 import { genDirective } from './directives';
 import { NodeElement, BlockAreas } from '../utilities/classes';
-import { kebabToCamelCases, getVarName, getParent, capitalize, createElement } from '../utilities/tools';
+import { kebabToCamelCases, getVarName, getParent, capitalize, createElement, filterParser } from '../utilities/tools';
+
+export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
+	[scope] = scope.split(',');
+	const element = getVarName(areas.variables, 'node');
+	const setElement = `setTag${capitalize(element)}`;
+	const updateTag = `updateTag${capitalize(element)}`;
+	areas.variables.push(setElement);
+	const expression = node.getAttribute('$tag');
+	node.removeAttribute('$tag');
+	const code = ctx(filterParser(expression), scope, areas.globals);
+	let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
+	const setTag = `${setElement}(${scope}${params})`;
+	areas.extras.push(`${setElement} = (${scope}${params}) => ${code};`);
+	areas.create.push(`${element} = _$ce(${setTag});`);
+	areas.update.push(`let ${updateTag} = ${setTag};
+	if (${updateTag}.toUpperCase() !== ${element}.tagName) {
+		${element} = _$as(${element}, _$ce(${updateTag}));
+	}
+	${updateTag} = void 0;`);
+	return element;
+}
 
 export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
 	const slotName = node.getAttribute('name') || 'default';

@@ -3,7 +3,7 @@ import { genForItem } from './loops';
 import { genHtml } from './directives';
 import { ctx } from '../utilities/context';
 import { genSetAttrs } from './attributes';
-import { genSlot, genComponent } from './components';
+import { genSlot, genComponent, genTag } from './components';
 import { NodeElement, BlockAreas } from '../utilities/classes';
 import {
 	getVarName, capitalize, createNode, createElement, escapeExp, filterParser
@@ -53,15 +53,17 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 				return genSlot(node, areas, scope);
 			case node.isUnknownElement:
 				return genComponent(node, areas, scope);
-			default:
+				default:
 				const tag = node.tagName;
 				let variable = getVarName(areas.variables, tag);
-				areas.create.push(createElement(variable, tag));
-				node.childNodes.forEach(element => {
-					const el = genBlockAreas(element, areas, scope);
+				if (node.hasAttribute('$tag')) {
+					variable = genTag(node, areas, scope);
+				} else if (!node['isCondition']) {
+					areas.create.push(createElement(variable, tag));
+				}
 					if (el) {
-						areas.create.push(`_$a(${variable}, ${el});`);
-					}
+							areas.create.push(`_$a(${variable}, ${el});`);
+						}
 				});
 				const attr = genSetAttrs(variable, node, scope, areas);
 				if (attr) {

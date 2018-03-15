@@ -325,6 +325,19 @@ export function _$a(parent, child, sibling?) {
 	if (!sibling) parent.appendChild(child);
 	else parent.insertBefore(child, sibling);
 }
+export function _$as(source, dest) {
+	const childNodes = source.childNodes;
+	const attributes = source.attributes;
+	for (let i = 0; i < childNodes.length; i++) {
+		_$a(dest, childNodes[i]);
+	}
+	for (let i = 0; i < attributes.length; i++) {
+		const attr = attributes[i];
+		dest.setAttribute(attr.name, attr.value);
+	}
+	source.parentElement.replaceChild(dest, source);
+	return dest;
+}
 export function _$r(el, parent) {
 	let root = parent || el.parentElement;
 	if (root) root.removeChild(el);
