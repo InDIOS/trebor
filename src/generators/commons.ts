@@ -3,11 +3,14 @@ import { genForItem } from './loops';
 import { genHtml } from './directives';
 import { ctx } from '../utilities/context';
 import { genSetAttrs } from './attributes';
+import { AllHtmlEntities } from 'html-entities';
 import { genSlot, genComponent, genTag } from './components';
 import { NodeElement, BlockAreas } from '../utilities/classes';
 import {
 	getVarName, capitalize, createNode, createElement, escapeExp, filterParser
 } from '../utilities/tools';
+
+const entities = new AllHtmlEntities();
 
 export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: string) {
 	if (node.nodeType === 3) {
@@ -24,7 +27,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 					int = int.replace(/{{(.+?)}}/g, (_, replacer: string) => replacer.trim());
 					return `(${ctx(filterParser(int), scope, areas.globals)})`;
 				} else {
-					return `'${int}'`;
+					return `'${entities.decode(int)}'`;
 				}
 			}).join('+');
 			let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
@@ -36,7 +39,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 			return variable;
 		} else {
 			variable = getVarName(areas.variables, 'txt');
-			areas.create.push(createNode(variable, `'${escapeExp(node.textContent)}'`));
+			areas.create.push(createNode(variable, `'${escapeExp(entities.decode(node.textContent))}'`));
 			return variable;
 		}
 	} else if (node.nodeType === 1) {
