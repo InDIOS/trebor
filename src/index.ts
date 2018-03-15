@@ -28,8 +28,8 @@ function genSource(html: string, opts: CompilerOptions) {
 	}
 	const source = [...imports,
 		template, extras,
-	`function ${moduleName}(attrs) {
-			_$CompCtr.call(this, attrs, _$tpl${moduleName}, ${options});
+		`function ${moduleName}() {
+			_$CompCtr.call(this, arguments[0], _$tpl${moduleName}, ${options});
 		}
 		${moduleName}.prototype = Object.create(_$CompCtr.prototype);
 		${moduleName}.prototype.constructor = ${moduleName};`
