@@ -1,3 +1,6 @@
+0.0.3
+- Fixed extra event updates.
+
 0.0.2
 - Added `$tag` especial attribute functionality.
 - Added ability to filter bound expressions.
