@@ -19,11 +19,16 @@ export interface Text extends Node {
 	content: string;
 }
 
+export interface Comment extends Node {
+	type: 'comment';
+	content: string;
+}
+
 export interface CompilerOptions {
 	out?: string;
 	input?: string;
+	minify?: boolean;
 	moduleName?: string;
 	noComments?: boolean;
-	minify?: { [key: string]: any };
 	format?: 'es' | 'iif' | 'umd' | 'amd' | 'system';
 }

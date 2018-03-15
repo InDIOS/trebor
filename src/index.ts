@@ -20,7 +20,7 @@ const deps = `import {
 const tools = readFileSync(join(__dirname, '../tools/index.ts'), 'utf8');
 
 function genSource(html: string, opts: CompilerOptions) {
-	const body = getDoc(html);
+	const body = getDoc(html, !!opts.minify);
 	const { moduleName } = opts;
 	const { imports, template, extras, options } = genTemplate(body, 'state', opts);
 	if (!opts.out) {
