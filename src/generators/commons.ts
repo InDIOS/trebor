@@ -64,10 +64,26 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 				} else if (!node['isCondition']) {
 					areas.create.push(createElement(variable, tag));
 				}
+				let childNodes: NodeElement[] = node.childNodes;
+				if (tag === 'template') {
+					childNodes = node.content.childNodes;
+				}
+				let { length } = childNodes;
+				for (let i = 0; i < length; i++) {
+					const n = childNodes[i];
+					const el = genBlockAreas(n, areas, scope);
 					if (el) {
+						if (tag === 'template' && !node['isCondition']) {
+							areas.create.push(`_$a(${variable}.content, ${el});`);
+						} else {
 							areas.create.push(`_$a(${variable}, ${el});`);
 						}
-				});
+					}
+					if (length !== childNodes.length) {
+						i--;
+						length = childNodes.length;
+					}
+				}
 				const attr = genSetAttrs(variable, node, scope, areas);
 				if (attr) {
 					areas.hydrate.push(attr);
