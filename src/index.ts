@@ -98,7 +98,7 @@ function getOptions(options: CompilerOptions) {
 	return { uglifyOptions, compilerOptions };
 }
 
-function optimize(src) {
+function optimize(src: string, iteration = 0) {
 	const linter = new Linter();
 	const messages = linter.verify(src, {
 		parserOptions: { ecmaVersion: 8, sourceType: 'module' },
@@ -129,15 +129,16 @@ function optimize(src) {
 					break;
 				case node.type === 'TryStatement' && node.finalizer && canRemove(node.finalizer):
 					(<TryStatement>node).finalizer = null;
-					break;
+					return node;
 				case node.type === 'ImportDeclaration' || node.type === 'VariableDeclaration': {
 					const [subProp, prop] = node.type === 'ImportDeclaration' ? ['local', 'specifiers'] : ['id', 'declarations'];
 					let subs = node[prop];
 					node[prop] = subs.filter(n => !canRemove(n[subProp]));
 					if (node[prop].length === 0) {
 						this.remove();
+						break;
 					}
-					break;
+					return node;
 				}
 				case node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression': {
 					const { params } = (<FunctionDeclaration | FunctionExpression>node);
@@ -148,16 +149,19 @@ function optimize(src) {
 							i = 0;
 						}
 					}
-					break;
+					return node;
 				}
 				case node.type === 'DebuggerStatement':
 					this.remove();
+					break;
 				default:
 					return node;
 			}
 		}
 	});
-	return generate(ast, { format: { indent: { style: '  ' } } });
+	const out = generate(ast, { format: { indent: { style: '  ' } } });
+	iteration++;
+	return iteration < 3 ? optimize(out, iteration): out;
 }
 
 function umdTpl(moduleName: string, body: string) {
