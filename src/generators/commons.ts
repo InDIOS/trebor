@@ -45,16 +45,16 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 	} else if (node.nodeType === 1) {
 		switch (true) {
 			case node.hasAttribute('$for'):
-				return genForItem(node, areas, scope);
+			return genForItem(node, areas, scope);
 			case node.hasAttribute('$if'):
 				return genIf(node, areas, scope);
-			case node.hasAttribute('$html') && !node.getAttribute('$html'):
+				case node.hasAttribute('$html') && !node.getAttribute('$html'):
 				return genHtml(node, areas);
-			case node.hasAttribute('$html') && !!node.getAttribute('$html'):
+				case node.hasAttribute('$html') && !!node.getAttribute('$html'):
 				return genHtml(node, areas, scope);
-			case node.tagName === 'slot':
+				case node.tagName === 'slot':
 				return genSlot(node, areas, scope);
-			case node.isUnknownElement:
+				case node.isUnknownElement:
 				return genComponent(node, areas, scope);
 				default:
 				const tag = node.tagName;
@@ -103,7 +103,7 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 		${areas.variables.length === 0 ? '' : `let ${areas.variables.join(', ')}`};${areas.extras.length === 0 ? '' : `
 		${areas.extras.join('\n')}`}
 		return {
-			${!condType ? '' : `type: '${condType.split('_')[0]}'
+			${!condType ? '' : `type: '${condType}'
 			,`}$create() {
 				${areas.create.join('\n')}${areas.hydrate.length === 0 ? '' : `
 				this.$hydrate();`}
@@ -118,7 +118,7 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 			},${areas.update.length === 0 ? '\n$update() {},' : `
 			$update(${scope}) {
         ${areas.update.join('\n')}
-      },`}
+			},`}
 			$unmount() {
 				${areas.unmount.join('\n')}
 			},
