@@ -58,7 +58,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
 			extras.push(`${eventVar} = ${variable}.$on('${key.slice(1)}', ${ctx(value, scope, [])});`);
 			areas.destroy.push(`${eventVar}.off();`);
 		} else if (key[0] === ':') {
-			attrs += `${key.slice(1)}() { return ${ctx(value, scope, [])}; },`;
+			attrs += `${kebabToCamelCases(key.slice(1))}() { return ${ctx(value, scope, [])}; },`;
 		} else if (key[0] === '$' && !/model|show/.test(key.slice(1))) {
 			genDirective(variable, key.slice(1), value, areas, scope);
 		} else {
