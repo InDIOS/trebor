@@ -49,7 +49,7 @@
 		"type": "git",
 		"url": "git+https://github.com/InDIOS/trebor.git"
 	},
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"contributors": [
 		{
 			"email": "robert04siel@gmail.com",
