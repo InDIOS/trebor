@@ -6,7 +6,7 @@ import { kebabToCamelCases, getVarName, getParent, capitalize, createElement, fi
 
 export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
 	[scope] = scope.split(',');
-	const element = getVarName(areas.variables, 'node');
+	const element = getVarName(areas.variables, '_$node');
 	const setElement = `setTag${capitalize(element)}`;
 	const updateTag = `updateTag${capitalize(element)}`;
 	areas.variables.push(setElement);

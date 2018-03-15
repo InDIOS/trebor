@@ -45,21 +45,23 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 	} else if (node.nodeType === 1) {
 		switch (true) {
 			case node.hasAttribute('$for'):
-			return genForItem(node, areas, scope);
+				return genForItem(node, areas, scope);
 			case node.hasAttribute('$if'):
 				return genIf(node, areas, scope);
-				case node.hasAttribute('$html') && !node.getAttribute('$html'):
+			case node.hasAttribute('$html') && !node.getAttribute('$html'):
 				return genHtml(node, areas);
-				case node.hasAttribute('$html') && !!node.getAttribute('$html'):
+			case node.hasAttribute('$html') && !!node.getAttribute('$html'):
 				return genHtml(node, areas, scope);
-				case node.tagName === 'slot':
+			case node.tagName === 'slot':
 				return genSlot(node, areas, scope);
-				case node.isUnknownElement:
+			case node.isUnknownElement:
 				return genComponent(node, areas, scope);
-				default:
+			default:
 				const tag = node.tagName;
+				const isTpl = tag === 'template' && !node['isCondition'];
 				let variable = getVarName(areas.variables, tag);
 				if (node.hasAttribute('$tag')) {
+					areas.variables.pop();
 					variable = genTag(node, areas, scope);
 				} else if (!node['isCondition']) {
 					areas.create.push(createElement(variable, tag));
@@ -73,11 +75,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 					const n = childNodes[i];
 					const el = genBlockAreas(n, areas, scope);
 					if (el) {
-						if (tag === 'template' && !node['isCondition']) {
-							areas.create.push(`_$a(${variable}.content, ${el});`);
-						} else {
-							areas.create.push(`_$a(${variable}, ${el});`);
-						}
+						areas.create.push(`_$a(${variable}${isTpl ? '.content' : ''}, ${el});`);
 					}
 					if (length !== childNodes.length) {
 						i--;
@@ -88,7 +86,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 				if (attr) {
 					areas.hydrate.push(attr);
 				}
-				return variable;	
+				return variable;
 		}
 	} else if (node.nodeType === 8) {
 		const variable = getVarName(areas.variables, 'comment');
