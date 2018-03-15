@@ -37,9 +37,9 @@ export function _$CompCtr(attrs, template, options) {
 			enumerable: true, configurable: true
 		});
 	});
-	const mounted = (this.$options.model || {}).mounted || function () { };
-	this.$set(this.$options.model || {});
-	const tpl = template(this, this.$options.children);
+	const mounted = opts.mounted || _$noop;
+	self.$set(opts.model || {});
+	const tpl = template(self, opts.children);
 	_$e(tpl, (value, key) => {
 		if (key === '$mount') {
 			value = (function (key) {
