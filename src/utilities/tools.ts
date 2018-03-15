@@ -82,7 +82,7 @@ export function filterParser(expression: string) {
 	const [variable, ...filters] = expression.split(/\s*\|\s*/);
 	return filters.length === 0 ? variable : filters.reduce((prevfilter, filter) => {
 		const [filterName, ...args] = filter.split(/\s/);
-		const params = args.length ? `, ${args.join(', ')}` : '';
-		return `$filters.${filterName}(${prevfilter ? prevfilter : variable}${params})`;
+		const params = args.join(', ');
+		return `$filters.${filterName}(${prevfilter ? prevfilter : variable}${params ? `, ${params}` : params})`;
 	}, '');
 }
