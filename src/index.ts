@@ -14,13 +14,13 @@ import { kebabToCamelCases, capitalize } from './utilities/tools';
 import { TryStatement, FunctionDeclaration, FunctionExpression } from 'estree';
 
 const deps = `import { 
-	_$CompCtr, _$, _$d, _$a, _$r, _$ce,	_$ct, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, 
-	_$e, _$is, _$ds, _$toStr, _$setRef
+	_$CompCtr, _$, _$d, _$a, _$as, _$r, _$ce,	_$ct, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, 
+	_$e, _$is, _$ds, _$toStr, _$setRef, _$noop
 } from 'trebor/tools';`;
 const tools = readFileSync(join(__dirname, '../tools/index.ts'), 'utf8');
 
 function genSource(html: string, opts: CompilerOptions) {
-	const body = getDoc(html);
+	const body = getDoc(html, !!opts.minify);
 	const { moduleName } = opts;
 	const { imports, template, extras, options } = genTemplate(body, 'state', opts);
 	if (!opts.out) {
@@ -28,8 +28,8 @@ function genSource(html: string, opts: CompilerOptions) {
 	}
 	const source = [...imports,
 		template, extras,
-	`function ${moduleName}(attrs) {
-			_$CompCtr.call(this, attrs, _$tpl${moduleName}, ${options});
+		`function ${moduleName}() {
+			_$CompCtr.call(this, arguments[0], _$tpl${moduleName}, ${options});
 		}
 		${moduleName}.prototype = Object.create(_$CompCtr.prototype);
 		${moduleName}.prototype.constructor = ${moduleName};`
@@ -65,7 +65,7 @@ function compileFile(options: CompilerOptions) {
 	}
 	const min = options.format === 'es' ? minifyES : minify;
 	writeFileSync(options.out, options.minify ? min(outputText, uglifyOptions).code : outputText, 'utf8');
-	if (options.format !== 'es') {
+	if (options.format !== 'es' && !options.minify) {
 		compilerOptions.module = 5;
 		let { outputText: esModule } = transpileModule([deps, source, exportFormat('es', moduleName)].join('\n'), { compilerOptions });
 		esModule = optimize(esModule);
@@ -92,13 +92,13 @@ function getOptions(options: CompilerOptions) {
 	} else if (options.format === 'system') {
 		compilerOptions.module = 4;
 	}
-	if (typeof options.minify === 'object') {
-		uglifyOptions = { ...{ mangle: {}, compress: {} }, ...options.minify };
+	if (options.minify) {
+		uglifyOptions.mangle = {};
 	}
 	return { uglifyOptions, compilerOptions };
 }
 
-function optimize(src) {
+function optimize(src: string, iteration = 0) {
 	const linter = new Linter();
 	const messages = linter.verify(src, {
 		parserOptions: { ecmaVersion: 8, sourceType: 'module' },
@@ -129,15 +129,16 @@ function optimize(src) {
 					break;
 				case node.type === 'TryStatement' && node.finalizer && canRemove(node.finalizer):
 					(<TryStatement>node).finalizer = null;
-					break;
+					return node;
 				case node.type === 'ImportDeclaration' || node.type === 'VariableDeclaration': {
 					const [subProp, prop] = node.type === 'ImportDeclaration' ? ['local', 'specifiers'] : ['id', 'declarations'];
 					let subs = node[prop];
 					node[prop] = subs.filter(n => !canRemove(n[subProp]));
 					if (node[prop].length === 0) {
 						this.remove();
+						break;
 					}
-					break;
+					return node;
 				}
 				case node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression': {
 					const { params } = (<FunctionDeclaration | FunctionExpression>node);
@@ -148,30 +149,33 @@ function optimize(src) {
 							i = 0;
 						}
 					}
-					break;
+					return node;
 				}
 				case node.type === 'DebuggerStatement':
 					this.remove();
+					break;
 				default:
 					return node;
 			}
 		}
 	});
-	return generate(ast, { format: { indent: { style: '  ' } } });
+	const out = generate(ast, { format: { indent: { style: '  ' } } });
+	iteration++;
+	return iteration < 3 ? optimize(out, iteration): out;
 }
 
 function umdTpl(moduleName: string, body: string) {
 	return `!function (global, factory) {
 	if (module !== undefined && typeof module.exports === 'object') {
-		factory(module, module.exports);
+		factory(module);
 	} else if (typeof define === 'function' && define.amd) {
 		define('${moduleName}', factory);
 	} else {
 		var module = { exports: {} };
-		factory(module, module.exports);
+		factory(module);
 		global.${moduleName} = module.exports;
 	}
-}(this, function (module, exports) {
+}(this, function (module) {
 	${body}
 });`;
 }

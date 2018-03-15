@@ -9,14 +9,8 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
 	const anchor = getVarName(areas.variables, 'conditionAnchor');
 	const block = getVarName(areas.variables, 'conditionBlock');
 	let root = getParent(areas.variables, node.parentElement.tagName);
-	let frag = '';
 	if (!root) {
-		root = getVarName(areas.variables, 'conditionRoot');
-		if (areas.mount[0].includes('_$d()')) {
-			frag = 'frag';
-		}
-		areas.mount.push(`${root} = _$(parent);`);
-		areas.mount.push(`_$a(${frag || root}, ${anchor});`);
+		areas.unmount.push(`_$a(frag, ${anchor});`);
 	} else {
 		areas.create.push(`_$a(${root}, ${anchor});`);
 	}
@@ -38,7 +32,7 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
 	node.parentElement.removeChild(node);
 	areas.outer.push(genCondition(scope, condition, areas.conditions.length));
 	areas.create.push(`${block}.$create();`);
-	areas.mount.push(`${block}.$mount(${frag || root}, ${anchor});`);
+	areas.unmount.push(`${block}.$mount(${root || 'frag'}, ${anchor});`);
 	areas.update.push(genConditionUpdate(scope, root, block, anchor, areas.conditions.length));
 	areas.destroy.push(`${block}.$destroy();`);
 }
@@ -59,30 +53,19 @@ function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, t
 	const subareas: BlockAreas = new BlockAreas();
 	subareas.globals = areas.globals;
 	subareas.conditions = areas.conditions;
-	let condition = '';
-	const roots: string[] = [];
+	subareas.variables.push('frag');
+	subareas.extras.push('frag = _$d();');
+	node['isCondition'] = true;
+	let condition = <string>genBlockAreas(node, subareas, scope);
+	delete node['isCondition'];
 	const tag = node.tagName;
-	condition = getVarName(subareas.variables, tag);
-	if (tag !== 'template') {
-		subareas.create.push(createElement(condition, tag));
+	if (tag === 'template') {
+		subareas.create.unshift(`${condition} = _$d();`);
 	} else {
-		subareas.create.push(`${condition} = _$d();`);
-		node.appendChild(node.content);
+		subareas.create.unshift(createElement(condition, tag));
 	}
-	roots.push(condition);
-	subareas.mount.push('const frag = _$d();');
-	node.childNodes.forEach(n => {
-		const el = genBlockAreas(n, subareas, scope);
-		if (el) {
-			roots.push(el);
-			subareas.create.push(`_$a(${condition}, ${el});`);
-		}
-	});
-	subareas.mount.push(`_$a(frag, ${condition});`);
+	subareas.unmount.push(`_$a(frag, ${condition});`);
 	subareas.mount.push('_$a(_$(parent), frag, _$(sibling));');
-	subareas.destroy.push(`if (${roots.join(' && ')}) {
-		${roots.map(root => `_$r(${root});`).join('\n')}
-	}`);
 	const condType = type ? type : 'else';
 	const condName = type.includes('elseIf') ? '_condition' : capitalize('condition');
 	return genBody(`${condType}${condName}_${subareas.conditions.length}`, scope, subareas, condType);
@@ -102,6 +85,10 @@ function genCondition(scope: string, { ifCond, elseIfConds, elseCond }: Conditio
 	}
 	if (elseCond) {
 		condition += `else return else${capitalize(funcName)}(${scope});`;
+	} else {
+		condition += `else return {
+			type: 'empty-else', $create: _$noop, $mount: _$noop, $update: _$noop, $destroy: _$noop
+		};`;
 	}
 	condition += '}';
 	return condition;

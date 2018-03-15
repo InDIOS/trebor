@@ -1,8 +1,8 @@
 import { parse } from 'himalaya';
 import { NodeElement } from './classes';
-import { Node, Element, Text } from '../types.d';
+import { Node, Element, Text, Comment } from '../types.d';
 
-function removeEmptyNodes(nodes: Node[]) {
+export function removeEmptyNodes(nodes: Node[]) {
 	return nodes.filter(node => {
 		if (node.type === 'element') {
 			(<Element>node).children = removeEmptyNodes((<Element>node).children);
@@ -12,7 +12,7 @@ function removeEmptyNodes(nodes: Node[]) {
 	});
 }
 
-function stripWhitespace(nodes: Node[]) {
+export function stripWhitespace(nodes: Node[]) {
 	return nodes.map(node => {
 		if (node.type === 'element') {
 			(<Element>node).children = stripWhitespace((<Element>node).children);
@@ -23,8 +23,15 @@ function stripWhitespace(nodes: Node[]) {
 	});
 }
 
-function removeWhitespace(nodes: Node[]) {
-	return removeEmptyNodes(stripWhitespace(nodes));
+export function removeComments(nodes:Node[]) {
+	return nodes.map(node => { 
+		if (node.type === 'element') {
+			(<Element>node).children = removeComments((<Element>node).children);
+		} else if (node.type === 'comment') {
+			(<Comment>node).content = '';
+		}
+		return node;
+	});
 }
 
 export function walkNode(root: NodeElement, walk: (el: NodeElement) => void, includeRoot: boolean = false) {
@@ -40,11 +47,16 @@ export function walkNode(root: NodeElement, walk: (el: NodeElement) => void, inc
 	});
 }
 
-function getNodes(html: string) {
-	return removeWhitespace(parse(html));
+function getNodes(html: string, noComments: boolean = false) {
+	let ast = parse(html);
+	ast = removeEmptyNodes(stripWhitespace(ast));
+	if (noComments) {
+		ast = removeEmptyNodes(removeComments(ast));
+	}
+	return ast;
 }
 
-export function getDoc(html: string) {
-	const children: Node[] = getNodes(html);
+export function getDoc(html: string, noComments: boolean = false) {
+	const children: Node[] = getNodes(html, noComments);
 	return new NodeElement(<Element>{ type: 'element', tagName: 'body', children, attributes: [] }, null);
 }

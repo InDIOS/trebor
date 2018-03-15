@@ -11,7 +11,6 @@ const toCSS = abs({ minify: true });
 
 export function genTemplate(node: NodeElement, scope: string, opts: CompilerOptions) {
 	const areas: BlockAreas = new BlockAreas();
-	const roots: string[] = [];
 	const links = node.querySelectorAll('links');
 	const styleNode = node.querySelector('style');
 	const scriptNode = node.querySelector('script');
@@ -51,23 +50,21 @@ export function genTemplate(node: NodeElement, scope: string, opts: CompilerOpti
 		script = scriptNode.innerHTML.trim();
 	}
 	const { imports, options, extras } = toOptions(script);
-	areas.mount.push('const frag = _$d();');
-	node.childNodes.forEach(n => {
-		if (n.nodeType === 8 && opts.noComments) {
-			return;
-		}
+	areas.variables.push('frag');
+	areas.extras.push('frag = _$d();');
+	let { length } = node.childNodes;
+	for (let i = 0; i < length; i++) {
+		const n = node.childNodes[i];
 		const el = genBlockAreas(n, areas, scope);
 		if (el) {
-			roots.push(el);
-			areas.mount.push(`_$a(frag, ${el});`);
+			areas.unmount.push(`_$a(frag, ${el});`);
 		}
-	});
-	areas.mount.push('_$a(_$(parent), frag, _$(sibling));');
-	if (roots.length) {
-		areas.destroy.push(`if (${roots.join(' && ')}) {
-			${roots.map(root => `_$r(${root});`).join('\n')}
-		}`);
+		if (length !== node.childNodes.length) {
+			i--;
+			length = node.childNodes.length;
+		}
 	}
+	areas.mount.push('_$a(_$(parent), frag, _$(sibling));');
 	areas.destroy.push(`delete ${scope}.$root;`);
 	const template = genBody(`_$tpl${opts.moduleName}`, scope, areas);
 	return { imports, template, extras, options };

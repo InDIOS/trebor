@@ -1,15 +1,18 @@
 export function _$CompCtr(attrs, template, options) {
+	const self = this;
 	if (!attrs) attrs = {};
-	['$slots', '$refs', '$filters', '$directives', '_events', '_watchers']
-		.forEach(prop => { _$def(this, prop, { value: {} }); });
-	_$def(this, '_subscribers', { value: {}, writable: true });
-	_$def(this, '$options', { value: options, writable: true });
-	if (!this.$options.attrs) this.$options.attrs = {};
-	if (options.filters) _$e(options.filters, (filter, key) => { this.$filters[key] = filter; });
-	if (!this.$options.children) this.$options.children = {};
-	if (options.directives) _$e(options.directives, (directive, key) => { this.$directives[key] = _$drt(directive); });
-	_$e(this.$options.attrs, (attrOps, key) => {
-		_$def(this, _$isType(key, 'number') ? attrOps : key, {
+	_$e(['$slots', '$refs', '$filters', '$directives', '_events', '_watchers'], prop => {
+		_$def(self, prop, { value: {} });
+	});
+	_$def(self, '_subscribers', { value: {}, writable: true });
+	_$def(self, '$options', { value: options, writable: true });
+	const opts = self.$options;
+	if (!opts.attrs) opts.attrs = {};
+	if (options.filters) _$e(options.filters, (filter, key) => { self.$filters[key] = filter; });
+	if (!opts.children) opts.children = {};
+	if (options.directives) _$e(options.directives, (directive, key) => { self.$directives[key] = _$drt(directive); });
+	_$e(opts.attrs, (attrOps, key) => {
+		_$def(self, _$isType(key, 'number') ? attrOps : key, {
 			get() {
 				if (_$isType(attrOps, 'string')) {
 					return _$isType(attrs[attrOps], 'function') ? attrs[attrOps]() : attrs[attrOps];
@@ -18,13 +21,13 @@ export function _$CompCtr(attrs, template, options) {
 						console.error(`Attribute '${key}' most be present because it's required.`);
 					} else {
 						let value = _$isType(attrs[key], 'function') ? attrs[key]() : attrs[key];
-						if (value === void 0 && _$hasProp(options, 'default')) {
-							value = _$isType(attrOps.default, 'function') ? attrOps.default : attrOps.default();
+						if (value === void 0 && _$hasProp(attrOps, 'default')) {
+							value = _$isType(attrOps.default, 'function') ? attrOps.default() : attrOps.default;
 						}
 						if (attrOps.type && !_$isType(value, attrOps.type)) {
 							return console.error(`Attribute '${key}' most be type '${attrOps.type}'.`);
 						}
-						return _$toType(value, attrOps.type, this, key);
+						return _$toType(value, attrOps.type, self, key);
 					}
 				}
 			},
@@ -34,9 +37,9 @@ export function _$CompCtr(attrs, template, options) {
 			enumerable: true, configurable: true
 		});
 	});
-	const mounted = (this.$options.model || {}).mounted || function () { };
-	this.$set(this.$options.model || {});
-	const tpl = template(this, this.$options.children);
+	const mounted = opts.mounted || _$noop;
+	self.$set(opts.model || {});
+	const tpl = template(self, opts.children);
 	_$e(tpl, (value, key) => {
 		if (key === '$mount') {
 			value = (function (key) {
@@ -47,14 +50,14 @@ export function _$CompCtr(attrs, template, options) {
 				};
 			})(key);
 		}
-		_$def(this, key, { value });
+		_$def(self, key, { value });
 	});
-	_$def(this, '$data', {
+	_$def(self, '$data', {
 		get() {
 			return _$toPlainObj(this);
 		}
 	});
-	this.$create();
+	self.$create();
 }
 _$CompCtr.prototype.$set = function (value) {
 	_$accesor(this, value, this, null);
@@ -78,18 +81,18 @@ _$CompCtr.prototype.$once = function (event, handler) {
 };
 _$CompCtr.prototype.$fire = function (event, data) {
 	if (this._events[event]) {
-		this._events[event].forEach(handler => { handler(data); });
+		_$e(this._events[event], handler => { handler(data); });
 	}
 };
 _$CompCtr.prototype.$notify = function (key) {
 	if (this._subscribers[key]) {
-		this._subscribers[key].forEach(suscriber => { suscriber(); });
+		_$e(this._subscribers[key], suscriber => { suscriber(); });
 	}
 };
 _$CompCtr.prototype.$observe = function (deps, listener) {
 	const subs = [];
-	if (Array.isArray(deps)) {
-		deps.forEach(dep => {
+	if (_$isType(deps, 'array')) {
+		_$e(deps, dep => {
 			subs.push({ sub: dep, i: _$subs.call(this, dep, listener) });
 		});
 	} else {
@@ -97,7 +100,7 @@ _$CompCtr.prototype.$observe = function (deps, listener) {
 	}
 	return {
 		$unobserve: () => {
-			subs.forEach(sub => {
+			_$e(subs, sub => {
 				this._subscribers[sub.sub].splice(sub.i, 1);
 			});
 		}
@@ -116,7 +119,7 @@ _$CompCtr.prototype.$watch = function (key, watcher) {
 };
 const array = Array.prototype;
 function _$arrayValues(list, value, root, key) {
-	value.forEach(v => {
+	_$e(value, v => {
 		array.push.call(list, null);
 		_$accesor(list, { [list.length - 1]: v }, root, key);
 	});
@@ -125,7 +128,7 @@ function _$List(value, root, key) {
 	Array.apply(this, [value.length]);
 	_$arrayValues(this, value, root, key);
 	_$def(this, 'length', { value: value.length, writable: true, configurable: false, enumerable: false });
-	['pop', 'push', 'reverse', 'shift', 'sort', 'fill', 'unshift', 'splice'].forEach(method => {
+	_$e(['pop', 'push', 'reverse', 'shift', 'sort', 'fill', 'unshift', 'splice'], method => {
 		_$List.prototype[method] = function (...args) {
 			const old = this.slice();
 			let result;
@@ -160,12 +163,12 @@ _$List.prototype.pull = function (index, ...items) {
 function _$dispatch(root, key, oldVal, value) {
 	root.$notify(key);
 	if (root._watchers[key]) {
-		root._watchers[key].forEach(watcher => { watcher(oldVal, value); });
+		_$e(root._watchers[key], watcher => { watcher(oldVal, value); });
 	}
 	root.$update(root);
 }
 function _$isType(value, type) {
-	return _$type(type) === 'function' ? value instanceof type : _$type(value) === type;
+	return _$type(type) === 'function' && _$type(value) === 'object' ? value instanceof type : _$type(value) === type;
 }
 function _$isObject(obj) {
 	return _$isType(obj, 'object');
@@ -221,6 +224,7 @@ function _$drt(directive) {
 		}
 	};
 }
+export function _$noop() {}
 export function _$toStr(obj) {
 	const str: string = _$type(obj);
 	return !/null|undefined/.test(str) ? obj.toString() : str;
@@ -257,7 +261,7 @@ export function _$setRef(obj: Object, prop: string) {
 }
 function _$accesor(obj, data, root, pKey) {
 	for (const key in data) {
-		if (_$hasProp(data, key) && !_$hasProp(obj, key)) {
+		if (_$hasProp(data, key)) {
 			const desc = Object.getOwnPropertyDescriptor(data, key);
 			if ((_$isType(desc.value, 'undefined') || !_$isType(desc.value, 'function')) && desc.configurable) {
 				let value = data[key];
@@ -299,8 +303,6 @@ function _$accesor(obj, data, root, pKey) {
 			} else {
 				_$def(obj, key, desc);
 			}
-		} else {
-			obj[key] = data[key];
 		}
 	}
 }
@@ -322,6 +324,19 @@ export function _$d() {
 export function _$a(parent, child, sibling?) {
 	if (!sibling) parent.appendChild(child);
 	else parent.insertBefore(child, sibling);
+}
+export function _$as(source, dest) {
+	const childNodes = source.childNodes;
+	const attributes = source.attributes;
+	for (let i = 0; i < childNodes.length; i++) {
+		_$a(dest, childNodes[i]);
+	}
+	for (let i = 0; i < attributes.length; i++) {
+		const attr = attributes[i];
+		dest.setAttribute(attr.name, attr.value);
+	}
+	source.parentElement.replaceChild(dest, source);
+	return dest;
 }
 export function _$r(el, parent) {
 	let root = parent || el.parentElement;

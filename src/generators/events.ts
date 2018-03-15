@@ -18,7 +18,7 @@ export function genEvent(variable: string, eventArgs: string, expression: string
 		event.stopPropagation();` : ''}${eventFuncName}(${scope}${params}, event, ${variable});
 	}`;
 	areas.hydrate.push(`_$al(${variable}, '${event}', ${handlerFuncName} = ${handler});`);
-	if (areas.globals.length) {
+	if (!!areas.globals.length || variable.startsWith('_$node')) {
 		areas.update.push(`${handlerFuncName} = _$ul(${variable}, '${event}', ${handlerFuncName}, ${handler});`);
 	}
 	areas.destroy.push(`_$rl(${variable}, '${event}', ${handlerFuncName});`);

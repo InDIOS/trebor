@@ -1,18 +1,18 @@
 import { ctx } from '../utilities/context';
-import { capitalize } from '../utilities/tools';
 import { BlockAreas } from '../utilities/classes';
+import { capitalize, filterParser } from '../utilities/tools';
 
 export function genBind(variable: string, attr: string, expression: string, areas: BlockAreas, scope: string, type: string, classes: string) {
 	const bindFuncName = `bind${capitalize(attr)}${capitalize(variable)}`;
 	const updateVar = `update${capitalize(attr)}${capitalize(variable)}`;
 	[scope] = scope.split(', ');
 	let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
-	let bindExp = expression === null ? 'true' : `${ctx(expression, scope, areas.globals)}`;
+	let bindExp = expression === null ? 'true' : `${ctx(filterParser(expression), scope, areas.globals)}`;
 	if (attr === 'class' || attr === 'style') {
 		if (attr === 'class') {
-			bindExp = `(${classes ? `'${classes} ' + ` : ''}_$bc(${ctx(expression, scope, areas.globals)})).trim()`;
+			bindExp = `(${classes ? `'${classes} ' + ` : ''}_$bc(${bindExp})).trim()`;
 		} else {
-			bindExp = `_$bs(${ctx(expression, scope, areas.globals)})`;
+			bindExp = `_$bs(${bindExp})`;
 		}
 	}
 	areas.variables.push(bindFuncName);

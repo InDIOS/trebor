@@ -75,6 +75,16 @@ export function ctx(src: string, ctx: string, globs: string[]) {
 					context(deps, node, 'expression', ctx);
 					break;
 				}
+				case types.TemplateLiteral: {
+					for (let i = 0; i < node.expressions.length; i++) {
+						const expression = node.expressions[i];
+						if ((<Identifier>expression).name) {
+							context(deps, expression, null, ctx);
+							node.expressions.splice(i, 1, expression);
+						}
+					}
+					break;
+				}
 				case types.SpreadElement:
 				case types.UnaryExpression:
 				case types.UpdateExpression: {
@@ -85,7 +95,7 @@ export function ctx(src: string, ctx: string, globs: string[]) {
 					for (let i = 0; i < node.elements.length; i++) {
 						const element = node.elements[i];
 						if ((<Identifier>element).name) {
-							context(deps, node, null, ctx);
+							context(deps, element, null, ctx);
 							node.elements.splice(i, 1, element);
 						}
 					}

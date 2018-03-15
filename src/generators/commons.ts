@@ -3,11 +3,14 @@ import { genForItem } from './loops';
 import { genHtml } from './directives';
 import { ctx } from '../utilities/context';
 import { genSetAttrs } from './attributes';
-import { genSlot, genComponent } from './components';
+import { AllHtmlEntities } from 'html-entities';
+import { genSlot, genComponent, genTag } from './components';
 import { NodeElement, BlockAreas } from '../utilities/classes';
 import {
 	getVarName, capitalize, createNode, createElement, escapeExp, filterParser
 } from '../utilities/tools';
+
+const entities = new AllHtmlEntities();
 
 export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: string) {
 	if (node.nodeType === 3) {
@@ -24,7 +27,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 					int = int.replace(/{{(.+?)}}/g, (_, replacer: string) => replacer.trim());
 					return `(${ctx(filterParser(int), scope, areas.globals)})`;
 				} else {
-					return `'${int}'`;
+					return `'${entities.decode(int)}'`;
 				}
 			}).join('+');
 			let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
@@ -36,7 +39,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 			return variable;
 		} else {
 			variable = getVarName(areas.variables, 'txt');
-			areas.create.push(createNode(variable, `'${escapeExp(node.textContent)}'`));
+			areas.create.push(createNode(variable, `'${escapeExp(entities.decode(node.textContent))}'`));
 			return variable;
 		}
 	} else if (node.nodeType === 1) {
@@ -55,19 +58,35 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 				return genComponent(node, areas, scope);
 			default:
 				const tag = node.tagName;
+				const isTpl = tag === 'template' && !node['isCondition'];
 				let variable = getVarName(areas.variables, tag);
-				areas.create.push(createElement(variable, tag));
-				node.childNodes.forEach(element => {
-					const el = genBlockAreas(element, areas, scope);
+				if (node.hasAttribute('$tag')) {
+					areas.variables.pop();
+					variable = genTag(node, areas, scope);
+				} else if (!node['isCondition']) {
+					areas.create.push(createElement(variable, tag));
+				}
+				let childNodes: NodeElement[] = node.childNodes;
+				if (tag === 'template') {
+					childNodes = node.content.childNodes;
+				}
+				let { length } = childNodes;
+				for (let i = 0; i < length; i++) {
+					const n = childNodes[i];
+					const el = genBlockAreas(n, areas, scope);
 					if (el) {
-						areas.create.push(`_$a(${variable}, ${el});`);
+						areas.create.push(`_$a(${variable}${isTpl ? '.content' : ''}, ${el});`);
 					}
-				});
+					if (length !== childNodes.length) {
+						i--;
+						length = childNodes.length;
+					}
+				}
 				const attr = genSetAttrs(variable, node, scope, areas);
 				if (attr) {
 					areas.hydrate.push(attr);
 				}
-				return variable;	
+				return variable;
 		}
 	} else if (node.nodeType === 8) {
 		const variable = getVarName(areas.variables, 'comment');
@@ -82,7 +101,7 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 		${areas.variables.length === 0 ? '' : `let ${areas.variables.join(', ')}`};${areas.extras.length === 0 ? '' : `
 		${areas.extras.join('\n')}`}
 		return {
-			${!condType ? '' : `type: '${condType.split('_')[0]}'
+			${!condType ? '' : `type: '${condType}'
 			,`}$create() {
 				${areas.create.join('\n')}${areas.hydrate.length === 0 ? '' : `
 				this.$hydrate();`}
@@ -91,14 +110,18 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				${areas.hydrate.join('\n')}
 			},`}
       $mount(parent, sibling) {
+				this.$unmount();
 				${areas.mount.join('\n')}${areas.mountDirt.length === 0 ? '' : `
-				${areas.mountDirt.join('\n')}
-				`}
+				${areas.mountDirt.join('\n')}`}
 			},${areas.update.length === 0 ? '\n$update() {},' : `
 			$update(${scope}) {
         ${areas.update.join('\n')}
-      },`}
+			},`}
+			$unmount() {
+				${areas.unmount.join('\n')}
+			},
       $destroy() {
+				this.$unmount();
 				${areas.destroy.join('\n')}
 				${areas.variables.join(' = ')} = void 0;
       }

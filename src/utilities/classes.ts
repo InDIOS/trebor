@@ -1,4 +1,5 @@
 import { parse, stringify } from 'himalaya';
+import { removeEmptyNodes, stripWhitespace } from './html';
 import { Node, Element, Attribute, Text } from '../types.d';
 
 export interface Condition {
@@ -14,6 +15,7 @@ export class BlockAreas {
 	mount: string[] = [];
 	mountDirt: string[] = [];
 	update: string[] = [];
+	unmount: string[] = [];
 	destroy: string[] = [];
 	outer: string[] = [];
 	extras: string[] = [];
@@ -74,7 +76,7 @@ export class NodeElement {
 		if (this.nodeType === 1 && this.tagName === 'template') {
 			const { content } = <Text>(<Element>node).children[0];
 			this._textContent = content;
-			const children = parse(content);
+			const children = removeEmptyNodes(stripWhitespace(parse(content)));
 			const frag = new NodeElement(<any>{ type: 'fragment', children }, null);
 			this.content = frag;
 		}
