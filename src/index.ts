@@ -14,8 +14,8 @@ import { kebabToCamelCases, capitalize } from './utilities/tools';
 import { TryStatement, FunctionDeclaration, FunctionExpression } from 'estree';
 
 const deps = `import { 
-	_$CompCtr, _$, _$d, _$a, _$r, _$ce,	_$ct, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, 
-	_$e, _$is, _$ds, _$toStr, _$setRef
+	_$CompCtr, _$, _$d, _$a, _$as, _$r, _$ce,	_$ct, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, 
+	_$e, _$is, _$ds, _$toStr, _$setRef, _$noop
 } from 'trebor/tools';`;
 const tools = readFileSync(join(__dirname, '../tools/index.ts'), 'utf8');
 
