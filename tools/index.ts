@@ -165,7 +165,7 @@ function _$dispatch(root, key, oldVal, value) {
 	root.$update(root);
 }
 function _$isType(value, type) {
-	return _$type(type) === 'function' ? value instanceof type : _$type(value) === type;
+	return _$type(type) === 'function' && _$type(value) === 'object' ? value instanceof type : _$type(value) === type;
 }
 function _$isObject(obj) {
 	return _$isType(obj, 'object');
