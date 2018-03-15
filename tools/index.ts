@@ -21,8 +21,8 @@ export function _$CompCtr(attrs, template, options) {
 						console.error(`Attribute '${key}' most be present because it's required.`);
 					} else {
 						let value = _$isType(attrs[key], 'function') ? attrs[key]() : attrs[key];
-						if (value === void 0 && _$hasProp(options, 'default')) {
-							value = _$isType(attrOps.default, 'function') ? attrOps.default : attrOps.default();
+						if (value === void 0 && _$hasProp(attrOps, 'default')) {
+							value = _$isType(attrOps.default, 'function') ? attrOps.default() : attrOps.default;
 						}
 						if (attrOps.type && !_$isType(value, attrOps.type)) {
 							return console.error(`Attribute '${key}' most be type '${attrOps.type}'.`);
@@ -260,7 +260,7 @@ export function _$setRef(obj: Object, prop: string) {
 }
 function _$accesor(obj, data, root, pKey) {
 	for (const key in data) {
-		if (_$hasProp(data, key) && !_$hasProp(obj, key)) {
+		if (_$hasProp(data, key)) {
 			const desc = Object.getOwnPropertyDescriptor(data, key);
 			if ((_$isType(desc.value, 'undefined') || !_$isType(desc.value, 'function')) && desc.configurable) {
 				let value = data[key];
@@ -302,8 +302,6 @@ function _$accesor(obj, data, root, pKey) {
 			} else {
 				_$def(obj, key, desc);
 			}
-		} else {
-			obj[key] = data[key];
 		}
 	}
 }
