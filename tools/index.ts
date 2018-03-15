@@ -224,6 +224,7 @@ function _$drt(directive) {
 		}
 	};
 }
+export function _$noop() {}
 export function _$toStr(obj) {
 	const str: string = _$type(obj);
 	return !/null|undefined/.test(str) ? obj.toString() : str;
