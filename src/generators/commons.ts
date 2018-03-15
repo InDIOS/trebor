@@ -96,14 +96,18 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				${areas.hydrate.join('\n')}
 			},`}
       $mount(parent, sibling) {
+				this.$unmount();
 				${areas.mount.join('\n')}${areas.mountDirt.length === 0 ? '' : `
-				${areas.mountDirt.join('\n')}
-				`}
+				${areas.mountDirt.join('\n')}`}
 			},${areas.update.length === 0 ? '\n$update() {},' : `
 			$update(${scope}) {
         ${areas.update.join('\n')}
       },`}
+			$unmount() {
+				${areas.unmount.join('\n')}
+			},
       $destroy() {
+				this.$unmount();
 				${areas.destroy.join('\n')}
 				${areas.variables.join(' = ')} = void 0;
       }

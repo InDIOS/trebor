@@ -15,6 +15,7 @@ export class BlockAreas {
 	mount: string[] = [];
 	mountDirt: string[] = [];
 	update: string[] = [];
+	unmount: string[] = [];
 	destroy: string[] = [];
 	outer: string[] = [];
 	extras: string[] = [];

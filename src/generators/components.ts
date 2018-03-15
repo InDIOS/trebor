@@ -39,7 +39,7 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
 	});
 	let root = getParent(areas.variables, node.parentElement.tagName);
 	if (!root) root = 'frag';
-	areas.mount.push(`_$a(${root}, ${slot});`);
+	areas.unmount.push(`_$a(${root}, ${slot});`);
 }
 
 export function genComponent(node: NodeElement, areas: BlockAreas, scope: string) {
@@ -48,7 +48,6 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
 	const varName = kebabToCamelCases(tag);
 	const anchor = getVarName(areas.variables, `${varName}Anchor`);
 	const variable = getVarName(areas.variables, varName);
-	let frag = '';
 	let root = getParent(areas.variables, node.parentElement.tagName);
 	let attrs = '{';
 	const extras: string[] = [];
@@ -75,13 +74,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
 	areas.extras.push(`${variable} = new ${capitalize(varName)}(${attrs});`);
 	areas.extras = areas.extras.concat(extras);
 	if (!root) {
-		if (areas.mount[0].includes('_$d()')) {
-			frag = 'frag';
-		} else {
-			root = getVarName(areas.variables, `${varName}Root`);
-			areas.mount.push(`${root} = _$(parent);`);
-		}
-		areas.mount.push(`_$a(${frag || root}, ${anchor});`);
+		areas.unmount.push(`_$a(frag, ${anchor});`);
 	} else {
 		areas.create.push(`_$a(${root}, ${anchor});`);
 	}
@@ -101,9 +94,9 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
 		const slotDec = `${variable}.$slots['${slotName}']`;
 		const init = `${slotDec} = _$d();`;
 		if (!areas.extras.includes(init)) {
-			areas.extras.push(`if (${slotDec} && ${slotDec}.childNodes.length !== 0) {`);
-			areas.extras.push(init);
-			areas.extras.push('}');
+			areas.extras.push(`if (${slotDec} && ${slotDec}.childNodes.length !== 0) {
+				${init}
+			}`);
 		}
 		n.childNodes.forEach(child => {
 			const el = genBlockAreas(child, areas, scope);
@@ -111,11 +104,11 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
 				areas.create.push(`_$a(${slot}, ${el});`);
 			}
 		});
-		areas.create.push(`if (${slotDec}) {`);
-		areas.create.push(`_$a(${slotDec}, ${slot});`);
-		areas.create.push('}');
+		areas.create.push(`if (${slotDec}) {
+			_$a(${slotDec}, ${slot});
+		}`);
 	});
-	areas.mount.push(`${variable}.$mount(${frag || root}, ${anchor});`);
+	areas.unmount.push(`${variable}.$mount(frag, ${anchor});`);
 	areas.update.push(`${variable}.$update(${variable});`);
 	areas.destroy.push(`${variable}.$destroy();`);
 }

@@ -9,14 +9,8 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
 	const anchor = getVarName(areas.variables, 'conditionAnchor');
 	const block = getVarName(areas.variables, 'conditionBlock');
 	let root = getParent(areas.variables, node.parentElement.tagName);
-	let frag = '';
 	if (!root) {
-		root = getVarName(areas.variables, 'conditionRoot');
-		if (areas.mount[0].includes('_$d()')) {
-			frag = 'frag';
-		}
-		areas.mount.push(`${root} = _$(parent);`);
-		areas.mount.push(`_$a(${frag || root}, ${anchor});`);
+		areas.unmount.push(`_$a(frag, ${anchor});`);
 	} else {
 		areas.create.push(`_$a(${root}, ${anchor});`);
 	}
@@ -38,7 +32,7 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
 	node.parentElement.removeChild(node);
 	areas.outer.push(genCondition(scope, condition, areas.conditions.length));
 	areas.create.push(`${block}.$create();`);
-	areas.mount.push(`${block}.$mount(${frag || root}, ${anchor});`);
+	areas.unmount.push(`${block}.$mount(${root || 'frag'}, ${anchor});`);
 	areas.update.push(genConditionUpdate(scope, root, block, anchor, areas.conditions.length));
 	areas.destroy.push(`${block}.$destroy();`);
 }
@@ -61,6 +55,8 @@ function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, t
 	subareas.conditions = areas.conditions;
 	let condition = '';
 	const roots: string[] = [];
+	subareas.variables.push('frag');
+	subareas.extras.push('frag = _$d();');
 	const tag = node.tagName;
 	condition = getVarName(subareas.variables, tag);
 	if (tag !== 'template') {
@@ -78,7 +74,7 @@ function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, t
 			subareas.create.push(`_$a(${condition}, ${el});`);
 		}
 	});
-	subareas.mount.push(`_$a(frag, ${condition});`);
+	subareas.unmount.push(`_$a(frag, ${condition});`);
 	subareas.mount.push('_$a(_$(parent), frag, _$(sibling));');
 	subareas.destroy.push(`if (${roots.join(' && ')}) {
 		${roots.map(root => `_$r(${root});`).join('\n')}
