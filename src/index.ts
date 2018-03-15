@@ -167,15 +167,15 @@ function optimize(src: string, iteration = 0) {
 function umdTpl(moduleName: string, body: string) {
 	return `!function (global, factory) {
 	if (module !== undefined && typeof module.exports === 'object') {
-		factory(module, module.exports);
+		factory(module);
 	} else if (typeof define === 'function' && define.amd) {
 		define('${moduleName}', factory);
 	} else {
 		var module = { exports: {} };
-		factory(module, module.exports);
+		factory(module);
 		global.${moduleName} = module.exports;
 	}
-}(this, function (module, exports) {
+}(this, function (module) {
 	${body}
 });`;
 }
