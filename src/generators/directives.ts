@@ -5,12 +5,12 @@ import { genSetAttrs } from './attributes';
 import { BlockAreas, NodeElement } from '../utilities/classes';
 import { capitalize, getVarName, createElement, camelToKebabCase, kebabToCamelCases } from '../utilities/tools';
 
-export function genModel(target: string, node: NodeElement, areas: BlockAreas, scope: string) {
+export function genValue(target: string, node: NodeElement, areas: BlockAreas, scope: string) {
 	const type = node.getAttribute('type');
-	const value = node.getAttribute('$model');
+	const value = node.getAttribute('$value');
 	if (/input|select|textarea/.test(node.tagName) && !/checkbox|radio/.test(type)) {
 		const event = /date|file/.test(type) || node.tagName === 'select' ? 'change' : 'input';
-		genEvent(target, event, `${value} = $el.value`, areas, scope);
+		genEvent(target, event, `${value} = ${/number|range/.test(type) ? '+' : ''}$el.value`, areas, scope);
 		genBind(target, 'value', value, areas, scope, type, null);
 	} else if (node.tagName === 'input' && /checkbox|radio/.test(type)) {
 		genEvent(target, 'change', `${value} = $el.checked`, areas, scope);
@@ -94,7 +94,7 @@ export function genRefs(scope: string, areas: BlockAreas, value: string, target:
 	areas.extras.push(`_refs = ${env}.$refs;`);
   areas.create.push(`!_refs['${value}'] && _$setRef(_refs, '${value}');
 	_refs['${value}'] = ${target};`);
-	areas.destroy.push(`if (Array.isArray(_refs['${value}'])) {
+  areas.destroy.push(`if (_$isType(_refs['${value}'], 'array')) {
 		const index${capitalize(target)} = _refs['${value}'].indexOf(${target});
 		_refs['${value}'].splice(index${capitalize(target)}, 1);
 	} else {
