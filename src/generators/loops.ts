@@ -11,7 +11,7 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
 	let root = getParent(areas.variables, node.parentElement.tagName);
 	const anchor = getVarName(areas.variables, `loopAnchor_${areas.loops}`);
 	if (!root) {
-		areas.unmount.push(`_$a(frag, ${anchor});`);
+		areas.unmount.push(`_$a(_$frag, ${anchor});`);
 	} else {
 		areas.create.push(`_$a(${root}, ${anchor});`);
 	}
@@ -24,7 +24,7 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
 	areas.extras.push(`${loopBlock} = _$f(${scope}, ${variable}, itemLoop_${areas.loops});`);
 	areas.extras.push(`${anchor} = _$ct();`);
 	areas.create.push(`${loopBlock}.$create();`);
-	areas.unmount.push(`${loopBlock}.$mount(${root || 'frag'}, ${anchor});`);
+	areas.unmount.push(`${loopBlock}.$mount(${root || '_$frag'}, ${anchor});`);
 	areas.update.push(`${loopBlock}.$update(${scope}, ${variable});`);
 	areas.destroy.push(`${loopBlock}.$destroy();`);
 }
@@ -47,15 +47,15 @@ function genLoopItem(scope: string, node: NodeElement, variable: string, index: 
 	if (tag === 'template') {
 		node.appendChild(node.content);
 	}
-	subareas.variables.push('frag');
-	subareas.extras.push('frag = _$d();');
+	subareas.variables.push('_$frag');
+	subareas.extras.push('_$frag = _$d();');
 	item = genBlockAreas(node, subareas, scope);
 	if (tag === 'template') {
 		subareas.create.splice(0, 1, `${item} = _$d();`);
 	}
 	if (item) {
-		subareas.unmount.push(`_$a(frag, ${item});`);
+		subareas.unmount.push(`_$a(_$frag, ${item});`);
 	}
-	subareas.mount.push('_$a(_$(parent), frag, _$(sibling));');
+	subareas.mount.push('_$a(_$(parent), _$frag, _$(sibling));');
 	return genBody(loop, scope, subareas);
 }

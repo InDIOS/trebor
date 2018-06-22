@@ -50,21 +50,21 @@ export function genTemplate(node: NodeElement, scope: string, opts: CompilerOpti
 		script = scriptNode.innerHTML.trim();
 	}
 	const { imports, options, extras } = toOptions(script);
-	areas.variables.push('frag');
-	areas.extras.push('frag = _$d();');
+	areas.variables.push('_$frag');
+	areas.extras.push('_$frag = _$d();');
 	let { length } = node.childNodes;
 	for (let i = 0; i < length; i++) {
 		const n = node.childNodes[i];
 		const el = genBlockAreas(n, areas, scope);
 		if (el) {
-			areas.unmount.push(`_$a(frag, ${el});`);
+			areas.unmount.push(`_$a(_$frag, ${el});`);
 		}
 		if (length !== node.childNodes.length) {
 			i--;
 			length = node.childNodes.length;
 		}
 	}
-	areas.mount.push('_$a(_$(parent), frag, _$(sibling));');
+	areas.mount.push('_$a(_$(parent), _$frag, _$(sibling));');
 	areas.destroy.push(`delete ${scope}.$root;`);
 	const template = genBody(`_$tpl${opts.moduleName}`, scope, areas);
 	return { imports, template, extras, options };
