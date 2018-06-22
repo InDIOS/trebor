@@ -26,9 +26,8 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 				if (int.startsWith('{{') && int.endsWith('}}')) {
 					int = int.replace(/{{(.+?)}}/g, (_, replacer: string) => replacer.trim());
 					return `(${ctx(filterParser(int), scope, areas.globals)})`;
-				} else {
-					return `'${entities.decode(int)}'`;
 				}
+        return `'${entities.decode(int)}'`;
 			}).join('+');
 			let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
 			const setTxt = `${setVariable}(${scope}${params})`;

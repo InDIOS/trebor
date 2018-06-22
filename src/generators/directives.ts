@@ -92,9 +92,7 @@ export function genRefs(scope: string, areas: BlockAreas, value: string, target:
 	const [env] = scope.split(', ');
 	areas.variables.push('_refs');
 	areas.extras.push(`_refs = ${env}.$refs;`);
-	areas.create.push(`if (!_refs['${value}']) {
-		_$setRef(_refs, '${value}');
-	}
+  areas.create.push(`!_refs['${value}'] && _$setRef(_refs, '${value}');
 	_refs['${value}'] = ${target};`);
 	areas.destroy.push(`if (Array.isArray(_refs['${value}'])) {
 		const index${capitalize(target)} = _refs['${value}'].indexOf(${target});

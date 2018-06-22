@@ -9,11 +9,7 @@ export function genBind(variable: string, attr: string, expression: string, area
 	let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
 	let bindExp = expression === null ? 'true' : `${ctx(filterParser(expression), scope, areas.globals)}`;
 	if (attr === 'class' || attr === 'style') {
-		if (attr === 'class') {
-			bindExp = `(${classes ? `'${classes} ' + ` : ''}_$bc(${bindExp})).trim()`;
-		} else {
-			bindExp = `_$bs(${bindExp})`;
-		}
+    bindExp = attr === 'class' ? `_$bs(${bindExp})` : `(${classes ? `'${classes} ' + ` : ''}_$bc(${bindExp})).trim()`;
 	}
 	areas.variables.push(bindFuncName);
 	areas.extras.push(`${bindFuncName} = (${scope}${params}) => ${bindExp};`);
