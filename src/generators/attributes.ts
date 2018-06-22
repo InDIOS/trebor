@@ -6,24 +6,25 @@ import { genShow, genDirective, genModel, genRefs } from './directives';
 
 export function genSetAttrs(target: string, node: NodeElement, scope: string, areas: BlockAreas) {
 	let res = '';
-	sortAttrs(node.attributes).forEach(({ key, value }) => {
-		if (key === '$show') {
+  sortAttrs(node.attributes).forEach(({ key, value }) => {
+    let [attr] = key.split('.');
+		if (attr === '$show') {
 			genShow(target, node, areas, scope);
 		} else if (key.split('.')[0] === '$model') {
 			genModel(target, node, areas, scope);
-		} else if (key[0] === '$') {
+		} else if (attr[0] === '$') {
 			genDirective(target, key.slice(1), value, areas, scope);
-		} else if (key[0] === '@') {
+		} else if (attr[0] === '@') {
 			genEvent(target, key.slice(1), value, areas, scope);
-		} else if (key[0] === ':') {
+		} else if (attr[0] === ':') {
 			const type = node.getAttribute('type');
 			const classes = node.getAttribute('class');
-			if (node.hasAttribute('class') && key.slice(1) === 'class') node.removeAttribute('class');
-			genBind(target, key.slice(1), value, areas, scope, type || null, classes || null);
-		} else if (key === 'refs') {
+			if (node.hasAttribute('class') && attr.slice(1) === 'class') node.removeAttribute('class');
+			genBind(target, attr.slice(1), value, areas, scope, type || null, classes || null);
+		} else if (attr === 'refs') {
 			genRefs(scope, areas, value, target);
 		} else {
-			res += `_$sa(${target}, '${key}', ${value ? `'${value}'` : `''`});`;
+			res += `_$sa(${target}, '${attr}', ${value ? `'${value}'` : `''`});`;
 		}
 	});
 	return res;
