@@ -43,7 +43,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 		}
 	} else if (node.nodeType === 1) {
 		switch (true) {
-			case node.hasAttribute('$for'):
+      case node.hasAttribute('$for') && !node.hasAttribute('$if'):
 				return genForItem(node, areas, scope);
 			case node.hasAttribute('$if'):
 				return genIf(node, areas, scope);
