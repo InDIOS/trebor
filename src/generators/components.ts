@@ -17,10 +17,10 @@ export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
     const code = ctx(filterParser(expression), scope, areas.globals);
     let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
     const setTag = `${setElement}(${scope}${params})`;
-	areas.extras.push(`${setElement} = (${scope}${params}) => ${code};`);
-	areas.create.push(`${element} = _$ce(${setTag});`);
-	areas.update.push(`let ${updateTag} = ${setTag};
-	if (${updateTag}.toUpperCase() !== ${element}.tagName) {
+    areas.extras.push(`${setElement} = (${scope}${params}) => ${code};`);
+    areas.create.push(`${element} = _$ce(${setTag});`);
+    areas.update.push(`let ${updateTag} = ${setTag};
+		if (${updateTag}.toUpperCase() !== ${element}.tagName) {
 			${element} = _$as(${element}, _$ce(${updateTag}));
 		}
 		${updateTag} = void 0;`);
@@ -31,14 +31,14 @@ export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
 }
 
 export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
-	const slotName = node.getAttribute('name') || 'default';
-	const slot = `${scope.split(', ')[0]}.$slots['${slotName}']`;
-	areas.extras.push(`${slot} = _$d();`);
-	const roots: string[] = [];
-	node.childNodes.forEach(n => {
-		const el = genBlockAreas(n, areas, scope);
-		if (el) {
-			roots.push(el);
+  const slotName = node.getAttribute('name') || 'default';
+  const slot = `${scope.split(', ')[0]}.$slots['${slotName}']`;
+  areas.extras.push(`${slot} = _$d();`);
+  const roots: string[] = [];
+  node.childNodes.forEach(n => {
+    const el = genBlockAreas(n, areas, scope);
+    if (el) {
+      roots.push(el);
       areas.create.push(`_$a(${slot}, ${el});`);
     }
   });
@@ -49,8 +49,8 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
 }
 
 export function genComponent(node: NodeElement, areas: BlockAreas, scope: string) {
-	const tag = node.tagName;
-	[scope] = scope.split(', ');
+  const tag = node.tagName;
+  [scope] = scope.split(', ');
   const varName = kebabToCamelCases(tag);
   const anchor = getVarName(areas.variables, `${varName}Anchor`);
   const variable = getVarName(areas.variables, varName);
@@ -59,17 +59,17 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   let attrs = '{';
   const extras: string[] = [];
   node.attributes.forEach(({ key, value }) => {
-		if (key[0] === '@') {
-			const eventVar = `event${capitalize(kebabToCamelCases(key.slice(1)))}${capitalize(variable)}`;
-			areas.variables.push(eventVar);
-			extras.push(`${eventVar} = ${variable}.$on('${key.slice(1)}', ${ctx(value, scope, [])});`);
-			areas.destroy.push(`${eventVar}.off();`);
-		} else if (key[0] === ':') {
-			attrs += `${kebabToCamelCases(key.slice(1))}() { return ${ctx(value, scope, [])}; },`;
-		} else if (key[0] === '$' && !/model|show/.test(key.slice(1))) {
-			genDirective(variable, key.slice(1), value, areas, scope);
-		} else {
-			attrs += `${key}: '${value}'`;
+    if (key[0] === '@') {
+      const eventVar = `event${capitalize(kebabToCamelCases(key.slice(1)))}${capitalize(variable)}`;
+      areas.variables.push(eventVar);
+      extras.push(`${eventVar} = ${variable}.$on('${key.slice(1)}', ${ctx(value, scope, [])});`);
+      areas.destroy.push(`${eventVar}.off();`);
+    } else if (key[0] === ':') {
+      attrs += `${kebabToCamelCases(key.slice(1))}() { return ${ctx(value, scope, [])}; },`;
+    } else if (key[0] === '$' && !/model|show/.test(key.slice(1))) {
+      genDirective(variable, key.slice(1), value, areas, scope);
+    } else {
+      attrs += `${key}: '${value}'`;
     }
   });
   attrs += '}';
@@ -89,35 +89,43 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     areas.create.push(`_$a(${root}, ${anchor});`);
   }
   node.childNodes.forEach(n => {
-		const tag = n.tagName;
-		let slot = getVarName(areas.variables, tag);
-		if (tag !== 'template') {
-			areas.create.push(createElement(slot, tag));
-		} else {
-			areas.create.push(`${slot} = _$d();`);
-			n.appendChild(n.content);
-		}
     let slotName = 'default';
     if (n.hasAttribute('slot')) {
       slotName = n.getAttribute('slot') || slotName;
-		}
-		const slotDec = `${variable}.$slots['${slotName}']`;
-		const init = `${slotDec} = _$d();`;
-		if (!areas.extras.includes(init)) {
-			areas.extras.push(`if (${slotDec} && ${slotDec}.childNodes.length !== 0) {
+    }
+    const slotDec = `${variable}.$slots['${slotName}']`;
+    const init = `${slotDec} = _$d();`;
+    if (!areas.extras.includes(init)) {
+      areas.extras.push(`if (${slotDec} && ${slotDec}.childNodes.length !== 0) {
 				${init}
 			}`);
-		}
-		n.childNodes.forEach(child => {
-			const el = genBlockAreas(child, areas, scope);
-			if (el) {
-				areas.create.push(`_$a(${slot}, ${el});`);
-			}
-		});
+    }
+    if (n.nodeType === 3) {
+      let slot = genBlockAreas(n, areas, scope);
       areas.create.push(`if (${slotDec}) {
 			_$a(${slotDec}, ${slot});
 		}`);
+    } else if (n.nodeType === 1) {
+      const tag = n.tagName;
+      let slot = getVarName(areas.variables, tag);
+      if (tag !== 'template') {
+        areas.create.push(createElement(slot, tag));
+      } else {
+        areas.create.push(`${slot} = _$d();`);
+        n.appendChild(n.content);
+      }
+      n.childNodes.forEach(child => {
+        const el = genBlockAreas(child, areas, scope);
+        if (el) {
+          areas.create.push(`_$a(${slot}, ${el});`);
+        }
+      });
+      areas.create.push(`if (${slotDec}) {
+			_$a(${slotDec}, ${slot});
+		}`);
+    }
   });
   areas.unmount.push(`${variable}.$mount(_$frag, ${anchor});`);
+  areas.update.push(`${variable}.$update();`);
   areas.destroy.push(`${variable}.$destroy();`);
 }
