@@ -3,10 +3,10 @@
 		"trebor": "./bin/trebor.js"
 	},
 	"scripts": {
-		"built:src": "tsc -p ./src",
-		"built:tools": "tsc -p ./tools",
-		"built:example:todo": "webpack --config ./examples/todomvc/webpack.config.js --watch",
-		"built:example:counter": "webpack --config ./examples/counter/webpack.config.js --watch"
+		"build:src": "tsc -p ./src",
+		"build:tools": "tsc -p ./tools",
+		"build:example:todo": "webpack --config ./examples/todomvc/webpack.config.js --watch",
+		"build:example:counter": "webpack --config ./examples/counter/webpack.config.js --watch"
 	},
 	"engines": {
 		"node": ">=4"
