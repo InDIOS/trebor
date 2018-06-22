@@ -54,27 +54,28 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 			case node.tagName === 'slot':
 				return genSlot(node, areas, scope);
 			case node.isUnknownElement:
-				return genComponent(node, areas, scope);
-			default:
-				const tag = node.tagName;
-				const isTpl = tag === 'template' && !node['isCondition'];
-				let variable = getVarName(areas.variables, tag);
-				if (node.hasAttribute('$tag')) {
-					areas.variables.pop();
-					variable = genTag(node, areas, scope);
-				} else if (!node['isCondition']) {
-					areas.create.push(createElement(variable, tag));
-				}
-				let childNodes: NodeElement[] = node.childNodes;
-				if (tag === 'template') {
-					childNodes = node.content.childNodes;
-				}
-				let { length } = childNodes;
+        return genComponent(node, areas, scope);
+      default:
+        const tag = node.tagName;
+        const isTpl = tag === 'template';
+        const isCond = node['isCondition'];
+        let variable = getVarName(areas.variables, tag);
+        if (node.hasAttribute('$tag')) {
+          areas.variables.pop();
+          variable = genTag(node, areas, scope);
+        } else if (!isCond) {
+          areas.create.push(createElement(variable, tag));
+        }
+        let childNodes: NodeElement[] = node.childNodes;
+        if (isTpl) {
+          childNodes = node.content.childNodes;
+        }
+        let { length } = childNodes;
 				for (let i = 0; i < length; i++) {
 					const n = childNodes[i];
 					const el = genBlockAreas(n, areas, scope);
 					if (el) {
-						areas.create.push(`_$a(${variable}${isTpl ? '.content' : ''}, ${el});`);
+            areas.unmount.push(`_$a(${variable}${isTpl && !isCond ? '.content' : ''}, ${el});`);
 					}
 					if (length !== childNodes.length) {
 						i--;
@@ -85,6 +86,10 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 				if (attr) {
 					areas.hydrate.push(attr);
 				}
+        if (isTpl && areas.create.length === 0) {
+          areas.variables.splice(areas.variables.indexOf(variable), 1);
+          variable = '';
+        }
 				return variable;
 		}
 	} else if (node.nodeType === 8) {
