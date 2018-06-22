@@ -29,7 +29,7 @@ export function genTemplate(node: NodeElement, scope: string, opts: CompilerOpti
 			});
 		} else {
 			const className = `scope_${hash(opts.input)}`;
-			areas.mount.push(`_$is('${className}', ${JSON.stringify(toCSS.minify(styleNode.textContent))});`);
+      areas.mount.push(`_$is('${className}', ${JSON.stringify(toCSS.minify(styleNode.textContent.trim()))});`);
 			areas.destroy.push(`_$ds('${className}');`);
 		}
 	} else if (links.length) {
