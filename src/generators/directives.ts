@@ -21,6 +21,30 @@ export function genModel(target: string, node: NodeElement, areas: BlockAreas, s
 	}
 }
 
+export function genName(target: string, node: NodeElement, areas: BlockAreas, scope: string) {
+  const type = node.getAttribute('type');
+  if (node.tagName === 'input' && /checkbox|radio/.test(type)) {
+    const value = node.getAttribute('value');
+    const group = node.getAttribute('$name');
+    if (type === 'checkbox') {
+      let bindGroup = `${type}Group${capitalize(group)}`;
+      if (!areas.variables.includes(bindGroup)) {
+        areas.variables.push(bindGroup);
+        areas.extras.push(`${bindGroup} = (el, selection) => {
+          let _$index = selection.indexOf(el.value);
+          if (el.checked && !~_$index) selection.push(el.value);
+          else selection.splice(_$index, 1);
+        };`);
+      }
+      genEvent(target, 'change', `${bindGroup}($el, ${group})`, areas, scope);
+      genBind(target, 'checked', `!!~${group}.indexOf('${value}')`, areas, scope, type, null);
+    } else if (type === 'radio') {
+      genEvent(target, 'change', `${group} = $el.checked ? $el.value : ${group}`, areas, scope);
+      genBind(target, 'checked', `${group} === '${value}'`, areas, scope, type, null);
+    }
+  }
+}
+
 export function genShow(target: string, node: NodeElement, areas: BlockAreas, scope: string) {
 	const funcName = `show${capitalize(target)}`;
 	const varDisplay = `display${capitalize(target)}`;

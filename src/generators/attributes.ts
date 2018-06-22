@@ -2,7 +2,7 @@ import { genEvent } from './events';
 import { genBind } from './bindings';
 import { Attribute } from '../types.d';
 import { BlockAreas, NodeElement } from '../utilities/classes';
-import { genShow, genDirective, genModel, genRefs } from './directives';
+import { genShow, genDirective, genValue, genName, genRefs } from './directives';
 
 export function genSetAttrs(target: string, node: NodeElement, scope: string, areas: BlockAreas) {
 	let res = '';
@@ -10,8 +10,13 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
     let [attr] = key.split('.');
 		if (attr === '$show') {
 			genShow(target, node, areas, scope);
-		} else if (key.split('.')[0] === '$model') {
-			genModel(target, node, areas, scope);
+    } else if (attr === '$value' || attr === '$name') {
+      if (attr === '$value') {
+        node.removeAttribute('$name');
+        genValue(target, node, areas, scope);
+      } else if (!node.hasAttribute('$value') && attr === '$name') {
+        genName(target, node, areas, scope);
+      }
 		} else if (attr[0] === '$') {
 			genDirective(target, key.slice(1), value, areas, scope);
 		} else if (attr[0] === '@') {
