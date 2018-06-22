@@ -31,9 +31,13 @@ const options = yargs.options({
 
 const cwd = process.cwd();
 
-gnt({
-	input: resolve(cwd, options.input),
-	out: options.output ? resolve(cwd, options.output) : undefined,
-	format: options.format,
-	minify: options.minify
-});
+if (options.input) {
+  gnt({
+    input: resolve(cwd, options.input),
+    out: options.output ? resolve(cwd, options.output) : undefined,
+    format: options.format,
+    minify: options.minify
+  });
+} else {
+  throw new Error('A input file must be provided.');
+}
