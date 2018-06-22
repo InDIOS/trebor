@@ -4,7 +4,7 @@
 			true, "always"
 		],
 		"triple-equals": [
-			true
+			true, "allow-null-check"
 		],
 		"quotemark": [
 			true, "single"
