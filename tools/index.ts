@@ -181,62 +181,65 @@ function _$toType(value, type, root, key) {
 			return value.toString();
 		case 'number':
 			return +value;
-		case 'boolean':
-			return !!value;
-		case 'array':
+    case 'boolean':
+      return !!value;
+    case 'array':
 			return value instanceof _$List ? value : new _$List(value, root, key);
 		case 'object':
 			_$accesor(value, value, root, key);
 			return value;
-		default:
-			return value;
-	}
+    default:
+      return value;
+  }
 }
 function _$type(obj) {
-	return /\[object (\w+)\]/.exec(Object.prototype.toString.call(obj))[1].toLowerCase();
+  return /\[object (\w+)\]/.exec(Object.prototype.toString.call(obj))[1].toLowerCase();
 }
 function _$hasProp(obj: Object, prop: string) {
-	return obj.hasOwnProperty(prop);
+  return obj.hasOwnProperty(prop);
 }
 function _$drt(directive) {
-	return {
-		$init(instance, options, element) {
+  return {
+    $init(instance, options, element) {
 			if (_$isObject(directive) && directive.$init) {
 				directive.$init(instance, options, element);
 			}
-		},
-		$inserted(instance, options, element) {
+    },
+    $inserted(instance, options, element) {
 			if (_$isObject(directive) && directive.$inserted) {
 				directive.$inserted(instance, options, element);
 			}
-		},
-		$update(instance, options, element) {
+    },
+    $update(instance, options, element) {
 			if (_$isObject(directive) && directive.$update) {
 				directive.$update(instance, options, element);
 			} else if (_$isType(directive, 'function')) {
-				directive(instance, options, element);
-			}
-		},
-		$destroy(instance, options, element) {
+        directive(instance, options, element);
+      }
+    },
+    $destroy(instance, options, element) {
 			if (_$isObject(directive) && directive.$destroy) {
 				directive.$destroy(instance, options, element);
 			}
-		}
-	};
+    }
+  };
 }
-export function _$noop() {}
-export function _$toStr(obj) {
-	const str: string = _$type(obj);
-	return !/null|undefined/.test(str) ? obj.toString() : str;
+export function _$noop() { }
+export function _$add(inst: Component, child: Component) {
+  inst.$children.push(child);
+}
+export function _$toStr(obj: any) {
+  const str: string = _$type(obj);
+  return !/null|undefined/.test(str) ? obj.toString() : str;
 }
 function _$toPlainObj(obj) {
 	const data = {};
-	_$e(_$isObject(obj) ? obj : {}, (_v, k) => {
-		if (k[0] !== '$' && !_$isType(obj[k], 'function')) {
+  _$e(_$isObject(obj) ? obj : {}, (_v, k) => {
+    if (k[0] !== '$' && !_$isType(obj[k], 'function')) {
 			if (obj[k] instanceof _$List) {
-				data[k] = obj[k].map(_$toPlainObj);
-			} else if (_$isObject(obj[k])) {
-				data[k] = _$toPlainObj(obj[k]);
+        data[k] = obj[k].map(_$toPlainObj);
+      } else if (_$isObject(obj[k])) {
+        data[k] = _$toPlainObj(obj[k]);
 			} else {
 				data[k] = obj[k];
 			}

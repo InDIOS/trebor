@@ -5,24 +5,29 @@ import { NodeElement, BlockAreas } from '../utilities/classes';
 import { kebabToCamelCases, getVarName, getParent, capitalize, createElement, filterParser } from '../utilities/tools';
 
 export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
-	[scope] = scope.split(',');
-	const element = getVarName(areas.variables, '_$node');
-	const setElement = `setTag${capitalize(element)}`;
-	const updateTag = `updateTag${capitalize(element)}`;
-	areas.variables.push(setElement);
-	const expression = node.getAttribute('$tag');
-	node.removeAttribute('$tag');
-	const code = ctx(filterParser(expression), scope, areas.globals);
-	let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
-	const setTag = `${setElement}(${scope}${params})`;
+  [scope] = scope.split(',');
+  let element = getVarName(areas.variables, '_$node');
+  const expression = node.getAttribute('$tag');
+  node.removeAttribute('$tag');
+  if (node.childNodes.length) node['dymTag'] = element;
+  if (expression) {
+    const setElement = `setTag${capitalize(element)}`;
+    const updateTag = `updateTag${capitalize(element)}`;
+    areas.variables.push(setElement);
+    const code = ctx(filterParser(expression), scope, areas.globals);
+    let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
+    const setTag = `${setElement}(${scope}${params})`;
 	areas.extras.push(`${setElement} = (${scope}${params}) => ${code};`);
 	areas.create.push(`${element} = _$ce(${setTag});`);
 	areas.update.push(`let ${updateTag} = ${setTag};
 	if (${updateTag}.toUpperCase() !== ${element}.tagName) {
-		${element} = _$as(${element}, _$ce(${updateTag}));
-	}
-	${updateTag} = void 0;`);
-	return element;
+			${element} = _$as(${element}, _$ce(${updateTag}));
+		}
+		${updateTag} = void 0;`);
+  } else {
+    element = getVarName(areas.variables, node.tagName);
+  }
+  return element;
 }
 
 export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
@@ -37,6 +42,8 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
       areas.create.push(`_$a(${slot}, ${el});`);
     }
   });
+  const parent = node.parentElement;
+  let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
   if (!root) root = '_$frag';
   areas.unmount.push(`_$a(${root}, ${slot});`);
 }
@@ -44,13 +51,14 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
 export function genComponent(node: NodeElement, areas: BlockAreas, scope: string) {
 	const tag = node.tagName;
 	[scope] = scope.split(', ');
-	const varName = kebabToCamelCases(tag);
-	const anchor = getVarName(areas.variables, `${varName}Anchor`);
-	const variable = getVarName(areas.variables, varName);
-	let root = getParent(areas.variables, node.parentElement.tagName);
-	let attrs = '{';
-	const extras: string[] = [];
-	node.attributes.forEach(({ key, value }) => {
+  const varName = kebabToCamelCases(tag);
+  const anchor = getVarName(areas.variables, `${varName}Anchor`);
+  const variable = getVarName(areas.variables, varName);
+  const parent = node.parentElement;
+  let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
+  let attrs = '{';
+  const extras: string[] = [];
+  node.attributes.forEach(({ key, value }) => {
 		if (key[0] === '@') {
 			const eventVar = `event${capitalize(kebabToCamelCases(key.slice(1)))}${capitalize(variable)}`;
 			areas.variables.push(eventVar);
@@ -65,12 +73,15 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     }
   });
   attrs += '}';
-	const init = `const ${capitalize(varName)} = children['${tag}'];`;
+  const globCompName = capitalize(varName);
+  const init = `const ${globCompName} = children['${tag}'] || window['${globCompName}'];`;
   if (!areas.extras.includes(init)) {
     areas.extras.push(init);
   }
-	areas.extras.push(`${anchor} = _$ct();`);
-	areas.extras.push(`${variable} = new ${capitalize(varName)}(${attrs});`);
+  areas.extras.push(`${anchor} = _$ct();
+	${variable} = new ${globCompName}(${attrs}, ${scope});
+  _$add(${scope}, ${variable});`);
+  areas.create.push(`${variable}.$create();`);
   areas.extras = areas.extras.concat(extras);
   if (!root) {
     areas.unmount.push(`_$a(_$frag, ${anchor});`);

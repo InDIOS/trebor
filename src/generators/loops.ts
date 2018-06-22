@@ -8,7 +8,8 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
 	[scope] = scope.split(', ');
 	const value = node.getAttribute('$for');
 	node.removeAttribute('$for');
-	let root = getParent(areas.variables, node.parentElement.tagName);
+  const parent = node.parentElement;
+  let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
 	const anchor = getVarName(areas.variables, `loopAnchor_${areas.loops}`);
 	if (!root) {
 		areas.unmount.push(`_$a(_$frag, ${anchor});`);
@@ -21,8 +22,8 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
 	variable = ctx(filterParser(variable), scope, areas.globals);
 	areas.variables.push(loopBlock);
 	areas.outer.push(genLoopItem(scope, node, key, val, areas));
-	areas.extras.push(`${loopBlock} = _$f(${scope}, ${variable}, itemLoop_${areas.loops});`);
-	areas.extras.push(`${anchor} = _$ct();`);
+  areas.extras.push(`${loopBlock} = _$f(${scope}, ${variable}, itemLoop_${areas.loops});
+  ${anchor} = _$ct();`);
 	areas.create.push(`${loopBlock}.$create();`);
 	areas.unmount.push(`${loopBlock}.$mount(${root || '_$frag'}, ${anchor});`);
 	areas.update.push(`${loopBlock}.$update(${scope}, ${variable});`);

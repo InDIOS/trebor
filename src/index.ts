@@ -14,18 +14,18 @@ import { kebabToCamelCases, capitalize } from './utilities/tools';
 import { TryStatement, FunctionDeclaration, FunctionExpression } from 'estree';
 
 const deps = `import { 
-	_$CompCtr, _$, _$d, _$a, _$as, _$r, _$ce,	_$ct, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, 
-	_$e, _$is, _$ds, _$toStr, _$setRef, _$noop
+	_$CompCtr, _$, _$d, _$a, _$add, _$as, _$r, _$ce,	_$ct, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc,
+	_$bs, _$f, _$e, _$is, _$ds, _$toStr, _$setRef, _$noop, _$isType, _$plugin
 } from 'trebor/tools';`;
 const tools = readFileSync(join(__dirname, '../tools/index.ts'), 'utf8');
 
 function genSource(html: string, opts: CompilerOptions) {
-	const body = getDoc(html, !!opts.minify);
-	const { moduleName } = opts;
+  const body = getDoc(html, !!opts.minify);
+  const { moduleName } = opts;
 	const { imports, template, extras, options } = genTemplate(body, 'state', opts);
 	if (!opts.out) {
-		imports.unshift(deps);
-	}
+    imports.unshift(deps);
+  }
 	const source = [...imports,
 		template, extras,
 		`function ${moduleName}() {
@@ -33,16 +33,16 @@ function genSource(html: string, opts: CompilerOptions) {
 		}
 		${moduleName}.prototype = Object.create(_$CompCtr.prototype);
 		${moduleName}.prototype.constructor = ${moduleName};`
-	].filter(c => !!c.length).join('\n');
+  ].filter(c => !!c.length).join('\n');
 	return source;
 }
 
 function compileFile(options: CompilerOptions) {
 	const html = readFileSync(options.input, 'utf8');
-	options.format = options.format || 'umd';
-	const ext = extname(options.input);
-	const dir = dirname(options.input);
-	const file = basename(options.input, ext);
+  options.format = options.format || 'umd';
+  const ext = extname(options.input);
+  const dir = dirname(options.input);
+  const file = basename(options.input, ext);
 	let moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
 	options.moduleName = options.moduleName || moduleName;
 	if (!options.out) {

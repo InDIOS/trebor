@@ -8,7 +8,8 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   const condition: Condition = { ifCond };
   const anchor = getVarName(areas.variables, 'conditionAnchor');
   const block = getVarName(areas.variables, 'conditionBlock');
-	let root = getParent(areas.variables, node.parentElement.tagName);
+  const parent = node.parentElement;
+  let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
   if (!root) {
     areas.unmount.push(`_$a(_$frag, ${anchor});`);
   } else {
@@ -59,12 +60,14 @@ function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, t
   let condition = <string>genBlockAreas(node, subareas, scope);
   delete node['isCondition'];
   const tag = node.tagName;
+  if (condition) {
     if (tag === 'template') {
       subareas.create.unshift(`${condition} = _$d();`);
     } else {
       subareas.create.unshift(createElement(condition, tag));
     }
     subareas.unmount.push(`_$a(_$frag, ${condition});`);
+  }
   subareas.mount.push('_$a(_$(parent), _$frag, _$(sibling));');
   const condType = type ? type : 'else';
   const condName = type.includes('elseIf') ? '_condition' : capitalize('condition');
