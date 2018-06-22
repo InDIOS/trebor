@@ -27,7 +27,7 @@ export function genName(target: string, node: NodeElement, areas: BlockAreas, sc
     const value = node.getAttribute('value');
     const group = node.getAttribute('$name');
     if (type === 'checkbox') {
-      let bindGroup = `${type}Group${capitalize(group)}`;
+      let bindGroup = `${type}Group`;
       if (!areas.variables.includes(bindGroup)) {
         areas.variables.push(bindGroup);
         areas.extras.push(`${bindGroup} = (el, selection) => {
