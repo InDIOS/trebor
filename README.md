@@ -59,7 +59,7 @@ Then we'll compile the `counter` file to convert it in a standalone component
 ```bash
 trebor -i counter.html
 ```
-In the directory will appear two `js` files, one with `es` sufix and other with `umd` sufix. We'll use the file with `umd` sufix. Make a file named `index.html` like that
+In the directory will appear one `js` file with `umd` sufix. Make a file named `index.html` like that
 
 ```html
 <!DOCTYPE html>

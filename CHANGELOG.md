@@ -8,7 +8,7 @@
 - Added `$unmount` hook.
 - Made hooks direct properties of options.
 - Make `es` output file only if minify is disabled.
-- Fixed missing nodes when analize conditions
+- Fixed missing nodes when analize conditions.
 
 0.0.1
 - Project initialization and commit of project files.

@@ -5,22 +5,22 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "built:src",
+			"script": "build:src",
 			"problemMatcher": []
 		},
 		{
 			"type": "npm",
-			"script": "built:tools",
+			"script": "build:tools",
 			"problemMatcher": []
 		},
 		{
 			"type": "npm",
-			"script": "built:example:todo",
+			"script": "build:example:todo",
 			"problemMatcher": []
 		},
 		{
 			"type": "npm",
-			"script": "built:example:counter",
+			"script": "build:example:counter",
 			"problemMatcher": []
 		}
 	]
