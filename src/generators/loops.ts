@@ -18,7 +18,14 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
 	}
 	const loopBlock = `loopBlock_${areas.loops}`;
 	let [vars, variable] = value.split(' in ');
-	const [key, val] = vars.split(',').map(v => v.replace(/[()]/g, '').trim());
+  const [key, val] = vars.split(',').map(v => v.replace(/[()]/g, '').trim());
+  let [asNumber, ...rest] = variable.split('\|');
+  let [start, end] = asNumber.split('..');
+  if (!isNaN(+start)) {
+    let length = (+end || 0) - (+start);
+    let array = [...Array(length > 0 ? length : -length)].map((_, i) => end ? i + (+start) : i);
+    variable = [`[${array.join(', ')}]`, ...rest].join('|');
+  }
 	variable = ctx(filterParser(variable), scope, areas.globals);
 	areas.variables.push(loopBlock);
 	areas.outer.push(genLoopItem(scope, node, key, val, areas));
