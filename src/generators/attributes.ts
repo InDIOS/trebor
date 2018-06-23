@@ -1,13 +1,13 @@
+import { Attribute } from 'parse5';
 import { genEvent } from './events';
 import { genBind } from './bindings';
-import { Attribute } from '../types.d';
 import { BlockAreas, NodeElement } from '../utilities/classes';
 import { genShow, genDirective, genValue, genName, genRefs } from './directives';
 
 export function genSetAttrs(target: string, node: NodeElement, scope: string, areas: BlockAreas) {
 	let res = '';
-  sortAttrs(node.attributes).forEach(({ key, value }) => {
-    let [attr] = key.split('.');
+  sortAttrs(node.attributes).forEach(({ name, value }) => {
+    let [attr] = name.split('.');
 		if (attr === '$show') {
 			genShow(target, node, areas, scope);
     } else if (attr === '$value' || attr === '$name') {
@@ -18,9 +18,9 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
         genName(target, node, areas, scope);
       }
 		} else if (attr[0] === '$') {
-			genDirective(target, key.slice(1), value, areas, scope);
+			genDirective(target, name.slice(1), value, areas, scope);
 		} else if (attr[0] === '@') {
-			genEvent(target, key.slice(1), value, areas, scope);
+			genEvent(target, name.slice(1), value, areas, scope);
 		} else if (attr[0] === ':') {
 			const type = node.getAttribute('type');
 			const classes = node.getAttribute('class');
@@ -37,10 +37,10 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
 
 function sortAttrs(attrs: Attribute[]) {
 	return attrs.sort((a, b) => {
-		if (/^[$@:]|refs/.test(a.key) && !/^[$@:]|refs/.test(b.key)) {
+		if (/^[$@:]|refs/.test(a.name) && !/^[$@:]|refs/.test(b.name)) {
 			return -1;
 		}
-		if (!/^[$@:]|refs/.test(a.key) && /^[$@:]|refs/.test(b.key)) {
+		if (!/^[$@:]|refs/.test(a.name) && /^[$@:]|refs/.test(b.name)) {
 			return 1;
 		}
 		return 0;

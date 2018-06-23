@@ -1,6 +1,5 @@
-import { parse, stringify } from 'himalaya';
 import { removeEmptyNodes, stripWhitespace } from './html';
-import { Node, Element, Attribute, Text } from '../types.d';
+import { serialize, DefaultTreeNode, DefaultTreeElement, DefaultTreeTextNode, Attribute } from 'parse5';
 
 export interface Condition {
   ifCond?: string;
@@ -59,26 +58,23 @@ export class NodeElement {
   attributes: Attribute[];
   isUnknownElement: boolean;
 
-  constructor(node: Node, parent: NodeElement) {
-    this.nodeType = nodeType(node.type);
-    this.tagName = nodeTag(this.nodeType, (<Element>node).tagName);
+  constructor(node: DefaultTreeNode, parent: NodeElement) {
+    this.nodeType = nodeType(node.nodeName);
+    this.tagName = (<DefaultTreeElement>node).tagName || node.nodeName;
     this.isUnknownElement = false;
     if (this.nodeType === 1) this.isUnknownElement = !html5.includes(this.tagName);
-    this._textContent = removeEmpty((<Text>node).content || '');
-    this.attributes = (<Element>node).attributes || [];
+    this._textContent = (<DefaultTreeTextNode>node).value || '';
+    this.attributes = (<DefaultTreeElement>node).attrs || [];
     this.content = null;
     this.childNodes = [];
     this.parentElement = null;
     if (parent) this.parentElement = parent;
-    if ((<Element>node).children && this.tagName !== 'template') {
-      this.childNodes = (<Element>node).children.map(n => new NodeElement(n, this));
+    if ((<DefaultTreeElement>node).childNodes && this.tagName !== 'template') {
+      this.childNodes = (<DefaultTreeElement>node).childNodes.map(n => new NodeElement(n, this));
     }
     if (this.nodeType === 1 && this.tagName === 'template') {
-      const { content } = <Text>(<Element>node).children[0];
-      this._textContent = removeEmpty(content);
-      const children = removeEmptyNodes(stripWhitespace(parse(content)));
-      const frag = new NodeElement(<any>{ type: 'fragment', children }, null);
-      this.content = frag;
+      const childNodes = removeEmptyNodes(stripWhitespace(node['content'].childNodes));
+      this.content = new NodeElement(<DefaultTreeElement>{ nodeName: '#document-fragment', childNodes }, null);
     }
   }
 
@@ -100,10 +96,10 @@ export class NodeElement {
 
   set textContent(value: string) {
     if (this.nodeType === 1 || this.nodeType === 11) {
-      const text = new NodeElement(<Text>{ type: 'text', content: value }, this);
+      const text = new NodeElement(<DefaultTreeTextNode>{ nodeName: '#text', value }, this);
       this.appendChild(text);
     } else {
-      this._textContent = removeEmpty(value);
+      this._textContent = value;
     }
   }
 
@@ -123,8 +119,8 @@ export class NodeElement {
   }
 
   get innerHTML() {
-    return stringify(this.childNodes.map(toNode));
-  }
+		return serialize(this.childNodes.map(toNode));
+	}
 
   querySelectorAll(tagName: string) {
     let elements: NodeElement[] = [];
@@ -144,23 +140,23 @@ export class NodeElement {
     return this.querySelectorAll(tagName)[0];
   }
 
-  hasAttribute(key: string) {
-    return !!this.attributes.find(attr => attr.key.split('.')[0] === key);
+  hasAttribute(name: string) {
+    return !!this.attributes.find(attr => attr.name.split('.')[0] === name);
   }
 
-  getAttribute(key: string) {
-    const attr = this.attributes.find(attr => attr.key.split('.')[0] === key);
+  getAttribute(name: string) {
+    const attr = this.attributes.find(attr => attr.name.split('.')[0] === name);
     return attr ? attr.value : undefined;
   }
 
-  setAttribute(key: string, value?: any) {
-    const attr = this.attributes.find(attr => attr.key.split('.')[0] === key);
+  setAttribute(name: string, value?: any) {
+    const attr = this.attributes.find(attr => attr.name.split('.')[0] === name);
     if (attr) attr.value = value;
-    else this.attributes.push({ key, value });
+    else this.attributes.push({ name, value });
   }
 
-  removeAttribute(key: string) {
-    const position = this.attributes.findIndex(attr => attr.key.split('.')[0] === key);
+  removeAttribute(name: string) {
+    const position = this.attributes.findIndex(attr => attr.name.split('.')[0] === name);
     this.attributes.splice(position, 1);
   }
 
@@ -192,40 +188,34 @@ export class NodeElement {
 
 function nodeType(type: string) {
   switch (type) {
-    case 'element':
-      return 1;
-    case 'comment':
+    case '#text':
+      return 3;
+    case '#comment':
       return 8;
-    case 'fragment':
+    case '#document-fragment':
       return 11;
     default:
-      return 3;
+      return 1;
   }
 }
 
-function nodeTag(type: number, tag: string) {
-  switch (type) {
-    case 1:
-      return tag;
-    case 8:
-      return '#comment';
-    case 11:
-      return '#fragment';
-    default:
-      return '#text';
+function toNode(node: NodeElement) {
+  const n: DefaultTreeNode = { nodeName: node.tagName };
+  if (node.nodeType === 1) {
+    n['tagName'] = node.tagName;
+    n['attrs'] = node.attributes;
+    n['childNodes'] = [];
+    if (n.nodeName === 'template') {
+      n['content'] = node.childNodes.map(toNode);
+    } else {
+      n['childNodes'] = node.childNodes.map(toNode);
+    }
+  } else if (node.nodeType === 3) {
+    n['value'] = node.textContent;
+  } else if (node.nodeType === 8) {
+    n['data'] = node.textContent;
   }
-}
-
-function toNode(node: NodeElement): Node {
-  const n = { type: node.nodeType === 1 ? 'element' : node.nodeType === 3 ? 'text' : 'comment' };
-  if (n.type === 'element') {
-    n['tagName'] = node.tagName.toLowerCase();
-    n['attributes'] = node.attributes;
-    n['children'] = node.childNodes.map(toNode);
-  } else {
-    n['content'] = node.textContent;
-  }
-  return <Node>n;
+  return n;
 }
 
 function removeEmpty(str: string) {

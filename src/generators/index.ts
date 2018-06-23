@@ -47,7 +47,7 @@ export function genTemplate(node: NodeElement, scope: string, opts: CompilerOpti
 		script = `import options from '${scriptNode.getAttribute('src') || ''}';
 		export default options;`;
 	} else {
-		script = scriptNode.innerHTML.trim();
+		script = scriptNode.textContent.trim();
 	}
 	const { imports, options, extras } = toOptions(script);
 	areas.variables.push('_$frag');

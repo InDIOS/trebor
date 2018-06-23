@@ -1,62 +1,61 @@
-import { parse } from 'himalaya';
 import { NodeElement } from './classes';
-import { Node, Element, Text, Comment } from '../types.d';
+import { parseFragment, DefaultTreeNode, DefaultTreeElement, DefaultTreeDocumentFragment, DefaultTreeCommentNode, DefaultTreeTextNode } from 'parse5';
 
-export function removeEmptyNodes(nodes: Node[]) {
-	return nodes.filter(node => {
-		if (node.type === 'element') {
-			(<Element>node).children = removeEmptyNodes((<Element>node).children);
-			return true;
-		}
-		return (<Text>node).content.length;
-	});
+export function removeEmptyNodes(nodes: DefaultTreeNode[]) {
+  return nodes.filter(node => {
+    if ((<DefaultTreeElement>node).tagName) {
+      (<DefaultTreeElement>node).childNodes = removeEmptyNodes((<DefaultTreeElement>node).childNodes);
+      return true;
+    }
+    let prop = 'value' in node ? 'value' : 'data';
+    return (<DefaultTreeTextNode>node)[prop].length;
+  });
 }
 
-export function stripWhitespace(nodes: Node[]) {
-	return nodes.map(node => {
-		if (node.type === 'element') {
-			(<Element>node).children = stripWhitespace((<Element>node).children);
-		} else {
-			(<Text>node).content = (<Text>node).content.trim() ? (<Text>node).content : '';
-		}
-		return node;
-	});
+export function stripWhitespace(nodes: DefaultTreeNode[]) {
+  return nodes.map(node => {
+    if ((<DefaultTreeElement>node).tagName) {
+      (<DefaultTreeElement>node).childNodes = stripWhitespace((<DefaultTreeElement>node).childNodes);
+    } else {
+      let prop = 'value' in node ? 'value' : 'data';
+      let value = node[prop];
+      (<DefaultTreeTextNode>node)[prop] = value.trim() ? value : '';
+    }
+    return node;
+  });
 }
 
-export function removeComments(nodes:Node[]) {
-	return nodes.map(node => { 
-		if (node.type === 'element') {
-			(<Element>node).children = removeComments((<Element>node).children);
-		} else if (node.type === 'comment') {
-			(<Comment>node).content = '';
-		}
-		return node;
-	});
+export function removeComments(nodes: DefaultTreeNode[]) {
+  return nodes.map(node => {
+    if ((<DefaultTreeElement>node).tagName) {
+      (<DefaultTreeElement>node).childNodes = removeComments((<DefaultTreeElement>node).childNodes);
+    } else if (node.nodeName === '#comment') {
+      (<DefaultTreeCommentNode>node).data = '';
+    }
+    return node;
+  });
 }
 
 export function walkNode(root: NodeElement, walk: (el: NodeElement) => void, includeRoot: boolean = false) {
-	if (includeRoot) walk(root);
-	const nodes = root.content ? root.content.childNodes : root.childNodes;
-	nodes.forEach(node => {
-		if (node.nodeType === 1) {
-			if (!includeRoot) walk(node);
-			walkNode(node, walk, includeRoot);
-		} else {
-			walk(node);
-		}
-	});
+  if (includeRoot) walk(root);
+  const nodes = root.content ? root.content.childNodes : root.childNodes;
+  nodes.forEach(node => {
+    if (node.nodeType === 1) {
+      if (!includeRoot) walk(node);
+      walkNode(node, walk, includeRoot);
+    } else {
+      walk(node);
+    }
+  });
 }
 
 function getNodes(html: string, noComments: boolean = false) {
-	let ast = parse(html);
-	ast = removeEmptyNodes(stripWhitespace(ast));
-	if (noComments) {
-		ast = removeEmptyNodes(removeComments(ast));
-	}
-	return ast;
+  let ast = <DefaultTreeDocumentFragment>parseFragment(html);
+  let nodes = noComments ? removeComments(ast.childNodes) : stripWhitespace(ast.childNodes);
+  return removeEmptyNodes(nodes);
 }
 
 export function getDoc(html: string, noComments: boolean = false) {
-	const children: Node[] = getNodes(html, noComments);
-	return new NodeElement(<Element>{ type: 'element', tagName: 'body', children, attributes: [] }, null);
+  const childNodes: DefaultTreeNode[] = getNodes(html, noComments);
+  return new NodeElement(<DefaultTreeElement>{ nodeName: '#document-fragment', childNodes }, null);
 }

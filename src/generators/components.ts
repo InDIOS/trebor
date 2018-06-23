@@ -58,18 +58,18 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
   let attrs = '{';
   const extras: string[] = [];
-  node.attributes.forEach(({ key, value }) => {
-    if (key[0] === '@') {
-      const eventVar = `event${capitalize(kebabToCamelCases(key.slice(1)))}${capitalize(variable)}`;
+  node.attributes.forEach(({ name, value }) => {
+    if (name[0] === '@') {
+      const eventVar = `event${capitalize(kebabToCamelCases(name.slice(1)))}${capitalize(variable)}`;
       areas.variables.push(eventVar);
-      extras.push(`${eventVar} = ${variable}.$on('${key.slice(1)}', ${ctx(value, scope, [])});`);
+      extras.push(`${eventVar} = ${variable}.$on('${name.slice(1)}', ${ctx(value, scope, [])});`);
       areas.destroy.push(`${eventVar}.off();`);
-    } else if (key[0] === ':') {
-      attrs += `${kebabToCamelCases(key.slice(1))}() { return ${ctx(value, scope, [])}; },`;
-    } else if (key[0] === '$' && !/model|show/.test(key.slice(1))) {
-      genDirective(variable, key.slice(1), value, areas, scope);
+    } else if (name[0] === ':') {
+      attrs += `${kebabToCamelCases(name.slice(1))}() { return ${ctx(value, scope, [])}; },`;
+    } else if (name[0] === '$' && !/model|show/.test(name.slice(1))) {
+      genDirective(variable, name.slice(1), value, areas, scope);
     } else {
-      attrs += `${key}: '${value}'`;
+      attrs += `${name}: '${value}'`;
     }
   });
   attrs += '}';
