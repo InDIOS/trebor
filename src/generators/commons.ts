@@ -114,8 +114,8 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				${areas.hydrate.join('\n')}
 			},`}
       $mount(parent, sibling) {
-        this.$parentEl = parent;
-        this.$siblingEl = sibling;
+        ${condType || scope.includes(',') ? '' : `this.$parentEl = parent;
+        this.$siblingEl = sibling;`}
 				this.$unmount();
 				${areas.mount.join('\n')}${areas.mountDirt.length === 0 ? '' : `
 				${areas.mountDirt.join('\n')}`}
@@ -127,10 +127,10 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				${areas.unmount.join('\n')}
 			},
       $destroy() {
-        this.$parentEl = null;
-        this.$siblingEl = null;
 				this.$unmount();
-				${condType || scope.includes(',') ? '' : `this.$parent = null;
+        ${condType || scope.includes(',') ? '' : `this.$parentEl = null;
+        this.$siblingEl = null;
+        this.$parent = null;
 				this.$children.splice(0, this.$children.length);`}
 				${areas.destroy.join('\n')}
 				${areas.variables.join(' = ')} = void 0;
