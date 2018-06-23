@@ -14,7 +14,6 @@ export function genTemplate(node: NodeElement, scope: string, opts: CompilerOpti
 	const links = node.querySelectorAll('links');
 	const styleNode = node.querySelector('style');
 	const scriptNode = node.querySelector('script');
-	scriptNode.remove();
 	if (styleNode) {
 		styleNode.remove();
 		if (styleNode.hasAttribute('scoped')) {
@@ -42,13 +41,16 @@ export function genTemplate(node: NodeElement, scope: string, opts: CompilerOpti
 			}
 		});
 	}
-	let script = '';
-	if (scriptNode.hasAttribute('src')) {
-		script = `import options from '${scriptNode.getAttribute('src') || ''}';
-		export default options;`;
-	} else {
-		script = scriptNode.textContent.trim();
-	}
+	let script = 'export default {}';
+  if (scriptNode) {
+    scriptNode.remove();
+    if (scriptNode.hasAttribute('src')) {
+      script = `import options from '${scriptNode.getAttribute('src') || ''}';
+		  export default options;`;
+    } else {
+      script = scriptNode.textContent.trim();
+    }
+  }
 	const { imports, options, extras } = toOptions(script);
 	areas.variables.push('_$frag');
 	areas.extras.push('_$frag = _$d();');
