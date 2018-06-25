@@ -100,16 +100,16 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 }
 
 export function genBody(funcName: string, scope: string, areas: BlockAreas, condType?: string) {
-  return `${areas.outer.length === 0 ? '' : `${areas.outer.join('\n')}
+  return `${!areas.outer.length ? '' : `${areas.outer.join('\n')}
 	`}function ${funcName}(${scope}, children) {
-		${areas.variables.length === 0 ? '' : `let ${areas.variables.join(', ')}`};${areas.extras.length === 0 ? '' : `
+		${!areas.variables.length ? '' : `let ${areas.variables.join(', ')}`};${!areas.extras.length ? '' : `
 		${areas.extras.join('\n')}`}
 		return {
 			${!condType ? '' : `type: '${condType}'
-			,`}$create() {
-				${areas.create.join('\n')}${areas.hydrate.length === 0 ? '' : `
+			,`}$create${!!areas.create.length ? `() {
+				${areas.create.join('\n')}${!areas.hydrate.length ? '' : `
 				this.$hydrate();`}
-			},${areas.hydrate.length === 0 ? '' : `
+			}` : ': _$noop'},${!areas.hydrate.length ? '' : `
 			$hydrate() {
 				${areas.hydrate.join('\n')}
 			},`}
@@ -117,20 +117,20 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
         ${condType || scope.includes(',') ? '' : `this.$parentEl = parent;
         this.$siblingEl = sibling;`}
 				this.$unmount();
-				${areas.mount.join('\n')}${areas.mountDirt.length === 0 ? '' : `
+				${areas.mount.join('\n')}${!areas.mountDirt.length ? '' : `
 				${areas.mountDirt.join('\n')}`}
 			},
-			$update(${scope}) {
+			$update${!!areas.update.length ? `(${scope}) {
         ${areas.update.join('\n')}
-			},
-			$unmount() {
+			}` : ': _$noop'},
+			$unmount${!!areas.unmount.length ? `() {
 				${areas.unmount.join('\n')}
-			},
+			}` : ': _$noop'},
       $destroy() {
 				this.$unmount();
-        ${condType || scope.includes(',') ? '' : `this.$parentEl = null;
+        ${condType || scope.includes(',') ? '' : `this.$parent = null;
+        this.$parentEl = null;
         this.$siblingEl = null;
-        this.$parent = null;
 				this.$children.splice(0, this.$children.length);`}
 				${areas.destroy.join('\n')}
 				${areas.variables.join(' = ')} = void 0;
