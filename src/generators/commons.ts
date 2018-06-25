@@ -20,7 +20,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       variable = getVarName(areas.variables, 'txt');
       const setVariable = `set${capitalize(variable)}`;
       areas.variables.push(setVariable);
-      const codeFrag = node.textContent.trim();
+      const codeFrag = node.textContent;
       const intrps = codeFrag.split(/(\{\{\s*((?!\}\})(.|\n))*\}\})/).filter(int => !!clearText(int).trim());
       const code = intrps.map(int => {
         if (int.startsWith('{{') && int.endsWith('}}')) {
@@ -38,7 +38,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       return variable;
     } else {
       variable = getVarName(areas.variables, 'txt');
-      areas.create.push(createNode(variable, `'${clearText(entities.decode(node.textContent.trim()))}'`));
+      areas.create.push(createNode(variable, `'${clearText(entities.decode(node.textContent))}'`));
       return variable;
     }
   } else if (node.nodeType === 1) {
