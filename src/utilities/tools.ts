@@ -2,6 +2,10 @@ export function capitalize(str: string) {
   return str[0].toUpperCase() + str.slice(1);
 }
 
+export function clearText(str: string) {
+  return str.replace(/[\r\t\n]/g, ' ').replace(/\s{2,}/g, ' ');
+}
+
 export function escapeExp(str: string) {
   return str.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t').replace(/'/g, `\\'`);
 }

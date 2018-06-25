@@ -7,7 +7,7 @@ import { AllHtmlEntities } from 'html-entities';
 import { genSlot, genComponent, genTag } from './components';
 import { NodeElement, BlockAreas } from '../utilities/classes';
 import {
-  getVarName, capitalize, createNode, createElement, escapeExp, filterParser
+  getVarName, capitalize, createNode, createElement, escapeExp, filterParser, clearText
 } from '../utilities/tools';
 
 const entities = new AllHtmlEntities();
@@ -15,19 +15,19 @@ const entities = new AllHtmlEntities();
 export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: string) {
   if (node.nodeType === 3) {
     let variable = '';
-    if (/{{(.+?)}}/.test(node.textContent)) {
+    if (/\{\{\s*((?!\}\})(.|\n))*\}\}/.test(node.textContent)) {
       [scope] = scope.split(',');
       variable = getVarName(areas.variables, 'txt');
       const setVariable = `set${capitalize(variable)}`;
       areas.variables.push(setVariable);
-      const codeFrag = node.textContent;
-      const intrps = codeFrag.split(/({{.+?}})/).filter(int => !!int);
+      const codeFrag = node.textContent.trim();
+      const intrps = codeFrag.split(/(\{\{\s*((?!\}\})(.|\n))*\}\})/).filter(int => !!clearText(int).trim());
       const code = intrps.map(int => {
         if (int.startsWith('{{') && int.endsWith('}}')) {
-          int = int.replace(/{{(.+?)}}/g, (_, replacer: string) => replacer.trim());
+          int = int.replace(/\{\{(\s*((?!\}\})(.|\n))*)\}\}/g, (_, replacer: string) => replacer.trim());
           return `(${ctx(filterParser(int), scope, areas.globals)})`;
         }
-        return `'${entities.decode(int)}'`;
+        return `'${clearText(entities.decode(int))}'`;
       }).join('+');
       let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
       const setTxt = `${setVariable}(${scope}${params})`;
@@ -38,7 +38,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       return variable;
     } else {
       variable = getVarName(areas.variables, 'txt');
-      areas.create.push(createNode(variable, `'${escapeExp(entities.decode(node.textContent))}'`));
+      areas.create.push(createNode(variable, `'${clearText(entities.decode(node.textContent.trim()))}'`));
       return variable;
     }
   } else if (node.nodeType === 1) {

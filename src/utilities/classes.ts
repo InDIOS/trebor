@@ -1,3 +1,4 @@
+import { escapeExp } from './tools';
 import { removeEmptyNodes, stripWhitespace } from './html';
 import { serialize, DefaultTreeNode, DefaultTreeElement, DefaultTreeTextNode, Attribute } from 'parse5';
 
@@ -22,7 +23,7 @@ export class BlockAreas {
   outer: string[] = [];
   extras: string[] = [];
   globals: string[] = [];
-  
+
   constructor(loops: number = 0, conditions: number = 0) {
     this.loops = loops || 0;
     this.conditions = conditions || 0;
@@ -94,7 +95,7 @@ export class NodeElement {
         if (cur.nodeType === 3) {
           acc += cur.textContent;
         }
-        return removeEmpty(acc);
+        return acc;
       }, '');
     }
     return this._textContent;
@@ -125,7 +126,11 @@ export class NodeElement {
   }
 
   get innerHTML() {
-    return serialize(this.childNodes.map(toNode));
+    const html = serialize({
+      nodeName: '#document-fragment',
+      childNodes: this.childNodes.map(toNode)
+    });
+    return escapeExp(html);
   }
 
   querySelectorAll(tagName: string) {
@@ -222,8 +227,4 @@ function toNode(node: NodeElement) {
     n['data'] = node.textContent;
   }
   return n;
-}
-
-function removeEmpty(str: string) {
-  return str.replace(/[\r\t\n]/g, ' ').replace(/^\s{2,}/, ' ').replace(/\s{2,}$/, ' ');
 }
