@@ -44,8 +44,7 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
   });
   const parent = node.parentElement;
   let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
-  if (!root) root = '_$frag';
-  areas.unmount.push(`_$a(${root}, ${slot});`);
+  areas.unmount.push(`_$a(${root || '_$frag'}, ${slot});`);
 }
 
 export function genComponent(node: NodeElement, areas: BlockAreas, scope: string) {

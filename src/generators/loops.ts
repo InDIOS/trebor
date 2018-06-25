@@ -11,11 +11,7 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
   const parent = node.parentElement;
   let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
 	const anchor = getVarName(areas.variables, `loopAnchor_${areas.loops}`);
-	if (!root) {
-		areas.unmount.push(`_$a(_$frag, ${anchor});`);
-	} else {
-		areas.create.push(`_$a(${root}, ${anchor});`);
-	}
+  areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
 	const loopBlock = `loopBlock_${areas.loops}`;
 	let [vars, variable] = value.split(' in ');
   const [key, val] = vars.split(',').map(v => v.replace(/[()]/g, '').trim());

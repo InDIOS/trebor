@@ -10,11 +10,7 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   const block = getVarName(areas.variables, 'conditionBlock');
   const parent = node.parentElement;
   let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
-  if (!root) {
-    areas.unmount.push(`_$a(_$frag, ${anchor});`);
-  } else {
-    areas.create.push(`_$a(${root}, ${anchor});`);
-  }
+  areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
   node.removeAttribute('$if');
   areas.conditions.push(condition);
   areas.outer.push(genItemCondition(scope, node, areas, 'if'));
