@@ -4,18 +4,18 @@ import { NodeElement, BlockAreas, Condition } from '../utilities/classes';
 import { getVarName, getParent, createElement, capitalize } from '../utilities/tools';
 
 export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
+  areas.conditions = areas.conditions + 1;
   const ifCond = ctx(node.getAttribute('$if'), scope.split(',')[0], areas.globals || []);
-  const condition: Condition = { ifCond };
+  const condition: Condition = { ifCond, index: areas.conditions };
   const anchor = getVarName(areas.variables, 'conditionAnchor');
   const block = getVarName(areas.variables, 'conditionBlock');
   const parent = node.parentElement;
   let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
   areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
   node.removeAttribute('$if');
-  areas.conditions.push(condition);
-  areas.outer.push(genItemCondition(scope, node, areas, 'if'));
+  areas.outer.push(genItemCondition(scope, node, areas, condition.index, 'if'));
   areas.extras.push(`${anchor} = _$ct();`);
-  areas.create.push(`${block} = condition_${areas.conditions.length}(${scope});`);
+  areas.create.push(`${block} = condition_${condition.index}(${scope});`);
   if (node.nextElementSibling.hasAttribute('$else-if')) {
     genElseIf(scope, node.nextElementSibling, condition, areas);
   }
@@ -23,14 +23,14 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
     const sibling = node.nextElementSibling;
     condition.elseCond = condition.elseCond || true;
     sibling.removeAttribute('$else');
-    areas.outer.push(genItemCondition(scope, sibling, areas, 'else'));
+    areas.outer.push(genItemCondition(scope, sibling, areas, condition.index, 'else'));
     parent.removeChild(sibling);
   }
   parent.removeChild(node);
-  areas.outer.push(genCondition(scope, condition, areas.conditions.length));
+  areas.outer.push(genCondition(scope, condition, condition.index));
   areas.create.push(`${block}.$create();`);
   areas.unmount.push(`${block}.$mount(${root || '_$frag'}, ${anchor});`);
-  areas.update.push(genConditionUpdate(scope, root || '_$frag', block, anchor, areas.conditions.length));
+  areas.update.push(genConditionUpdate(scope, root || '_$frag', block, anchor, condition.index));
   areas.destroy.push(`${block}.$destroy();`);
 }
 
@@ -39,21 +39,22 @@ function genElseIf(scope: string, node: NodeElement, condition: Condition, areas
   condition.elseIfConds = condition.elseIfConds || [];
   condition.elseIfConds.push(elseifCond);
   node.removeAttribute('$else-if');
-  areas.outer.push(genItemCondition(scope, node, areas, `elseIf_${condition.elseIfConds.length}`));
+  areas.outer.push(genItemCondition(scope, node, areas, condition.index, `elseIf_${condition.elseIfConds.length}`));
   if (node.nextElementSibling.hasAttribute('$else-if')) {
     genElseIf(scope, node.nextElementSibling, condition, areas);
   }
   node.parentElement.removeChild(node);
 }
 
-function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, type?: string) {
-  const subareas: BlockAreas = new BlockAreas();
+function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, index: number, type?: string) {
+  const subareas: BlockAreas = new BlockAreas(areas.loops, areas.conditions);
   subareas.globals = areas.globals;
-  subareas.conditions = areas.conditions;
   subareas.variables.push('_$frag');
   subareas.extras.push('_$frag = _$d();');
   node['isCondition'] = true;
-  let condition = <string>genBlockAreas(node, subareas, scope);
+  let condition = genBlockAreas(node, subareas, scope);
+  areas.loops = subareas.loops;
+  areas.conditions = subareas.conditions;
   delete node['isCondition'];
   const tag = node.tagName;
   if (condition) {
@@ -67,7 +68,7 @@ function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, t
   subareas.mount.push('_$a(_$(parent), _$frag, _$(sibling));');
   const condType = type ? type : 'else';
   const condName = type.includes('elseIf') ? '_condition' : capitalize('condition');
-  return genBody(`${condType}${condName}_${subareas.conditions.length}`, scope, subareas, condType);
+  return genBody(`${condType}${condName}_${index}`, scope, subareas, condType);
 }
 
 function genCondition(scope: string, { ifCond, elseIfConds, elseCond }: Condition, count: number) {

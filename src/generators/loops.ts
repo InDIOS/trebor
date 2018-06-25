@@ -4,7 +4,7 @@ import { NodeElement, BlockAreas } from '../utilities/classes';
 import { getParent, getVarName, filterParser } from '../utilities/tools';
 
 export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) {
-	areas.loops = typeof areas.loops === 'number' ? areas.loops + 1 : 1;
+  areas.loops = areas.loops + 1;
 	[scope] = scope.split(', ');
 	const value = node.getAttribute('$for');
 	node.removeAttribute('$for');
@@ -24,9 +24,9 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
   }
 	variable = ctx(filterParser(variable), scope, areas.globals);
 	areas.variables.push(loopBlock);
-	areas.outer.push(genLoopItem(scope, node, key, val, areas));
   areas.extras.push(`${loopBlock} = _$f(${scope}, ${variable}, itemLoop_${areas.loops});
   ${anchor} = _$ct();`);
+	areas.outer.push(genLoopItem(scope, node, key, val, areas));
 	areas.create.push(`${loopBlock}.$create();`);
 	areas.unmount.push(`${loopBlock}.$mount(${root || '_$frag'}, ${anchor});`);
 	areas.update.push(`${loopBlock}.$update(${scope}, ${variable});`);
@@ -34,10 +34,8 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
 }
 
 function genLoopItem(scope: string, node: NodeElement, variable: string, index: string, areas: BlockAreas) {
-	const subareas: BlockAreas = new BlockAreas();
+  const subareas: BlockAreas = new BlockAreas(areas.loops, areas.conditions);
 	const loop = `itemLoop_${areas.loops}`;
-	subareas.loops = areas.loops;
-	subareas.conditions = areas.conditions;
 	subareas.globals.push(variable);
 	if (index) {
 		subareas.globals.push(index);
@@ -53,7 +51,9 @@ function genLoopItem(scope: string, node: NodeElement, variable: string, index: 
 	}
 	subareas.variables.push('_$frag');
 	subareas.extras.push('_$frag = _$d();');
-	item = genBlockAreas(node, subareas, scope);
+  item = genBlockAreas(node, subareas, scope);
+  areas.loops = subareas.loops;
+  areas.conditions = subareas.conditions;
 	if (tag === 'template') {
 		subareas.create.splice(0, 1, `${item} = _$d();`);
 	}

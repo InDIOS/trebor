@@ -2,12 +2,15 @@ import { removeEmptyNodes, stripWhitespace } from './html';
 import { serialize, DefaultTreeNode, DefaultTreeElement, DefaultTreeTextNode, Attribute } from 'parse5';
 
 export interface Condition {
+  index: number;
   ifCond?: string;
   elseIfConds?: string[];
   elseCond?: boolean;
 }
 
 export class BlockAreas {
+  loops: number;
+  conditions: number;
   variables: string[] = [];
   create: string[] = [];
   hydrate: string[] = [];
@@ -19,8 +22,11 @@ export class BlockAreas {
   outer: string[] = [];
   extras: string[] = [];
   globals: string[] = [];
-  loops: number = 0;
-  conditions: Condition[] = [];
+  
+  constructor(loops: number = 0, conditions: number = 0) {
+    this.loops = loops || 0;
+    this.conditions = conditions || 0;
+  }
 }
 
 const html5 = [
@@ -119,8 +125,8 @@ export class NodeElement {
   }
 
   get innerHTML() {
-		return serialize(this.childNodes.map(toNode));
-	}
+    return serialize(this.childNodes.map(toNode));
+  }
 
   querySelectorAll(tagName: string) {
     let elements: NodeElement[] = [];
