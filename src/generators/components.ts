@@ -49,7 +49,8 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
 
 export function genComponent(node: NodeElement, areas: BlockAreas, scope: string) {
   const tag = node.tagName;
-  [scope] = scope.split(', ');
+  let params: string[] = [];
+  [scope, ...params] = scope.split(', ');
   const varName = kebabToCamelCases(tag);
   const anchor = getVarName(areas.variables, `${varName}Anchor`);
   const variable = getVarName(areas.variables, varName);
@@ -61,10 +62,10 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     if (name[0] === '@') {
       const eventVar = `event${capitalize(kebabToCamelCases(name.slice(1)))}${capitalize(variable)}`;
       areas.variables.push(eventVar);
-      extras.push(`${eventVar} = ${variable}.$on('${name.slice(1)}', ${ctx(value, scope, [])});`);
+      extras.push(`${eventVar} = ${variable}.$on('${name.slice(1)}', ${ctx(value, scope, params)});`);
       areas.destroy.push(`${eventVar}.off();`);
     } else if (name[0] === ':') {
-      attrs += `${kebabToCamelCases(name.slice(1))}() { return ${ctx(value, scope, [])}; },`;
+      attrs += `${kebabToCamelCases(name.slice(1))}() { return ${ctx(value, scope, params)}; },`;
     } else if (name[0] === '$' && !/model|show/.test(name.slice(1))) {
       genDirective(variable, name.slice(1), value, areas, scope);
     } else {
