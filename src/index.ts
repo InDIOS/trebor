@@ -109,11 +109,16 @@ function optimize(src: string, iteration = 0) {
       'no-unused-vars': [2, { args: 'all', caughtErrors: 'all' }]
     }
   });
+  const canOptimize = messages.length !== 0;
   let ast = null;
   try {
     ast = linter.getSourceCode().ast;
   } catch (error) {
     console.log(error);
+    return src;
+  }
+
+  if (!canOptimize) {
     return src;
   }
 
@@ -148,11 +153,11 @@ function optimize(src: string, iteration = 0) {
         }
         case node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression': {
           const { params } = (<FunctionDeclaration | FunctionExpression>node);
-          for (let i = params.length - 1; i > 0; i--) {
+          for (let i = params.length - 1; i >= 0; i--) {
             if (canRemove(params[i])) {
               params.splice(i, 1);
             } else {
-              i = 0;
+              i = -1;
             }
           }
           return node;
@@ -167,7 +172,7 @@ function optimize(src: string, iteration = 0) {
   });
   const out = generate(ast, { format: { indent: { style: '  ' } } });
   iteration++;
-  return iteration < 3 ? optimize(out, iteration) : out;
+  return iteration < 5 ? optimize(out, iteration) : out;
 }
 
 function umdTpl(moduleName: string, body: string) {
