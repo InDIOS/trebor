@@ -73,7 +73,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   });
   attrs += '}';
   const globCompName = capitalize(varName);
-  const init = `const ${globCompName} = children['${tag}'] || window['${globCompName}'];`;
+  const init = `const ${globCompName} = ${varName === 'selfRef' ? `${scope}.constructor` : `children['${tag}'] || window['${globCompName}']`};`;
   if (!areas.extras.includes(init)) {
     areas.extras.push(init);
   }
