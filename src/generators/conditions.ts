@@ -16,15 +16,17 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   areas.outer.push(genItemCondition(scope, node, areas, condition.index, 'if'));
   areas.extras.push(`${anchor} = _$ct();`);
   areas.create.push(`${block} = condition_${condition.index}(${scope});`);
-  if (node.nextElementSibling.hasAttribute('$else-if')) {
-    genElseIf(scope, node.nextElementSibling, condition, areas);
-  }
-  if (node.nextElementSibling.hasAttribute('$else')) {
-    const sibling = node.nextElementSibling;
-    condition.elseCond = condition.elseCond || true;
-    sibling.removeAttribute('$else');
-    areas.outer.push(genItemCondition(scope, sibling, areas, condition.index, 'else'));
-    parent.removeChild(sibling);
+  if (node.nextElementSibling) {
+    if (node.nextElementSibling.hasAttribute('$else-if')) {
+      genElseIf(scope, node.nextElementSibling, condition, areas);
+    }
+    if (node.nextElementSibling.hasAttribute('$else')) {
+      const sibling = node.nextElementSibling;
+      condition.elseCond = condition.elseCond || true;
+      sibling.removeAttribute('$else');
+      areas.outer.push(genItemCondition(scope, sibling, areas, condition.index, 'else'));
+      parent.removeChild(sibling);
+    }
   }
   parent.removeChild(node);
   areas.outer.push(genCondition(scope, condition, condition.index));
