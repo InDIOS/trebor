@@ -64,7 +64,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
           areas.variables.pop();
           variable = genTag(node, areas, scope);
         } else if (!isTpl || !isBlock) {
-          areas.create.push(createElement(variable, tag, node.namespaceURI));
+          areas.create.push(createElement(variable, tag, node.isSVGElement));
         }
         let childNodes: NodeElement[] = node.childNodes;
         if (isTpl) {

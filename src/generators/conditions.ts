@@ -60,7 +60,7 @@ function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, i
   areas.conditions = subareas.conditions;
   const tag = node.tagName;
   if (condition) {
-    subareas.create.unshift(tag === 'template' ? `${condition} = _$d();` : createElement(condition, tag, node.namespaceURI));
+    subareas.create.unshift(tag === 'template' ? `${condition} = _$d();` : createElement(condition, tag, node.isSVGElement));
     subareas.unmount.push(`_$a(_$frag, ${condition});`);
   }
   subareas.mount.push('_$a(_$(parent), _$frag, _$(sibling));');

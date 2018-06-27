@@ -448,8 +448,11 @@ export function _$r(el: Element, parent: Element) {
   let root = parent || el.parentElement;
   if (root) root.removeChild(el);
 }
-export function _$ce<T extends keyof HTMLElementTagNameMap>(tagName?: T, namespace?: string) {
-  return !namespace ? document.createElement(tagName || 'div') : document.createElementNS(namespace, tagName);
+export function _$ce<T extends keyof HTMLElementTagNameMap>(tagName?: T) {
+  return document.createElement(tagName || 'div');
+}
+export function _$cse<T extends keyof SVGElementTagNameMap>(tagName?: T) {
+  return document.createElementNS('http://www.w3.org/2000/svg', tagName || 'svg');
 }
 export function _$ct(content?: string) {
   return document.createTextNode(content || '');
@@ -457,15 +460,11 @@ export function _$ct(content?: string) {
 export function _$cm(content?: string) {
   return document.createComment(content || '');
 }
-export function _$sa(el: Element, attr: string, value: string, namespace?: string) {
-  if (!namespace) {
-    el.setAttribute(attr, value);
-  } else {
-    el.setAttributeNS(namespace, attr, value);
-  }
+export function _$sa(el: Element, attr: string, value: string) {
+  el.setAttribute(attr, value);
 }
-export function _$ga(el: Element, attr: string, namespace?: string) {
-  return !namespace ? el.getAttribute(attr) : el.getAttributeNS(namespace, attr);
+export function _$ga(el: Element, attr: string) {
+  return el.getAttribute(attr);
 }
 export function _$al(el: HTMLElement, event: string, handler: EventListenerOrEventListenerObject) {
   el.addEventListener(event, handler, false);

@@ -10,8 +10,8 @@ export function escapeExp(str: string) {
   return str.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t').replace(/'/g, `\\'`);
 }
 
-export function createElement(variable: string, tag: string, namespace: string) {
-  return `${variable} = _$ce(${tag !== 'div' ? `'${tag}'${namespace ? `, '${namespace}'` : ''}` : ''});`;
+export function createElement(variable: string, tag: string, isSVG: boolean) {
+  return `${variable} = ${isSVG ? '_$cse' : '_$ce'}(${tag === 'div' || tag === 'svg' ? '' : `'${tag}'`});`;
 }
 
 export function createNode(variable: string, content?: string) {
