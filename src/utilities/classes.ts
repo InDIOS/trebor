@@ -1,3 +1,5 @@
+import svg2 from 'svg-tag-names';
+import html5 from 'html-tag-names';
 import { escapeExp } from './tools';
 import { removeEmptyNodes, stripWhitespace } from './html';
 import { serialize, DefaultTreeNode, DefaultTreeElement, DefaultTreeTextNode, Attribute } from 'parse5';
@@ -30,31 +32,6 @@ export class BlockAreas {
   }
 }
 
-const html5 = [
-  '!doctype',
-  'a', 'abbr', 'address', 'area', 'article', 'aside', 'audio',
-  'b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button',
-  'canvas', 'caption', 'cite', 'code', 'col', 'colgroup',
-  'data', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'div', 'dl', 'dt',
-  'em', 'embed',
-  'fieldset', 'figcaption', 'figure', 'footer', 'form',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html',
-  'i', 'iframe', 'img', 'input', 'ins',
-  'kbd',
-  'label', 'legend', 'li', 'link',
-  'main', 'map', 'mark', 'meta', 'meter',
-  'nav', 'noscript',
-  'object', 'ol', 'optgroup', 'option', 'output',
-  'p', 'param', 'pre', 'progress',
-  'q',
-  'rp', 'rt', 'rtc', 'ruby',
-  's', 'samp', 'script', 'section', 'select', 'slot', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup',
-  'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track',
-  'u', 'ul',
-  'var', 'video',
-  'wbr'
-];
-
 export class NodeElement {
   tagName: string;
   nodeType: number;
@@ -69,7 +46,7 @@ export class NodeElement {
     this.nodeType = nodeType(node.nodeName);
     this.tagName = (<DefaultTreeElement>node).tagName || node.nodeName;
     this.isUnknownElement = false;
-    if (this.nodeType === 1) this.isUnknownElement = !html5.includes(this.tagName);
+    if (this.nodeType === 1) this.isUnknownElement = !(html5.includes(this.tagName) || svg2.includes(this.tagName));
     this._textContent = (<DefaultTreeTextNode>node).value || '';
     this.attributes = (<DefaultTreeElement>node).attrs || [];
     this.content = null;
@@ -80,7 +57,7 @@ export class NodeElement {
       this.childNodes = (<DefaultTreeElement>node).childNodes.map(n => new NodeElement(n, this));
     }
     if (this.nodeType === 1 && this.tagName === 'template') {
-      const childNodes = removeEmptyNodes(stripWhitespace(node['content'].childNodes));
+      const childNodes = removeEmptyNodes(stripWhitespace(node['content'] ? node['content'].childNodes : (<DefaultTreeElement>node).childNodes));
       this.content = new NodeElement(<DefaultTreeElement>{ nodeName: '#document-fragment', childNodes }, null);
     }
   }
