@@ -147,7 +147,7 @@ export class NodeElement {
 
   removeAttribute(name: string) {
     const position = this.attributes.findIndex(attr => attr.name.split('.')[0] === name);
-    this.attributes.splice(position, 1);
+    ~position && this.attributes.splice(position, 1);
   }
 
   appendChild(...children: NodeElement[]) {
