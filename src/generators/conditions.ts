@@ -53,11 +53,11 @@ function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, i
   subareas.globals = areas.globals;
   subareas.variables.push('_$frag');
   subareas.extras.push('_$frag = _$d();');
-  node['isCondition'] = true;
+  node['isBlock'] = true;
   let condition = genBlockAreas(node, subareas, scope);
+  delete node['isBlock'];
   areas.loops = subareas.loops;
   areas.conditions = subareas.conditions;
-  delete node['isCondition'];
   const tag = node.tagName;
   if (condition) {
     if (tag === 'template') {

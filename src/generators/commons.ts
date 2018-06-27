@@ -58,12 +58,12 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       default:
         const tag = node.tagName;
         const isTpl = tag === 'template';
-        const isCond = node['isCondition'];
+        const isBlock = node['isBlock'];
         let variable = getVarName(areas.variables, tag);
         if (node.hasAttribute('$tag')) {
           areas.variables.pop();
           variable = genTag(node, areas, scope);
-        } else if (!isCond) {
+        } else if (!isTpl || !isBlock) {
           areas.create.push(createElement(variable, tag));
         }
         let childNodes: NodeElement[] = node.childNodes;
@@ -75,7 +75,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
           const n = childNodes[i];
           const el = genBlockAreas(n, areas, scope);
           if (el) {
-            areas.unmount.push(`_$a(${variable}${isTpl && !isCond ? '.content' : ''}, ${el});`);
+            areas.unmount.push(`_$a(${variable}${isTpl && !isBlock ? '.content' : ''}, ${el});`);
           }
           if (length !== childNodes.length) {
             i--;

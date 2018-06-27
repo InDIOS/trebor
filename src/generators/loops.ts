@@ -51,7 +51,9 @@ function genLoopItem(scope: string, node: NodeElement, variable: string, index: 
 	}
 	subareas.variables.push('_$frag');
 	subareas.extras.push('_$frag = _$d();');
+  node['isBlock'] = true;
   item = genBlockAreas(node, subareas, scope);
+  delete node['isBlock'];
   areas.loops = subareas.loops;
   areas.conditions = subareas.conditions;
 	if (tag === 'template') {
