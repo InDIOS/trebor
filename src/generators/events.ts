@@ -8,7 +8,7 @@ export function genEvent(variable: string, eventArgs: string, expression: string
   const hasPrevent = args.indexOf('prevent');
   const isKeyEvent = event.startsWith('key');
   let keys = '';
-  if (isKeyEvent) {
+  if (isKeyEvent && args.length) {
     const compare = '_$isKey';
     keys = args.reduce((nargs, arg, i) => {
       if (i !== hasPrevent && i !== hasStop) {
