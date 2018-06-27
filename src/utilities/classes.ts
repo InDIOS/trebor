@@ -35,6 +35,7 @@ export class BlockAreas {
 export class NodeElement {
   tagName: string;
   nodeType: number;
+  namespaceURI: string;
   private _textContent: string;
   content: NodeElement;
   parentElement: NodeElement;
@@ -46,6 +47,7 @@ export class NodeElement {
     this.nodeType = nodeType(node.nodeName);
     this.tagName = (<DefaultTreeElement>node).tagName || node.nodeName;
     this.isUnknownElement = false;
+    this.namespaceURI = svg2.includes(this.tagName) ? (<DefaultTreeElement>node).namespaceURI : null;
     if (this.nodeType === 1) this.isUnknownElement = !(html5.includes(this.tagName) || svg2.includes(this.tagName));
     this._textContent = (<DefaultTreeTextNode>node).value || '';
     this.attributes = (<DefaultTreeElement>node).attrs || [];

@@ -66,7 +66,7 @@ export function genHtml(node: NodeElement, areas: BlockAreas, scope?: string) {
 	const html = node.getAttribute('$html');
 	node.removeAttribute('$html');
 	const variable = getVarName(areas.variables, tag);
-	areas.create.push(createElement(variable, tag));
+	areas.create.push(createElement(variable, tag, node.namespaceURI));
 	let content = '';
 	if (html) {
 		const setContent = getVarName(areas.variables, `content${capitalize(variable)}`);

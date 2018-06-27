@@ -109,7 +109,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
       const tag = n.tagName;
       let slot = getVarName(areas.variables, tag);
       if (tag !== 'template') {
-        areas.create.push(createElement(slot, tag));
+        areas.create.push(createElement(slot, tag, n.namespaceURI));
       } else {
         areas.create.push(`${slot} = _$d();`);
         n.appendChild(n.content);

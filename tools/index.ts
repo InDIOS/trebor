@@ -435,7 +435,7 @@ export function _$as(source: Element, dest: Element) {
   }
   for (let i = 0; i < attributes.length; i++) {
     const attr = attributes[i];
-    dest.setAttribute(attr.name, attr.value);
+    dest.setAttributeNS(source.namespaceURI, attr.name, attr.value);
   }
   source.parentElement.replaceChild(dest, source);
   return dest;
@@ -444,8 +444,8 @@ export function _$r(el: Element, parent: Element) {
   let root = parent || el.parentElement;
   if (root) root.removeChild(el);
 }
-export function _$ce<T extends keyof HTMLElementTagNameMap>(tagName?: T) {
-  return document.createElement(tagName || 'div');
+export function _$ce<T extends keyof HTMLElementTagNameMap>(tagName?: T, namespace?: string) {
+  return !namespace ? document.createElement(tagName || 'div') : document.createElementNS(namespace, tagName);
 }
 export function _$ct(content?: string) {
   return document.createTextNode(content || '');
@@ -453,11 +453,15 @@ export function _$ct(content?: string) {
 export function _$cm(content?: string) {
   return document.createComment(content || '');
 }
-export function _$sa(el: Element, attr: string, value: string) {
+export function _$sa(el: Element, attr: string, value: string, namespace?: string) {
+  if (!namespace) {
   el.setAttribute(attr, value);
+  } else {
+    el.setAttributeNS(namespace, attr, value);
+  }
 }
-export function _$ga(el: Element, attr: string) {
-  return el.getAttribute(attr);
+export function _$ga(el: Element, attr: string, namespace?: string) {
+  return !namespace ? el.getAttribute(attr) : el.getAttributeNS(namespace, attr);
 }
 export function _$al(el: HTMLElement, event: string, handler: EventListenerOrEventListenerObject) {
   el.addEventListener(event, handler, false);
@@ -485,7 +489,7 @@ export function _$bc(value: string | ObjectLike<boolean> | (string | ObjectLike<
 export function _$bs(value: string | ObjectLike<any>) {
   let el = _$ce();
   if (_$isObject(value)) {
-    const { style } = el;
+    const { style } = <HTMLElement>el;
     _$e(value, (val, prop) => {
       if (val !== style[prop]) {
         style[prop] = val;
