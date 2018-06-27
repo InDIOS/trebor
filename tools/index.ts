@@ -238,6 +238,9 @@ _$assign(_$CompCtr.prototype, {
   }
 });
 const array = Array.prototype;
+function _$toArgs(args: IArguments, start: number = 0): any[] {
+  return array.slice.call(args, start);
+}
 function _$arrayValues(list, value: any[], root: Component, key: string) {
   array.push.apply(list, value.map((v, i) => {
     if (list.length !== 0) i += list.length;
@@ -262,7 +265,7 @@ _$List.prototype.constructor = _$List;
     const old = self.slice();
     let result;
     if (method === 'push') {
-      _$arrayValues(self, array.slice.call(arguments), self._root, self._key);
+      _$arrayValues(self, _$toArgs(arguments), self._root, self._key);
       result = self.length;
     } else {
       result = array[method].apply(self, arguments);
@@ -271,20 +274,21 @@ _$List.prototype.constructor = _$List;
     return result;
   };
 });
-_$List.prototype.pull = function (index: number, ...items) {
+_$List.prototype.pull = function (index: number) {
   let self = this;
+  let items = _$toArgs(arguments, 1);
   let length = self.length;
   if (index > length) {
     length = index + 1;
     const pull = new Array(index - self.length);
-    pull.push(...items);
+    pull.push.apply(pull, items);
     for (let i = 0; i < length; i++) {
       if (i === index) {
-        self.push(...pull);
+        self.push.apply(self, pull);
       }
     }
   } else {
-    self.splice(index, 1, ...items);
+    self.splice.apply(self, [index, 1].concat(items));
   }
 };
 function _$dispatch(root: Component, key: string, oldVal, value) {
@@ -314,7 +318,7 @@ function _$toType(value, type, root: Component, key: string) {
     case 'boolean':
       return !!value;
     case 'array':
-      return _$isType(value, _$List)  ? value : new _$List(value, root, key);
+      return _$isType(value, _$List) ? value : new _$List(value, root, key);
     default:
       return value;
   }
