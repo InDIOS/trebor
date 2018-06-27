@@ -459,7 +459,7 @@ export function _$cm(content?: string) {
 }
 export function _$sa(el: Element, attr: string, value: string, namespace?: string) {
   if (!namespace) {
-  el.setAttribute(attr, value);
+    el.setAttribute(attr, value);
   } else {
     el.setAttributeNS(namespace, attr, value);
   }
@@ -508,7 +508,8 @@ export function _$bs(value: string | ObjectLike<any>) {
 }
 export function _$f(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
   let items: ObjectLike<ComponentTemplate> = {}, loopParent: Element, loopSibling: Element;
-  _$e(obj, (item, i) => { items[i] = loop(root, item, i); });
+  let globs = _$toArgs(arguments, 3);
+  _$e(obj, (item, i) => { items[i] = loop.apply(null, [root, item, i].concat(globs)); });
   return {
     $create() {
       _$e(items, item => { item.$create(); });
@@ -518,10 +519,11 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
       loopSibling = _$(sibling);
       _$e(items, item => { item.$mount(loopParent, loopSibling); });
     },
-    $update(root, obj) {
+    $update(root: Component, obj: any[]) {
+      let globs = _$toArgs(arguments, 2);
       _$e(items, (item, i) => {
         if (obj[i]) {
-          item.$update(root, obj[i], i);
+          item.$update.apply(item, [root, obj[i], i].concat(globs));
         } else {
           item.$destroy();
           delete items[i];
@@ -529,7 +531,7 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
       });
       _$e(obj, (item, i) => {
         if (!items[i]) {
-          items[i] = loop(root, item, i);
+          items[i] = loop.apply(null, [root, item, i].concat(globs));
           items[i].$create();
           items[i].$mount(loopParent, loopSibling);
         }
