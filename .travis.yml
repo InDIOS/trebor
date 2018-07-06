@@ -4,8 +4,8 @@ node_js:
 install:
   - npm i
 script:
-  - npm run built:src
-  - npm run built:tools
+  - npm run build:src
+  - npm run build:tools
 cache:
   directories:
     - "node_modules"
