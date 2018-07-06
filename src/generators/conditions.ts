@@ -1,7 +1,7 @@
 import { ctx } from '../utilities/context';
 import { genBlockAreas, genBody } from './commons';
+import { getVarName, getParent, capitalize } from '../utilities/tools';
 import { NodeElement, BlockAreas, Condition } from '../utilities/classes';
-import { getVarName, getParent, createElement, capitalize } from '../utilities/tools';
 
 export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   areas.conditions = areas.conditions + 1;
@@ -60,7 +60,7 @@ function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, i
   areas.conditions = subareas.conditions;
   const tag = node.tagName;
   if (condition) {
-    subareas.create.unshift(tag === 'template' ? `${condition} = _$d();` : createElement(condition, tag, node.isSVGElement));
+		tag === 'template' && subareas.create.unshift(`${condition} = _$d();`);
     subareas.unmount.push(`_$a(_$frag, ${condition});`);
   }
   subareas.mount.push('_$a(_$(parent), _$frag, _$(sibling));');
