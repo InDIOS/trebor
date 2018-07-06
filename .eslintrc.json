@@ -12,7 +12,10 @@
 			"jsx": true
     },
     "sourceType": "module"
-  },
+	},
+	"plugins": [
+		"html"
+	],
   "rules": {
     "no-const-assign": "error",
     "no-this-before-super": "error",
@@ -20,6 +23,7 @@
     "no-unreachable": "error",
 		"no-unused-vars": "warn",
 		"constructor-super": "warn",
+		"eqeqeq": ["warn", "smart"],
 		"semi": "warn",
     "valid-typeof": "error"
   }
