@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/InDIOS/trebor.svg?branch=master)](https://travis-ci.org/InDIOS/trebor)
 
-A node js module to make standalone reactive web components.
+A node js module to make standalone web components.
 
 # How to use
 
@@ -31,7 +31,7 @@ First we'll make an html file with name `counter`.
 <div class="container">
   <h3 class="title is-3">Counter Example</h3>
   <label>Counter: </label>
-  <strong :class="negative()">{{ count }}</strong>
+  <strong :class="negative">{{ count }}</strong>
   <br/>
   <button class="button is-primary" @click="increment()">Increment</button>
   <button class="button is-danger" @click="decrement()">Decrement</button>
@@ -41,14 +41,14 @@ First we'll make an html file with name `counter`.
   export default {
     model: {
       count: 0,
-      increment(){
-        this.count = this.count + 1;
+			get negative() {
+				return { 'negative': this.count < 0 };
+			},
+      increment() {
+        this.$set('count', this.count + 1);
       },
-      decrement(){
-        this.count = this.count - 1;
-      },
-      negative() {
-        return { 'negative': this.count < 0 };
+      decrement() {
+        this.$set('count', this.count - 1);
       }
     }
   };
