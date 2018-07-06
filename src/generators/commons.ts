@@ -114,8 +114,8 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				${areas.hydrate.join('\n')}
 			},`}
       $mount(parent, sibling) {
-        ${condType || scope.includes(',') ? '' : `this.$parentEl = parent;
-        this.$siblingEl = sibling;`}
+        ${condType || scope.includes(',') ? '' : `this.$parentEl = _$(parent);
+        this.$siblingEl = _$(sibling);`}
 				this.$unmount();
 				${areas.mount.join('\n')}${!areas.mountDirt.length ? '' : `
 				${areas.mountDirt.join('\n')}`}
