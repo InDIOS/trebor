@@ -27,16 +27,7 @@ export function genName(target: string, node: NodeElement, areas: BlockAreas, sc
     const value = node.getAttribute('value');
     const group = node.getAttribute('$name');
     if (type === 'checkbox') {
-      let bindGroup = `${type}Group`;
-      if (!areas.variables.includes(bindGroup)) {
-        areas.variables.push(bindGroup);
-        areas.extras.push(`${bindGroup} = (el, selection) => {
-          let _$index = selection.indexOf(el.value);
-          if (el.checked && !~_$index) selection.push(el.value);
-          else selection.splice(_$index, 1);
-        };`);
-      }
-      genEvent(target, 'change', `${bindGroup}($el, ${group})`, areas, scope);
+			genEvent(target, 'change', `_$bindGroup($el, ${group})`, areas, scope);
       genBind(target, 'checked', `!!~${group}.indexOf('${value}')`, areas, scope, type, null);
     } else if (type === 'radio') {
       genEvent(target, 'change', `${group} = $el.checked ? $el.value : ${group}`, areas, scope);

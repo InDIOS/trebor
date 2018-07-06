@@ -9,17 +9,12 @@ export function genEvent(variable: string, eventArgs: string, expression: string
   const isKeyEvent = event.startsWith('key');
   let keys = '';
   if (isKeyEvent && args.length) {
-    const compare = '_$isKey';
     keys = args.reduce((nargs, arg, i) => {
       if (i !== hasPrevent && i !== hasStop) {
-        nargs += `${compare}(event, '${arg}')${i < args.length - 1 ? ' &&' : ''}`;
+				nargs += `_$isKey(event, '${arg}')${i < args.length - 1 ? ' &&' : ''}`;
       }
       return nargs;
     }, '');
-    if (!areas.variables.includes(compare)) {
-      areas.variables.push(compare);
-      areas.extras.push(`${compare} = (event, key) => event.key.toLowerCase() === key || !!event[\`\${key}Key\`];`);
-    }
   }
 	const eventFuncName = getVarName(areas.variables, `${event}Event`);
 	const handlerFuncName = `handler${capitalize(eventFuncName)}`;
