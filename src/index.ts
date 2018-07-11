@@ -4,12 +4,11 @@ import { minify } from 'uglify-js';
 import { replace } from 'estraverse';
 import { generate } from 'escodegen';
 import { getDoc } from './utilities/html';
-import { genTemplate } from './generators';
-import { CompilerOptions } from './types.d';
 import { transpileModule } from 'typescript';
 import { minify as minifyES } from 'uglify-es';
 import { basename, extname, dirname, join } from 'path';
 import { writeFileSync, readFileSync, statSync } from 'fs';
+import { genTemplate, CompilerOptions } from './generators';
 import { kebabToCamelCases, capitalize } from './utilities/tools';
 import { TryStatement, FunctionDeclaration, FunctionExpression } from 'estree';
 

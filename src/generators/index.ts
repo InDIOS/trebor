@@ -1,6 +1,5 @@
 import abs from '../utilities/jsonToCss';
 import toJSON from '../utilities/cssToJson';
-import { CompilerOptions } from '../types.d';
 import { walkNode } from '../utilities/html';
 import { toOptions } from '../utilities/context';
 import { genBlockAreas, genBody } from './commons';
@@ -8,6 +7,15 @@ import { hash, capitalize } from '../utilities/tools';
 import { NodeElement, BlockAreas } from '../utilities/classes';
 
 const toCSS = abs({ minify: true });
+
+export interface CompilerOptions {
+  out?: string;
+  input?: string;
+  minify?: boolean;
+  moduleName?: string;
+  noComments?: boolean;
+  format?: 'es' | 'iif' | 'umd' | 'amd' | 'system';
+}
 
 export function genTemplate(node: NodeElement, scope: string, opts: CompilerOptions) {
 	const areas: BlockAreas = new BlockAreas();
