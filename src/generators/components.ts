@@ -58,6 +58,13 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
   let attrs = '{';
   const extras: string[] = [];
+  let isValue: string;
+  let isIsAttrExp = node.hasAttribute(':is');
+  if (varName === 'component') {
+    let isAttr = `${isIsAttrExp ? ':' : ''}is`;
+    isValue = node.getAttribute(isAttr);
+    node.removeAttribute(isAttr);
+  }
   node.attributes.forEach(({ name, value }) => {
     if (name[0] === '@') {
       const eventVar = `event${capitalize(kebabToCamelCases(name.slice(1)))}${capitalize(variable)}`;
@@ -73,14 +80,30 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     }
   });
   attrs += '}';
-  const globCompName = capitalize(varName);
-  const init = `const ${globCompName} = ${varName === 'selfRef' ? `${scope}.constructor` : `children['${tag}'] || window['${globCompName}']`};`;
-  if (!areas.extras.includes(init)) {
-    areas.extras.push(init);
-  }
+  let globCompName = capitalize(varName);
+  let init = `const `;
+  let setComponent = `set${capitalize(variable)}`;
+  let setAttrsComponent = `setAttrs${capitalize(variable)}`;
+  if (varName === 'component') {
+    globCompName = capitalize(variable);
+    areas.variables.push(setComponent, setAttrsComponent);
+    areas.extras.push(`${setAttrsComponent} = () => (${attrs});
+    ${setComponent} = ${isIsAttrExp ? `(${[scope, params].join(', ')}) => {
+      let comp = ${ctx(isValue, scope, areas.globals.concat(params))};
+      return _$isType(comp, 'string') ? children[comp] : comp;
+    }` : `() => children['${isValue}']`};`);
+    init += `${globCompName} = ${setComponent}(${isIsAttrExp ? [scope, ...params].join(', ') : ''});`;
+    areas.extras.push(`${init}
+    ${anchor} = _$ct();
+    ${variable} = new ${globCompName}(${setAttrsComponent}(), ${scope});
+    ${variable} && _$add(${scope}, ${variable});`);
+  } else {
+    init += `${globCompName} = ${varName === 'selfRef' ? `${scope}.constructor` : `children['${tag}'] || window['${globCompName}']`};`;
+    !areas.extras.includes(init) && areas.extras.push(init);
   areas.extras.push(`${anchor} = _$ct();
 	${variable} = new ${globCompName}(${attrs}, ${scope});
   _$add(${scope}, ${variable});`);
+  }
   areas.create.push(`${variable}.$create();`);
   areas.extras = areas.extras.concat(extras);
   areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
@@ -122,6 +145,27 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     }
   });
   areas.unmount.push(`${variable}.$mount(_$frag, ${anchor});`);
-  areas.update.push(`${variable}.$update();`);
-  areas.destroy.push(`${variable}.$destroy();`);
+  if (varName === 'component') {
+    let updateVar = `update${capitalize(variable)}`;
+    areas.update.push(`let ${updateVar} = ${setComponent}(${isIsAttrExp ? [scope, ...params].join(', ') : ''});
+    if (${updateVar} === ${globCompName}) {
+      ${variable} && ${variable}.$update();
+    } else {
+      ${globCompName} = ${updateVar};
+      if (${variable}) {
+        ${variable}.$destroy();
+        _$remove(${scope}, ${variable});
+      }
+      ${variable} = new ${globCompName}(${setAttrsComponent}(), ${scope});
+      if (${variable}) {
+        _$add(${scope}, ${variable});
+        ${variable}.$create();
+        ${variable}.$mount(${root || `${scope}.$parentEl`}, ${anchor});
+      }
+    }
+    ${updateVar} = void 0;`);
+  } else {
+    areas.update.push(`${variable} && ${variable}.$update();`);
+  }
+  areas.destroy.push(`${variable} && ${variable}.$destroy();`);
 }

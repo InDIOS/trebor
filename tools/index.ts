@@ -354,6 +354,10 @@ export function _$noop() { }
 export function _$add(inst: Component, child: Component) {
 	inst.$children.push(child);
 }
+export function _$remove(inst: Component, child: Component) {
+  let index = inst.$children.indexOf(child);
+  index >= 0 && inst.$children.splice(index, 1);
+}
 export function _$toStr(obj: any) {
 	const str: string = _$type(obj);
 	return !/null|undefined/.test(str) ? obj.toString() : str;
