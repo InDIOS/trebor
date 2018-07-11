@@ -32,7 +32,7 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   areas.outer.push(genCondition(scope, condition, condition.index));
   areas.create.push(`${block}.$create();`);
   areas.unmount.push(`${block}.$mount(${root || '_$frag'}, ${anchor});`);
-  areas.update.push(genConditionUpdate(scope, root || '_$frag', block, anchor, condition.index));
+	areas.update.push(genConditionUpdate(scope, root || `${scope}.$parentEl`, block, anchor, condition.index));
   areas.destroy.push(`${block}.$destroy();`);
 }
 

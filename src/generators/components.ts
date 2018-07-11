@@ -83,11 +83,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   _$add(${scope}, ${variable});`);
   areas.create.push(`${variable}.$create();`);
   areas.extras = areas.extras.concat(extras);
-  if (!root) {
-    areas.unmount.push(`_$a(_$frag, ${anchor});`);
-  } else {
-    areas.create.push(`_$a(${root}, ${anchor});`);
-  }
+  areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
   node.childNodes.forEach(n => {
     let slotName = 'default';
     if (n.hasAttribute('slot')) {
