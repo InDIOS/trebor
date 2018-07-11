@@ -152,6 +152,9 @@ export function ctx(src: string, scope: string, globs: string[], noGlobs: boolea
         case types.MemberExpression: {
           if (node.object.type === types.Identifier) {
             node.object = context(node.object, scope, deps);
+            if (node.computed && node.property.type === types.Identifier) {
+              node.property = context(node.property, scope, deps);
+            }
             this.skip();
           }
           break;
