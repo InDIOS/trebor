@@ -127,13 +127,16 @@ export function ctx(src: string, scope: string, globs: string[], noGlobs: boolea
   const deps = globals(src).map(({ name }) => name)
     .filter(glob => glob !== 'this' && glob !== 'arguments' && !~globs.indexOf(glob));
   const ast: Node = replace(parseScript(src), {
-    enter(node) {
+    leave(node) {
       switch (node.type) {
         case types.Property: {
+          if (node.key.type === types.Identifier && node.computed) {
+            node.key = context(node.key, scope, deps);
+          }
           if (node.value.type === types.Identifier) {
             if (~deps.indexOf((<Identifier>node.value).name)) node.shorthand = false;
             node.value = context(node.value, scope, deps);
-            this.skip();
+            !node.computed && this.skip();
           }
           break;
         }
@@ -154,8 +157,8 @@ export function ctx(src: string, scope: string, globs: string[], noGlobs: boolea
             node.object = context(node.object, scope, deps);
             if (node.computed && node.property.type === types.Identifier) {
               node.property = context(node.property, scope, deps);
-            }
             this.skip();
+          }
           }
           break;
         }
@@ -258,5 +261,3 @@ export function toOptions(src: string) {
   const extras = generator(ast, opts);
   return { imports, extras, options };
 }
-
-// console.log(ctx('a || b === c.d', 'this', []));
