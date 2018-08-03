@@ -1,6 +1,7 @@
 import { Attribute } from 'parse5';
 import { genEvent } from './events';
 import { genBind } from './bindings';
+import { kebabToCamelCases } from '../utilities/tools';
 import { BlockAreas, NodeElement } from '../utilities/classes';
 import { genShow, genDirective, genValue, genName, genRefs } from './directives';
 
@@ -26,8 +27,8 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
 			const classes = node.getAttribute('class');
 			if (node.hasAttribute('class') && attr.slice(1) === 'class') node.removeAttribute('class');
 			genBind(target, attr.slice(1), value, areas, scope, type || null, classes || null);
-		} else if (attr === 'refs') {
-			genRefs(scope, areas, value, target);
+		} else if (attr[0] === '#') {
+			genRefs(scope, areas, kebabToCamelCases(name.slice(1)), target);
 		} else {
 			res += `_$sa(${target}, '${attr}', ${value ? `'${value}'` : `''`});`;
 		}
@@ -37,10 +38,10 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
 
 function sortAttrs(attrs: Attribute[]) {
 	return attrs.sort((a, b) => {
-		if (/^[$@:]|refs/.test(a.name) && !/^[$@:]|refs/.test(b.name)) {
+		if (/^[$@:#]/.test(a.name) && !/^[$@:#]/.test(b.name)) {
 			return -1;
 		}
-		if (!/^[$@:]|refs/.test(a.name) && /^[$@:]|refs/.test(b.name)) {
+		if (!/^[$@:#]/.test(a.name) && /^[$@:#]/.test(b.name)) {
 			return 1;
 		}
 		return 0;
