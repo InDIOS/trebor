@@ -60,9 +60,11 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
         const isTpl = tag === 'template';
         const isBlock = node['isBlock'];
         let variable = getVarName(areas.variables, tag);
+				node['varName'] = variable;
         if (node.hasAttribute('$tag')) {
           areas.variables.pop();
           variable = genTag(node, areas, scope);
+					delete node['varName'];
         } else if (!isTpl || !isBlock) {
           areas.create.push(createElement(variable, tag, node.isSVGElement));
         }
@@ -114,11 +116,11 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				${areas.hydrate.join('\n')}
 			},`}
       $mount(parent, sibling) {
-        ${condType || scope.includes(',') ? '' : `this.$parentEl = _$(parent);
-        this.$siblingEl = _$(sibling);`}
 				this.$unmount();
 				${areas.mount.join('\n')}${!areas.mountDirt.length ? '' : `
 				${areas.mountDirt.join('\n')}`}
+        ${condType || scope.includes(',') ? '' : `this.$siblingEl = _$(sibling);
+        this.$parentEl = sibling && _$(sibling).parentElement || _$(parent);`}
 			},
 			$update${!!areas.update.length ? `(${scope}) {
         ${areas.update.join('\n')}

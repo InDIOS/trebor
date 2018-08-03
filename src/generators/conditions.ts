@@ -1,6 +1,6 @@
 import { ctx } from '../utilities/context';
 import { genBlockAreas, genBody } from './commons';
-import { getVarName, getParent, capitalize } from '../utilities/tools';
+import { getVarName, capitalize } from '../utilities/tools';
 import { NodeElement, BlockAreas, Condition } from '../utilities/classes';
 
 export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
@@ -10,7 +10,7 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   const anchor = getVarName(areas.variables, 'conditionAnchor');
   const block = getVarName(areas.variables, 'conditionBlock');
   const parent = node.parentElement;
-  let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
+	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
   areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
   node.removeAttribute('$if');
   areas.outer.push(genItemCondition(scope, node, areas, condition.index, 'if'));

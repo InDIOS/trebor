@@ -2,7 +2,7 @@ import { genBlockAreas } from './commons';
 import { ctx } from '../utilities/context';
 import { genDirective } from './directives';
 import { NodeElement, BlockAreas } from '../utilities/classes';
-import { kebabToCamelCases, getVarName, getParent, capitalize, createElement, filterParser } from '../utilities/tools';
+import { kebabToCamelCases, getVarName, capitalize, createElement, filterParser } from '../utilities/tools';
 
 export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
   [scope] = scope.split(',');
@@ -43,7 +43,7 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
     }
   });
   const parent = node.parentElement;
-  let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
+	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
   areas.unmount.push(`_$a(${root || '_$frag'}, ${slot});`);
 }
 
@@ -55,7 +55,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   const anchor = getVarName(areas.variables, `${varName}Anchor`);
   const variable = getVarName(areas.variables, varName);
   const parent = node.parentElement;
-  let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
+	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
   let attrs = '{';
   const extras: string[] = [];
   let isValue: string;

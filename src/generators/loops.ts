@@ -1,7 +1,7 @@
 import { ctx } from '../utilities/context';
 import { genBlockAreas, genBody } from './commons';
 import { NodeElement, BlockAreas } from '../utilities/classes';
-import { getParent, getVarName, filterParser } from '../utilities/tools';
+import { getVarName, filterParser } from '../utilities/tools';
 
 export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) {
   areas.loops = areas.loops + 1;
@@ -10,7 +10,7 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
   const value = node.getAttribute('$for');
   node.removeAttribute('$for');
   const parent = node.parentElement;
-  let root = parent['dymTag'] ? parent['dymTag'] : getParent(areas.variables, parent.tagName);
+	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
   const anchor = getVarName(areas.variables, `loopAnchor_${areas.loops}`);
   areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
   const loopBlock = `loopBlock_${areas.loops}`;

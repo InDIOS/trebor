@@ -18,15 +18,6 @@ export function createNode(variable: string, content?: string) {
   return `${variable} = ${variable.split('_')[0] === 'txt' ? '_$ct' : '_$cm'}(${content || ''});`;
 }
 
-export function getParent(variables: string[], tag: string) {
-  let variable = '';
-  const tags = variables.filter(variable => variable.startsWith(`${tag}_`));
-  if (tags.length) {
-    variable = tags[tags.length - 1];
-  }
-  return variable;
-}
-
 export function getVarName(variables: string[], variable: string) {
   variable = `${variable}_1`;
   if (variables.includes(variable)) {
