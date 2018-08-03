@@ -110,10 +110,10 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
 							value = _$isType(def, 'function') ? (<Function>def)() : def;
 						}
 						const typ = (<AttrDefinition>attrOps).type;
-						if (typ && !_$isType(value, typ)) {
+            if (typ && !_$isType(value, typ) && (<AttrDefinition>attrOps).required) {
 							return console.error(`Attribute '${key}' must be type '${typ}'.`);
 						}
-						return _$toType(value, typ, self, <string>key);
+						return _$toType(value, value === void 0 ? 'undefined' : typ, self, <string>key);
 					}
 				}
 			},
