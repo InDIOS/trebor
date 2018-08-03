@@ -39,7 +39,7 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
     const el = genBlockAreas(n, areas, scope);
     if (el) {
       roots.push(el);
-      areas.create.push(`_$a(${slot}, ${el});`);
+      areas.unmount.push(`_$a(${slot}, ${el});`);
     }
   });
   const parent = node.parentElement;
@@ -121,7 +121,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     }
     if (n.nodeType === 3) {
       let slot = genBlockAreas(n, areas, scope);
-      areas.create.push(`if (${slotDec}) {
+      areas.unmount.push(`if (${slotDec}) {
 			_$a(${slotDec}, ${slot});
 		}`);
     } else if (n.nodeType === 1) {
@@ -136,10 +136,10 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
       n.childNodes.forEach(child => {
         const el = genBlockAreas(child, areas, scope);
         if (el) {
-          areas.create.push(`_$a(${slot}, ${el});`);
+          areas.unmount.push(`_$a(${slot}, ${el});`);
         }
       });
-      areas.create.push(`if (${slotDec}) {
+      areas.unmount.push(`if (${slotDec}) {
 			_$a(${slotDec}, ${slot});
 		}`);
     }
