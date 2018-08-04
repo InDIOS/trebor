@@ -23,6 +23,7 @@
 		"html-entities": "^1.2.1",
 		"html-tag-names": "^1.1.3",
 		"parse5": "^5.0.0",
+    "rollup-pluginutils": "^2.0.1",
 		"svg-tag-names": "^1.1.1",
 		"tslib": "^1.9.3",
 		"typescript": "^2.9.2",
