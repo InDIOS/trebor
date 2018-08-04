@@ -8,7 +8,7 @@
 <section class="todoapp">
 	<header class="header">
 		<h1>todos</h1>
-		<input class="new-todo" placeholder="What needs to be done?" autofocus $model="newTodo" @keyup="addTodo($event)">
+		<input class="new-todo" placeholder="What needs to be done?" autofocus $value="newTodo" @keyup.enter="addTodo()">
 	</header>
 	<section class="main" $show="todos.length">
 		<input class="toggle-all" type="checkbox" :checked="allDone" @change="markAll($el.checked)">
@@ -16,11 +16,11 @@
 		<ul class="todo-list">
 			<li class="todo" $for="(todo, i) in todos | filterByView view" :class="{completed: todo.completed, editing: todo === editedTodo}">
 				<div class="view">
-					<input class="toggle" type="checkbox" $model="todo.completed">
+					<input class="toggle" type="checkbox" :checked="todo.completed" @change="mark(i, $el.checked)">
 					<label @dblclick="editTodo(todo, i)">{{ todo.title }}</label>
 					<button class="destroy" @click="removeTodo(todo)"></button>
 				</div>
-				<input type="text" $focus-edit="todo === editedTodo" class="edit" $model="todo.title" @blur="editedTodo = null" @keyup="doneEdit(todo, $event)">
+				<input type="text" $focus-edit="todo === editedTodo" class="edit" $value="todo.title" @blur="editedTodo = null" @keyup="doneEdit(todo, $event)">
 			</li>
 		</ul>
 	</section>

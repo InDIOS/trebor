@@ -27,27 +27,36 @@ const model = {
 	todos: [],
 	newTodo: '',
 	oldTitle: '',
-	allDone: false,
+  _allDone: false,
 	editedTodo: null,
 	get remaining() {
 		return this.$filters.actives(this.todos).length;
 	},
+  get allDone() {
+    return this._allDone || this.remaining === 0;
+  },
+  set allDone(value: boolean) {
+    this._allDone = value;
+  },
+  mark(item: number, value: boolean) {
+    this.$set(`todos.${item}.completed`, value);
+    this.$set('allDone', this.remaining === 0);
+  },
 	markAll(value: boolean) {
-		this.allDone = value;
-		this.todos.forEach(todo => { todo.completed = this.allDone; });
+    this.todos.forEach(todo => { todo.completed = value; });
+    this.$set('allDone', value);
 	},
-	addTodo(e: KeyboardEvent) {
-		if (e.key === 'Enter') {
+  addTodo() {
 			const title = this.newTodo && this.newTodo.trim();
-			if (!title)
-				return;
-			this.todos.push({ title: title, completed: false });
+    if (!title) return;
 			this.newTodo = '';
-		}
+    this.todos.push({ title: title, completed: false });
+    this.$set('allDone', this.remaining === 0);
 	},
 	editTodo(todo: Todo) {
 		this.editedTodo = todo;
 		this.oldTitle = todo.title;
+    this.$update();
 	},
 	doneEdit(todo: Todo, e: KeyboardEvent) {
 		if (e.key === 'Enter') {
@@ -64,13 +73,15 @@ const model = {
 	removeTodo(todo: Todo) {
 		const index = this.todos.indexOf(todo);
 		this.todos.splice(index, 1);
+    this.$set('allDone', this.remaining === 0);
 	},
 	removeCompleted() {
-		this.todos = this.$filters.actives(this.todos);
+    this.$set('todos', this.$filters.actives(this.todos));
 	},
 	clearTmps() {
 		this.editedTodo = null;
 		this.oldTitle = '';
+    this.$update();
 	}
 };
 
