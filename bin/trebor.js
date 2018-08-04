@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 const yargs = require('yargs');
-const gnt = require('../build');
 const { resolve } = require('path');
 const pkg = require('../package.json');
+const gnt = require('../build').default;
 
 const options = yargs.options({
 	input: {

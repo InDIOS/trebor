@@ -19,7 +19,7 @@ const deps = `import {
 } from 'trebor/tools';`;
 const tools = readFileSync(join(__dirname, '../tools/index.js'), 'utf8');
 
-function genSource(html: string, opts: CompilerOptions) {
+export function genSource(html: string, opts: CompilerOptions) {
   const body = getDoc(html, !!opts.minify);
   const { moduleName } = opts;
   const { imports, template, extras, options } = genTemplate(body, '_$state', opts);
@@ -46,8 +46,9 @@ function compileFile(options: CompilerOptions) {
   const file = basename(options.input, ext);
   let moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
   options.moduleName = options.moduleName || moduleName;
+  const fileName = join(dir, `${file}.${options.format}.js`);
   if (!options.out) {
-    options.out = join(dir, `${file}.${options.format}.js`);
+    options.out = fileName;
   }
   const { compilerOptions, uglifyOptions } = getOptions(options);
   const {imports, source} = genSource(html, options);
@@ -70,10 +71,10 @@ function compileFile(options: CompilerOptions) {
     outputText = `var ${moduleName} = (function() { ${outputText.replace('module.exports =', 'return')} })();`;
   }
   const min = options.format === 'es' ? minifyES : minify;
-  writeFileSync(options.out, options.minify ? min(outputText, uglifyOptions).code : outputText, 'utf8');
+  writeFileSync(join(options.out, fileName), options.minify ? min(outputText, uglifyOptions).code : outputText, 'utf8');
 }
 
-function exportFormat(format: string, moduleName: string) {
+export function exportFormat(format: string, moduleName: string) {
   return `${format === 'es' ? 'export default' : /umd|iif/.test(format) ? 'export =' : '\nreturn'} ${moduleName};`;
 }
 
@@ -98,7 +99,7 @@ function getOptions(options: CompilerOptions) {
   return { uglifyOptions, compilerOptions };
 }
 
-function optimize(src: string, iteration = 0) {
+export function optimize(src: string, iteration = 0) {
   const linter = new Linter();
   const messages = linter.verify(src, {
     parserOptions: { ecmaVersion: 8, sourceType: 'module' },
@@ -191,39 +192,7 @@ function umdTpl(moduleName: string, body: string) {
 });`;
 }
 
-function webpackLoader(wp, src: string, map, meta) {
-  const format = 'es';
-  const ext = extname(wp.resourcePath);
-  const file = basename(wp.resourcePath, ext);
-  const moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
-  const { imports, source } = genSource(<string>src, { noComments: true, moduleName, format, input: wp.resourcePath });
-  const { outputText } = transpileModule([source, exportFormat(format, moduleName)].join('\n'), {
-    compilerOptions: { target: 1, module: 5, removeComments: true }
-  });
-  wp.callback(null, optimize([...imports, outputText].join('\n')), map, meta);
-}
-
-function rollupPlugin(_options: Object = {}) {
-  return {
-    name: 'rollup-plugin-trebor',
-    transform(code: string, id: string) {
-      const ext = extname(id);
-      const file = basename(id, ext);
-      const moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
-      const { imports, source } = genSource(<string>code, { noComments: true, moduleName, format: 'es', input: id });
-      const { outputText, sourceMapText } = transpileModule(source, {
-        compilerOptions: { sourceMap: true, importHelpers: true, target: 1, module: 5, removeComments: true }
-      });
-
-      return {
-        code: [...imports, outputText].join('\n'),
-        map: sourceMapText
-      };
-    }
-  };
-}
-
-function cli(options: CompilerOptions) {
+export default function cli(options: CompilerOptions) {
   const info = statSync(options.input);
   if (info.isFile()) {
     compileFile(options);
@@ -238,13 +207,3 @@ function cli(options: CompilerOptions) {
     });
   }
 }
-
-export = function (code: string | CompilerOptions, map, meta) {
-  if (this && this.webpack) {
-    webpackLoader(this, <string>code, map, meta);
-  } else if ((<CompilerOptions>code).input) {
-    cli(<CompilerOptions>code);
-  } else {
-    return rollupPlugin(code);
-  }
-};
