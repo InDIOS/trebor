@@ -47,7 +47,7 @@ export class NodeElement {
     this.nodeType = nodeType(node.nodeName);
     this.tagName = (<DefaultTreeElement>node).tagName || node.nodeName;
     this.isUnknownElement = false;
-    this.isSVGElement = (<DefaultTreeElement>node).namespaceURI === 'http://www.w3.org/2000/svg';
+    this.isSVGElement = (<DefaultTreeElement>node).namespaceURI === 'http://www.w3.org/2000/svg' && this.tagName !== 'template';
     if (this.nodeType === 1) this.isUnknownElement = !(html5.includes(this.tagName) || svg2.includes(this.tagName));
     this._textContent = (<DefaultTreeTextNode>node).value || '';
     this.attributes = (<DefaultTreeElement>node).attrs || [];
