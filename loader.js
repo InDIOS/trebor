@@ -11,11 +11,11 @@ module.exports = function (code, map, meta) {
   const moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
   const { comments } = getOptions(this) || {};
   const { imports, source } = genSource(code, {
-    noComments: true, moduleName, format, input: this.resourcePath
+    noComments: !comments, moduleName, format, input: this.resourcePath
   });
   const src = [source, exportFormat(format, moduleName)].join('\n');
   const { outputText, sourceMapText } = transpileModule(src, {
-    compilerOptions: { target: 1, module: 5, removeComments: true }
+    compilerOptions: { target: 1, module: 5, removeComments: !comments }
   });
 
   this.callback(null, optimize([...imports, outputText].join('\n')), sourceMapText, meta);

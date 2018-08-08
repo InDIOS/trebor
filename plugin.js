@@ -15,11 +15,11 @@ module.exports = function ({ include, exclude, comments }) {
       const file = basename(id, ext);
       const moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
       const { imports, source } = genSource(code, {
-        noComments: !!comments, moduleName, format, input: id
+        noComments: !comments, moduleName, format, input: id
       });
       const src = [source, exportFormat(format, moduleName)].join('\n');
       const { outputText, sourceMapText } = transpileModule(src, {
-        compilerOptions: { sourceMap: true, target: 1, module: 5, removeComments: !!comments }
+        compilerOptions: { sourceMap: true, target: 1, module: 5, removeComments: !comments }
       });
 
       return {
