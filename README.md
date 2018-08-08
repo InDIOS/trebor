@@ -41,9 +41,9 @@ First we'll make an html file with name `counter`.
   export default {
     model: {
       count: 0,
-			get negative() {
-				return { 'negative': this.count < 0 };
-			},
+      get negative() {
+	return { 'negative': this.count < 0 };
+      },
       increment() {
         this.$set('count', this.count + 1);
       },
