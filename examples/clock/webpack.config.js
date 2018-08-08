@@ -6,10 +6,10 @@ module.exports = {
 	context: resolve(__dirname, 'src'),
 	entry: './main.ts',
 	output: {
-		filename: 'counter.js',
+		filename: 'clock.js',
 		path: resolve(__dirname, 'dist/js')
-	},
-	mode: 'development',
+  },
+  mode: 'development',
 	module: {
 		rules: [
 			{

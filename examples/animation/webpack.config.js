@@ -6,10 +6,11 @@ module.exports = {
 	context: resolve(__dirname, 'src'),
 	entry: './main.ts',
 	output: {
-		filename: 'counter.js',
+		filename: 'animation.js',
 		path: resolve(__dirname, 'dist/js')
 	},
 	mode: 'development',
+	devtool: 'eval-source-map',
 	module: {
 		rules: [
 			{
@@ -26,12 +27,13 @@ module.exports = {
 	},
 	resolve: {
 		alias: {
-			'trebor/tools': resolve(__dirname, '../../tools')
+			'trebor/tools': resolve(__dirname, '../../tools'),
+			'trebor-transitions': resolve(__dirname, '../../../trebor-transitions')
 		}
 	},
 	resolveLoader: {
 		alias: {
-      'trebor-loader': resolve(__dirname, '../../loader.js')
+			'trebor-loader': resolve(__dirname, '../../loader.js')
 		}
 	},
 	plugins: [

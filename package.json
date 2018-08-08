@@ -1,7 +1,7 @@
 {
 	"name": "trebor",
 	"version": "0.1.0",
-	"description": "A node js module to make standalone reactive web components.",
+	"description": "A node js module to make standalone web components.",
 	"main": "./build/index.js",
 	"bin": {
 		"trebor": "./bin/trebor.js"
@@ -9,8 +9,12 @@
 	"scripts": {
 		"build:src": "tsc -p ./src",
 		"build:tools": "tsc -p ./tools",
+		"build:example:clock": "webpack --config ./examples/clock/webpack.config.js --watch",
 		"build:example:todo": "webpack --config ./examples/todomvc/webpack.config.js --watch",
-		"build:example:counter": "webpack --config ./examples/counter/webpack.config.js --watch"
+		"build:example:counter": "webpack --config ./examples/counter/webpack.config.js --watch",
+		"build:example:calendar": "webpack --config ./examples/calendar/webpack.config.js --watch",
+		"build:example:animation": "webpack --config ./examples/animation/webpack.config.js --watch",
+		"build:example:dynamic": "webpack --config ./examples/dynamic-component/webpack.config.js --watch"
 	},
 	"engines": {
 		"node": ">=4"
@@ -26,7 +30,7 @@
 		"html-entities": "^1.2.1",
 		"html-tag-names": "^1.1.3",
     "loader-utils": "^1.0.2",
-		"parse5": "^5.0.0",
+    "parse5": "^5.0.0",
     "rollup-pluginutils": "^2.0.1",
 		"svg-tag-names": "^1.1.1",
 		"tslib": "^1.9.3",

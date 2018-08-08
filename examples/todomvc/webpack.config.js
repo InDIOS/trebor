@@ -14,7 +14,7 @@ module.exports = {
 		rules: [
 			{
 				test: /\.html$/,
-				use: 'trebor',
+				use: 'trebor-loader',
 				exclude: /index\.html/
 			},
 			{
