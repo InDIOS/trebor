@@ -7,4 +7,5 @@ src/
 test/
 tools/index.ts
 tools/tsconfig.json
+package-lock.json
 tslint.json
