@@ -1,4 +1,5 @@
 const { extname, basename } = require('path');
+const { getOptions } = require('loader-utils');
 const { transpileModule } = require('typescript');
 const { genSource, optimize, exportFormat } = require('./build');
 const { kebabToCamelCases, capitalize } = require('./build/utilities/tools');
@@ -8,6 +9,7 @@ module.exports = function (code, map, meta) {
   const ext = extname(this.resourcePath);
   const file = basename(this.resourcePath, ext);
   const moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
+  const { comments } = getOptions(this) || {};
   const { imports, source } = genSource(code, {
     noComments: true, moduleName, format, input: this.resourcePath
   });
