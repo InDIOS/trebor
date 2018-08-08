@@ -46,9 +46,9 @@ function compileFile(options: CompilerOptions) {
   const file = basename(options.input, ext);
   let moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
   options.moduleName = options.moduleName || moduleName;
-  const fileName = join(dir, `${file}.${options.format}.js`);
+	const fileName = `${file}.${options.format}.js`;
   if (!options.out) {
-    options.out = fileName;
+		options.out = join(dir, fileName);
   }
   const { compilerOptions, uglifyOptions } = getOptions(options);
   const {imports, source} = genSource(html, options);
