@@ -9,11 +9,12 @@ module.exports = {
 		filename: 'counter.js',
 		path: resolve(__dirname, 'dist/js')
 	},
+	mode: 'development',
 	module: {
 		rules: [
 			{
 				test: /\.html$/,
-				use: 'trebor',
+        use: 'trebor-loader',
 				exclude: /index\.html/
 			},
 			{
@@ -30,7 +31,7 @@ module.exports = {
 	},
 	resolveLoader: {
 		alias: {
-			'trebor': resolve(__dirname, '../../')
+      'trebor-loader': resolve(__dirname, '../../loader.js')
 		}
 	},
 	plugins: [

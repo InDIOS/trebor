@@ -1,0 +1,18 @@
+<a href="#" @click.prevent="foo = 'red'">Red </a>
+<a href="#" @click.prevent="foo = 'blue'">Blue </a>
+<a href="#" @click.prevent="foo = 'green'">Gree </a>
+
+<component :is="children[foo]" name="thing" />
+
+<script>
+  import red from './red.html';
+  import blue from './blue.html';
+  import green from './green.html';
+
+  export default {
+    model: {
+      foo: 'red',
+      children: { red, blue, green }
+    },
+  };
+</script>

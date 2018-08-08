@@ -5,6 +5,7 @@ const { optimize: { ModuleConcatenationPlugin } } = require('webpack');
 module.exports = {
 	context: resolve(__dirname, 'src'),
 	entry: './main.ts',
+  mode: 'development',
 	output: {
 		filename: 'todo.js',
 		path: resolve(__dirname, 'dist/js')
@@ -13,7 +14,7 @@ module.exports = {
 		rules: [
 			{
 				test: /\.html$/,
-				use: 'trebor',
+				use: 'trebor-loader',
 				exclude: /index\.html/
 			},
 			{
@@ -30,7 +31,7 @@ module.exports = {
 	},
 	resolveLoader: {
 		alias: {
-			'trebor': resolve(__dirname, '../../')
+			'trebor-loader': resolve(__dirname, '../../loader.js')
 		}
 	},
 	plugins: [

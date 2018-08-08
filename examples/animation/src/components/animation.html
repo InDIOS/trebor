@@ -1,0 +1,36 @@
+<style>
+	div {
+		width: 125px;
+		padding: 45px 0;
+		color: white;
+		text-align: center;
+		background-color: black;
+	}
+</style>
+
+<input id="visible" type="checkbox" @change="onChange($el.checked)">
+<label for="visible">Visible: '{{ visible }}'</label>
+<div $if="visible" #box>Hello word!</div>
+
+<script>
+	import { SlideAnimation } from 'trebor-transitions';
+
+	let animation = SlideAnimation({ y: 300, duration: 1200 });
+
+	export default {
+		model: {
+			visible: false,
+			onChange(value) {
+				let refs = this.$refs;
+				animation.ended(() => { !value && this.$update(); });
+				if (value) {
+					this.$set('visible', value);
+					 animation.in(refs.box);
+				} else {
+					this.visible = value;
+					animation.out(refs.box);
+				}
+			}
+		}
+	};
+</script>

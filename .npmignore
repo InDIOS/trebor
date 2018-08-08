@@ -1,0 +1,10 @@
+.vscode/
+.eslintrc.json
+.gitignore
+.travis.yml
+examples/
+src/
+test/
+tools/index.ts
+tools/tsconfig.json
+tslint.json
