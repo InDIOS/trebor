@@ -198,10 +198,8 @@ export default function cli(options: CompilerOptions) {
     compileFile(options);
   } else if (info.isDirectory()) {
     glob(`${options.input}/**/*.html`, (err, files) => {
-      if (err) {
-        throw err;
-      }
-      files.forEach(file => {
+      if (err) throw err;
+      files.filter(f => !f.includes('node_modules')).forEach(file => {
         compileFile({ ...options, ...{ input: file } });
       });
     });
