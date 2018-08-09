@@ -89,7 +89,7 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
 	const opts: ComponentOptions = self.$options;
 	if (!opts.attrs) opts.attrs = {};
 	if (!opts.children) opts.children = {};
-	_$e(<{ options: ObjectLike<any>, fn: PluginFn }[]>_$CompCtr['_plugins'], (plugin) => {
+	_$e(<{ options: ObjectLike<any>, fn: PluginFn }[]>window['__trebor_plugins__'], (plugin) => {
 		plugin.fn.call(self, _$CompCtr, plugin.options);
 	});
 	if (opts.filters) _$assign(self.$filters, opts.filters);
@@ -171,8 +171,8 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
 	});
 }
 export function _$plugin(fn: Function, options?: ObjectLike<any>) {
-	_$CompCtr['_plugins'] = _$CompCtr['_plugins'] || [];
-	_$CompCtr['_plugins'].push({ options, fn });
+	window['__trebor_plugins__'] = window['__trebor_plugins__'] || [];
+	window['__trebor_plugins__'].push({ options, fn });
 }
 _$assign(_$CompCtr.prototype, {
 	$get(path: string) {
