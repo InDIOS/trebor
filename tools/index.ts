@@ -15,8 +15,9 @@ interface DirectiveDefObject {
 }
 
 interface AttrDefinition {
-	required?: boolean;
+  required?: boolean;
 	type: string | Function;
+  validator?(value: any): boolean;
 	default?: AttrTypes | (() => AttrTypes | Object);
 }
 
@@ -108,12 +109,19 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
 						if (value === void 0 && _$hasProp(attrOps, 'default')) {
 							const def = (<AttrDefinition>attrOps).default;
 							value = _$isType(def, 'function') ? (<Function>def)() : def;
-						}
+            }
 						const typ = (<AttrDefinition>attrOps).type;
             if (typ && !_$isType(value, typ) && (<AttrDefinition>attrOps).required) {
-							return console.error(`Attribute '${key}' must be type '${typ}'.`);
-						}
-						return _$toType(value, value === void 0 ? 'undefined' : typ, self, <string>key);
+              return console.error(`Attribute '${key}' must be type '${typ}'.`);
+            }
+            value = _$toType(value, value === void 0 ? 'undefined' : typ, self, <string>key);
+            if (_$hasProp(attrOps, 'validator')) {
+              const validator = (<AttrDefinition>attrOps).validator;
+              if (_$isType(validator, 'function') && !validator(value)) {
+                return console.error(`Attribute '${key}' with value '${JSON.stringify(value)}' is not valid.`);
+              }
+            }
+						return value;
 					}
 				}
 			},
