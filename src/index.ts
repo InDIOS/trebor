@@ -48,7 +48,7 @@ function compileFile(options: CompilerOptions) {
   options.moduleName = options.moduleName || moduleName;
 	const fileName = `${file}.${options.format}.js`;
   if (!options.out) {
-		options.out = join(dir, fileName);
+    options.out = dir;
   }
   const { compilerOptions, uglifyOptions } = getOptions(options);
   const {imports, source} = genSource(html, options);
