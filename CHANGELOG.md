@@ -1,3 +1,13 @@
+0.1.2
+- Added default include pattern to every file with extension html in rollup plugin.
+- Added a validator property to component attributes definition.
+- Component plugins are store globally now.
+- Ignore html files inside node_modules folder by default in cli mode.
+- Fixed bug in output path in cli mode.
+
+0.1.1
+- Fixed issue with file location in cli mode.
+
 0.1.0
 - Added ability to work with `SVG` elements.
 - Added ability to iterate over number and range with `$for` attribute.

@@ -6,7 +6,7 @@ const { kebabToCamelCases, capitalize } = require('./build/utilities/tools');
 
 module.exports = function ({ include, exclude, comments }) {
   const format = 'es';
-  const filter = createFilter(include, exclude);
+	const filter = createFilter(include || './**/*.html', exclude);
   return {
     name: 'rollup-plugin-trebor',
     transform(code, id) {

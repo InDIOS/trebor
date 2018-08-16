@@ -48,7 +48,7 @@ function compileFile(options: CompilerOptions) {
   options.moduleName = options.moduleName || moduleName;
 	const fileName = `${file}.${options.format}.js`;
   if (!options.out) {
-		options.out = join(dir, fileName);
+    options.out = dir;
   }
   const { compilerOptions, uglifyOptions } = getOptions(options);
   const {imports, source} = genSource(html, options);
@@ -198,10 +198,8 @@ export default function cli(options: CompilerOptions) {
     compileFile(options);
   } else if (info.isDirectory()) {
     glob(`${options.input}/**/*.html`, (err, files) => {
-      if (err) {
-        throw err;
-      }
-      files.forEach(file => {
+      if (err) throw err;
+      files.filter(f => !f.includes('node_modules')).forEach(file => {
         compileFile({ ...options, ...{ input: file } });
       });
     });
