@@ -115,7 +115,7 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
               return console.error(`Attribute '${key}' must be type '${typ}'.`);
             }
             value = _$toType(value, value === void 0 ? 'undefined' : typ, self, <string>key);
-            if (_$hasProp(attrOps, 'validator')) {
+						if (value !== void 0 && _$hasProp(attrOps, 'validator')) {
               const validator = (<AttrDefinition>attrOps).validator;
               if (_$isType(validator, 'function') && !validator(value)) {
                 return console.error(`Attribute '${key}' with value '${JSON.stringify(value)}' is not valid.`);
@@ -324,7 +324,7 @@ function _$toType(value, type, root: Component, key: string) {
 		case 'number':
 			return +value;
 		case 'boolean':
-			return !!value;
+			return _$isType(value, 'string') && !value ? true : !!value;
 		case 'array':
 			return _$isType(value, _$List) ? value : new _$List(value, root, key);
 		default:
