@@ -95,14 +95,12 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     init += `${globCompName} = ${setComponent}(${isIsAttrExp ? [scope, ...params].join(', ') : ''});`;
     areas.extras.push(`${init}
     ${anchor} = _$ct();
-    ${variable} = new ${globCompName}(${setAttrsComponent}(), ${scope});
-    ${variable} && _$add(${scope}, ${variable});`);
+    ${variable} = _$add(${scope}, ${globCompName}, ${setAttrsComponent}());`);
   } else {
     init += `${globCompName} = ${varName === 'selfRef' ? `${scope}.constructor` : `children['${tag}'] || window['${globCompName}']`};`;
     !areas.extras.includes(init) && areas.extras.push(init);
-  areas.extras.push(`${anchor} = _$ct();
-	${variable} = new ${globCompName}(${attrs}, ${scope});
-  _$add(${scope}, ${variable});`);
+		areas.extras.push(`${anchor} = _$ct();
+		${variable} = _$add(${scope}, ${globCompName}, ${attrs});`);
   }
   areas.create.push(`${variable}.$create();`);
   areas.extras = areas.extras.concat(extras);
@@ -156,9 +154,8 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
         ${variable}.$destroy();
         _$remove(${scope}, ${variable});
       }
-      ${variable} = new ${globCompName}(${setAttrsComponent}(), ${scope});
-      if (${variable}) {
-        _$add(${scope}, ${variable});
+      if (${globCompName}) {
+				${variable} = _$add(${scope}, ${globCompName}, ${setAttrsComponent}());
         ${variable}.$create();
         ${variable}.$mount(${root || `${scope}.$parentEl`}, ${anchor});
       }
