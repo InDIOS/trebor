@@ -76,7 +76,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     } else if (name[0] === '$' && !/model|show/.test(name.slice(1))) {
       genDirective(variable, name.slice(1), value, areas, scope);
     } else {
-      attrs += `${name}: '${value}'`;
+      attrs += `${kebabToCamelCases(name)}: '${value}'`;
     }
   });
   attrs += '}';
