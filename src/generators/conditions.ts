@@ -32,7 +32,7 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   areas.outer.push(genCondition(scope, condition, condition.index));
   areas.create.push(`${block}.$create();`);
   areas.unmount.push(`${block}.$mount(${root || '_$frag'}, ${anchor});`);
-	areas.update.push(genConditionUpdate(scope, root || `${scope}.$parentEl`, block, anchor, condition.index));
+  areas.update.push(`${block} = _$cu(${block}, condition_${condition.index}, ${scope}, ${root || `${scope}.$parentEl`}, ${anchor});`);
   areas.destroy.push(`${block}.$destroy();`);
 }
 
@@ -88,15 +88,4 @@ function genCondition(scope: string, { ifCond, elseIfConds, elseCond }: Conditio
   }
   condition += '}';
   return condition;
-}
-
-function genConditionUpdate(scope: string, root: string, block: string, anchor: string, cond: number) {
-  return `if (${block} && ${block}.type === condition_${cond}(${scope}).type) {
-		${block}.$update(${scope});
-	} else {
-		${block} && ${block}.$destroy();
-		${block} = condition_${cond}(${scope});
-		${block}.$create();
-		${block}.$mount(${root}, ${anchor});
-	}`;
 }

@@ -531,6 +531,17 @@ export function _$bs(value: string | ObjectLike<any>) {
     return '';
   }
 }
+export function _$cu(block: { type: string } & ComponentTemplate, condition: Function, inst: Component, parent: Element, anchor: Element) {
+  if (block && block.type === condition(inst).type) {
+    block.$update(inst);
+  } else {
+    block && block.$destroy();
+    block = condition(inst);
+    block.$create();
+    block.$mount(parent, anchor);
+  }
+  return block;
+}
 export function _$f(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
   let items: ObjectLike<ComponentTemplate> = {}, loopParent: Element, loopSibling: Element;
   let globs = _$toArgs(arguments, 3);
