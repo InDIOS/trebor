@@ -31,9 +31,7 @@ export function genSource(html: string, opts: CompilerOptions) {
 			_$CompCtr.call(this, _$attrs, _$tpl${moduleName}, ${options}, _$parent);
 			!_$parent && this.$create();
 		}
-		${moduleName}.plugin = _$plugin;
-		${moduleName}.prototype = Object.create(_$CompCtr.prototype);
-		${moduleName}.prototype.constructor = ${moduleName};`
+    _$extends(${moduleName}, _$CompCtr);`
   ].filter(c => !!c.length).join('\n');
   return { imports, source };
 }
@@ -68,7 +66,7 @@ function compileFile(options: CompilerOptions) {
       uglifyOptions.compress = uglifyOptions.compress || {};
       uglifyOptions.compress.top_retain = [moduleName];
     }
-    outputText = `var ${moduleName} = (function() { ${outputText.replace('module.exports =', 'return')} })();`;
+		outputText = iifTpl(moduleName, outputText);
   }
   const min = options.format === 'es' ? minifyES : minify;
   writeFileSync(join(options.out, fileName), options.minify ? min(outputText, uglifyOptions).code : outputText, 'utf8');
@@ -180,18 +178,18 @@ export function optimize(src: string, iteration = 0) {
 
 function umdTpl(moduleName: string, body: string) {
   return `!function (global, factory) {
-	if (module !== undefined && typeof module.exports === 'object') {
-		factory(module);
-	} else if (typeof define === 'function' && define.amd) {
-		define('${moduleName}', factory);
-	} else {
-		var module = { exports: {} };
-		factory(module);
-		global.${moduleName} = module.exports;
+		typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+		typeof define === 'function' && define.amd ? define('${moduleName}', factory) :
+		(global.${moduleName} = factory());
+	}(this, function () {
+		${body.replace('module.exports =', 'return')}
+	});`;
 	}
-}(this, function (module) {
-	${body}
-});`;
+
+function iifTpl(moduleName: string, body: string) {
+	return `!function(glob) { 
+		${body.replace('module.exports =', `glob['${moduleName}'] =`)} 
+	}(this);`;
 }
 
 export default function cli(options: CompilerOptions) {
