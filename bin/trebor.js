@@ -19,7 +19,7 @@ const options = yargs.options({
 	format: {
 		alias: 'f',
 		type: 'string',
-		choices: ['es', 'iif', 'umd', 'amd', 'system'],
+		choices: ['es', 'iif', 'umd', 'amd', 'cjs', 'system'],
 		describe: 'Format of the output.'
 	},
 	minify: {
