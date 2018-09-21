@@ -1,7 +1,8 @@
 const { extname, basename } = require('path');
 const { getOptions } = require('loader-utils');
 const { transpileModule } = require('typescript');
-const { genSource, optimize, exportFormat } = require('./build');
+const { genSource, exportFormat } = require('./build');
+const { optimize } = require('./build/utilities/context');
 const { kebabToCamelCases, capitalize } = require('./build/utilities/tools');
 
 module.exports = function (code, map, meta) {
