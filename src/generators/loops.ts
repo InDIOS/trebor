@@ -10,7 +10,7 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
   const value = node.getAttribute('$for');
   node.removeAttribute('$for');
   const parent = node.parentElement;
-	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
+	let root = parent.dymTag ? parent.dymTag : parent.varName;
   const anchor = getVarName(areas.variables, `loopAnchor_${areas.loops}`);
   areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
   const loopBlock = `loopBlock_${areas.loops}`;
@@ -51,9 +51,9 @@ function genLoopItem(scope: string, node: NodeElement, variable: string, index: 
   }
   subareas.variables.push('_$frag');
   subareas.extras.push('_$frag = _$d();');
-  node['isBlock'] = true;
+  node.isBlock = true;
   let item = genBlockAreas(node, subareas, scope);
-  delete node['isBlock'];
+  delete node.isBlock;
   areas.loops = subareas.loops;
   areas.conditions = subareas.conditions;
   if (tag === 'template') {

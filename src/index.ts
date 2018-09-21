@@ -85,9 +85,9 @@ function getOptions(options: CompilerOptions) {
 		compilerOptions.module = 5;
 	} else if (options.format === 'amd') {
 		compilerOptions.module = 2;
-	} else if (options.format === 'cjs') { // TO-DO: Implement this module system
+	} else if (options.format === 'cjs') {
 		compilerOptions.module = 1;
-	} else if (options.format === 'system') { // TO-DO: Implement this module system
+	} else if (options.format === 'system') {
 		compilerOptions.module = 4;
 	}
 	if (options.minify) {

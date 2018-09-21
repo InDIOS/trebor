@@ -576,6 +576,7 @@ export function _$iu(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElem
 	}
 }
 export function _$tu(text: Text, value: string) {
+	value = _$toStr(value);
 	if (text.data !== value) text.data = value;
 }
 export function _$f(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {

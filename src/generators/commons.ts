@@ -32,9 +32,9 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
       const setTxt = `${setVariable}(${scope}${params})`;
       areas.extras.push(`${setVariable} = (${scope}${params}) => ${code};`);
-      areas.create.push(createNode(variable));
-      areas.create.push(`${variable}.data = ${setTxt};`);
-			areas.update.push(`_$tu(${variable}, _$toStr(set${capitalize(variable)}(${scope}${params})));`);
+			areas.create.push(`${createNode(variable)}
+			${variable}.data = ${setTxt};`);
+			areas.update.push(`_$tu(${variable}, set${capitalize(variable)}(${scope}${params}));`);
       return variable;
     } else {
       variable = getVarName(areas.variables, 'txt');
@@ -58,13 +58,13 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       default:
         const tag = node.tagName;
         const isTpl = tag === 'template';
-        const isBlock = node['isBlock'];
+        const isBlock = node.isBlock;
         let variable = getVarName(areas.variables, tag);
-				node['varName'] = variable;
+				node.varName = variable;
         if (node.hasAttribute('$tag')) {
           areas.variables.pop();
           variable = genTag(node, areas, scope);
-					delete node['varName'];
+					delete node.varName;
         } else if (!isTpl || !isBlock) {
           areas.create.push(createElement(variable, tag, node.isSVGElement));
         }

@@ -1,8 +1,8 @@
 import recast from 'recast';
-import { analyze, Scope, Variable, Reference } from 'eslint-scope';
 import { parse as parser } from 'espree';
 import { Recast, Path, RecastAST } from '../types/recast';
 import { builtin, browser, node as nodejs, amd } from 'globals';
+import { analyze, Scope, Variable, Reference } from 'eslint-scope';
 import {
   Node, Expression, Identifier, AssignmentExpression, UpdateExpression,
   UnaryExpression, BinaryExpression, BinaryOperator, Literal, UnaryOperator,

@@ -9,7 +9,7 @@ export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
   let element = getVarName(areas.variables, '_$node');
   const expression = node.getAttribute('$tag');
   node.removeAttribute('$tag');
-  if (node.childNodes.length) node['dymTag'] = element;
+  if (node.childNodes.length) node.dymTag = element;
   if (expression) {
     const setElement = `setTag${capitalize(element)}`;
     const updateTag = `updateTag${capitalize(element)}`;
@@ -43,7 +43,7 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
     }
   });
   const parent = node.parentElement;
-	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
+	let root = parent.dymTag ? parent.dymTag : parent.varName;
   areas.unmount.push(`_$a(${root || '_$frag'}, ${slot});`);
 }
 
@@ -55,7 +55,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   const anchor = getVarName(areas.variables, `${varName}Anchor`);
   const variable = getVarName(areas.variables, varName);
   const parent = node.parentElement;
-	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
+	let root = parent.dymTag ? parent.dymTag : parent.varName;
   let attrs = '{';
   const extras: string[] = [];
   let isValue: string;

@@ -33,6 +33,9 @@ export class BlockAreas {
 }
 
 export class NodeElement {
+	isBlock: boolean;
+	varName: string;
+	dymTag: string;
   tagName: string;
   nodeType: number;
   isSVGElement: boolean;
