@@ -12,11 +12,11 @@ import { genTemplate, CompilerOptions } from './generators';
 import { kebabToCamelCases, capitalize } from './utilities/tools';
 import { TryStatement, FunctionDeclaration, FunctionExpression } from 'estree';
 
-const deps = `import { 
-  _$CompCtr, _$, _$d, _$a, _$add, _$remove, _$as, _$r, _$ce, _$cse,	_$ct, 
-   _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, _$e, _$is, _$ds, _$toStr,
-	 _$setRef, _$noop, _$isType, _$plugin, _$isKey, _$bindGroup, _$cu, _$emptyElse
-} from 'trebor/tools';`;
+const dest = `{ _$CompCtr, _$, _$d, _$a, _$add, _$remove, _$as, _$r, _$ce, _$cse, _$ct, _$iu, _$tu,
+ _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, _$e, _$is, _$ds, _$toStr, _$bindMultiSelect, _$gv,
+ _$setRef, _$noop, _$isType, _$isKey, _$bindGroup, _$cu, _$emptyElse, _$extends, _$updateMultiSelect }`;
+const esDeps = `import ${dest} from 'trebor/tools';`;
+const cjsDeps = `const ${dest} = require('trebor/tools');`;
 const tools = readFileSync(join(__dirname, '../tools/index.js'), 'utf8');
 
 export function genSource(html: string, opts: CompilerOptions) {
@@ -24,7 +24,7 @@ export function genSource(html: string, opts: CompilerOptions) {
   const { moduleName } = opts;
   const { imports, template, extras, options } = genTemplate(body, '_$state', opts);
   if (opts.format === 'es') {
-    imports.unshift(deps);
+		imports.unshift(esDeps);
   }
   const source = [template, extras,
     `function ${moduleName}(_$attrs, _$parent) {
@@ -51,11 +51,11 @@ function compileFile(options: CompilerOptions) {
     options.out = dir;
   }
   const { compilerOptions, uglifyOptions } = getOptions(options);
-  const {imports, source} = genSource(html, options);
+	const { imports, source } = genSource(html, options);
   const code = [
-    options.format === 'es' ? '' : [...imports, tools].join('\n'),
-    source,
-    exportFormat(options.format, moduleName),
+		options.format === 'es' ? '' : options.format === 'cjs' ? cjsDeps : [
+			...imports, tools
+		].join('\n'), source, exportFormat(options.format, moduleName)
   ].join('\n');
   let { outputText } = transpileModule(code, { compilerOptions });
 
@@ -75,7 +75,7 @@ function compileFile(options: CompilerOptions) {
 }
 
 export function exportFormat(format: string, moduleName: string) {
-  return `${format === 'es' ? 'export default' : /umd|iif/.test(format) ? 'export =' : '\nreturn'} ${moduleName};`;
+	return `${format === 'es' ? 'export default' : 'export ='} ${moduleName};`;
 }
 
 function getOptions(options: CompilerOptions) {
@@ -90,7 +90,9 @@ function getOptions(options: CompilerOptions) {
     compilerOptions.module = 5;
   } else if (options.format === 'amd') {
     compilerOptions.module = 2;
-  } else if (options.format === 'system') {
+	} else if (options.format === 'cjs') { // TO-DO: Implement this module system
+		compilerOptions.module = 1;
+	} else if (options.format === 'system') { // TO-DO: Implement this module system
     compilerOptions.module = 4;
   }
   if (options.minify) {

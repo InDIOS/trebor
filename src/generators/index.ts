@@ -14,7 +14,7 @@ export interface CompilerOptions {
   minify?: boolean;
   moduleName?: string;
   noComments?: boolean;
-  format?: 'es' | 'iif' | 'umd' | 'amd' | 'system';
+	format?: 'es' | 'iif' | 'umd' | 'amd' | 'cjs' | 'system';
 }
 
 export function genTemplate(node: NodeElement, scope: string, opts: CompilerOptions) {
