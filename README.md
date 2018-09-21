@@ -1,6 +1,9 @@
 # trebor
 
-[![Build Status](https://travis-ci.org/InDIOS/trebor.svg?branch=master)](https://travis-ci.org/InDIOS/trebor)
+[![NPM Version][npm-image]][npm-url]
+[![NPM Downloads][downloads-image]][downloads-url]
+[![Release][github-img]][github-url]
+[![Build Status][travis-image]][travis-url]
 
 A node js module to make standalone web components.
 
@@ -88,3 +91,12 @@ In the directory will appear one `js` file with `umd` sufix. Make a file named `
 </html>
 ```
 Open the `index.html` file in the browser and see how the magic happens 🎉👍😁
+
+[npm-image]: https://img.shields.io/npm/v/trebor.svg
+[npm-url]: https://npmjs.org/package/trebor
+[downloads-image]: https://img.shields.io/npm/dm/trebor.svg
+[downloads-url]: https://npmjs.org/package/trebor
+[github-img]: https://img.shields.io/github/release/InDIOS/trebor.svg
+[github-url]: https://github.com/InDIOS/trebor/releases/latest
+[travis-image]: https://img.shields.io/travis/InDIOS/trebor/master.svg?label=build
+[travis-url]: https://travis-ci.org/InDIOS/trebor
