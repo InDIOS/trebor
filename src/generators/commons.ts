@@ -15,7 +15,7 @@ const entities = new AllHtmlEntities();
 export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: string) {
   if (node.nodeType === 3) {
     let variable = '';
-    if (/\{\{\s*((?!\}\})(.|\n))*\}\}/.test(node.textContent)) {
+    if (node.hasExpression()) {
       [scope] = scope.split(',');
       variable = getVarName(areas.variables, 'txt');
       const setVariable = `set${capitalize(variable)}`;
@@ -47,7 +47,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
         return genForItem(node, areas, scope);
       case node.hasAttribute('$if'):
         return genIf(node, areas, scope);
-      case node.hasAttribute('$html') && !node.getAttribute('$html'):
+      case !node.hasExpression() || node.hasAttribute('$html') && !node.getAttribute('$html'):
         return genHtml(node, areas);
       case node.hasAttribute('$html') && !!node.getAttribute('$html'):
         return genHtml(node, areas, scope);
