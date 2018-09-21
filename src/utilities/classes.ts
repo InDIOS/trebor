@@ -73,7 +73,7 @@ export class NodeElement {
   get textContent() {
     if (this.nodeType === 1 || this.nodeType === 11) {
       this._textContent = this.childNodes.reduce((acc, cur) => acc += cur.textContent, '');
-        }
+    }
     return this._textContent;
   }
 

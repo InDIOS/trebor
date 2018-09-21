@@ -8,10 +8,12 @@ import { capitalize, getVarName, createElement, camelToKebabCase, kebabToCamelCa
 export function genValue(target: string, node: NodeElement, areas: BlockAreas, scope: string) {
 	const type = node.getAttribute('type');
 	const value = node.getAttribute('$value');
+	const isMultiSelect = /select/.test(node.tagName) && node.hasAttribute('multiple');
 	if (/input|select|textarea/.test(node.tagName) && !/checkbox|radio/.test(type)) {
 		const event = /date|file/.test(type) || node.tagName === 'select' ? 'change' : 'input';
-		genEvent(target, event, `${value} = ${/number|range/.test(type) ? '+' : ''}$el.value`, areas, scope);
-		genBind(target, 'value', value, areas, scope, type, null);
+		const expression = isMultiSelect ? `_$updateMultiSelect(${target}, ${scope}, '${value}')` : `${value} = ${/number|range/.test(type) ? '+' : ''}$el.value`;
+		genEvent(target, event, expression, areas, scope);
+		genBind(target, 'value', value, areas, scope, isMultiSelect ? 'multiple' : type, null);
 	} else if (node.tagName === 'input' && /checkbox|radio/.test(type)) {
 		genEvent(target, 'change', `${value} = $el.checked`, areas, scope);
 		genBind(target, 'checked', value, areas, scope, type, null);
@@ -22,18 +24,17 @@ export function genValue(target: string, node: NodeElement, areas: BlockAreas, s
 }
 
 export function genName(target: string, node: NodeElement, areas: BlockAreas, scope: string) {
-  const type = node.getAttribute('type');
-  if (node.tagName === 'input' && /checkbox|radio/.test(type)) {
-    const value = node.getAttribute('value');
-    const group = node.getAttribute('$name');
-    if (type === 'checkbox') {
+	const type = node.getAttribute('type');
+	if (node.tagName === 'input' && /checkbox|radio/.test(type)) {
+		const group = node.getAttribute('$name');
+		if (type === 'checkbox') {
 			genEvent(target, 'change', `_$bindGroup($el, ${group})`, areas, scope);
-      genBind(target, 'checked', `!!~${group}.indexOf('${value}')`, areas, scope, type, null);
-    } else if (type === 'radio') {
-      genEvent(target, 'change', `${group} = $el.checked ? $el.value : ${group}`, areas, scope);
-      genBind(target, 'checked', `${group} === '${value}'`, areas, scope, type, null);
-    }
-  }
+			genBind(target, 'checked', `!!~${group}.indexOf(_$ga(${target}, 'value'))`, areas, scope, type, null);
+		} else if (type === 'radio') {
+			genEvent(target, 'change', `${group} = $el.checked ? _$gv($el) : ${group}`, areas, scope);
+			genBind(target, 'checked', `${group} === _$ga(${target}, 'value')`, areas, scope, type, null);
+		}
+	}
 }
 
 export function genShow(target: string, node: NodeElement, areas: BlockAreas, scope: string) {
@@ -83,9 +84,9 @@ export function genRefs(scope: string, areas: BlockAreas, value: string, target:
 	const [env] = scope.split(', ');
 	areas.variables.push('_refs');
 	areas.extras.push(`_refs = ${env}.$refs;`);
-  areas.create.push(`!_refs['${value}'] && _$setRef(_refs, '${value}');
+	areas.create.push(`!_refs['${value}'] && _$setRef(_refs, '${value}');
 	_refs['${value}'] = ${target};`);
-  areas.destroy.push(`if (_$isType(_refs['${value}'], 'array')) {
+	areas.destroy.push(`if (_$isType(_refs['${value}'], 'array')) {
 		const index${capitalize(target)} = _refs['${value}'].indexOf(${target});
 		_refs['${value}'].splice(index${capitalize(target)}, 1);
 	} else {

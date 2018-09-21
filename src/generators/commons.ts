@@ -34,7 +34,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       areas.extras.push(`${setVariable} = (${scope}${params}) => ${code};`);
       areas.create.push(createNode(variable));
       areas.create.push(`${variable}.data = ${setTxt};`);
-      areas.update.push(genTextUpdate(`${scope}${params}`, variable));
+			areas.update.push(`_$tu(${variable}, _$toStr(set${capitalize(variable)}(${scope}${params})));`);
       return variable;
     } else {
       variable = getVarName(areas.variables, 'txt');
@@ -136,13 +136,4 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
       }
 		};
 	}`;
-}
-
-function genTextUpdate(scope: string, variable: string) {
-  const updateVar = `update${capitalize(variable)}`;
-  return `var ${updateVar} = set${capitalize(variable)}(${scope});
-	if (${variable}.data !== _$toStr(${updateVar})) {
-		${variable}.data = ${updateVar};
-	}
-	${updateVar} = void 0;`;
 }
