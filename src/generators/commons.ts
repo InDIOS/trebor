@@ -21,7 +21,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       const setVariable = `set${capitalize(variable)}`;
       areas.variables.push(setVariable);
       const codeFrag = node.textContent;
-      const intrps = codeFrag.split(/(\{\{\s*((?!\}\})(.|\n))*\}\})/).filter(int => !!clearText(int).trim());
+      const intrps = codeFrag.split(/(\{\{\s*(?:(?!\}\})(?:.|\n))*\}\})/).filter(int => !!clearText(int).trim());
       const code = intrps.map(int => {
         if (int.startsWith('{{') && int.endsWith('}}')) {
           int = int.replace(/\{\{(\s*((?!\}\})(.|\n))*)\}\}/g, (_, replacer: string) => replacer.trim());
@@ -110,11 +110,8 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 			${!condType ? '' : `type: '${condType}'
 			,`}$create${!!areas.create.length ? `() {
 				${areas.create.join('\n')}${!areas.hydrate.length ? '' : `
-				this.$hydrate();`}
-			}` : ': _$noop'},${!areas.hydrate.length ? '' : `
-			$hydrate() {
-				${areas.hydrate.join('\n')}
-			},`}
+				${areas.hydrate.join('\n')}`}
+			}` : ': _$noop'},
       $mount(parent, sibling) {
 				this.$unmount();
 				${areas.mount.join('\n')}${!areas.mountDirt.length ? '' : `
