@@ -37,11 +37,12 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
 }
 
 function sortAttrs(attrs: Attribute[]) {
+  let attrRegExp = /^[$@:#]/;
 	return attrs.sort((a, b) => {
-		if (/^[$@:#]/.test(a.name) && !/^[$@:#]/.test(b.name)) {
+		if (attrRegExp.test(a.name) && !attrRegExp.test(b.name)) {
 			return -1;
 		}
-		if (!/^[$@:#]/.test(a.name) && /^[$@:#]/.test(b.name)) {
+		if (!attrRegExp.test(a.name) && attrRegExp.test(b.name)) {
 			return 1;
 		}
 		return 0;
