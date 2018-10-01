@@ -14,18 +14,19 @@ export function genBind(variable: string, attr: string, expression: string, area
 			`_$bs(${bindExp})` : `(${classes ? `'${classes} ' + ` : ''}_$bc(${bindExp})).trim()`;
 	}
 	areas.variables.push(bindFuncName);
-	areas.extras.push(`${bindFuncName} = (${scope}${params}) => ${bindExp};`);
+  areas.extras.push(`${bindFuncName} = (${scope}${params}) => (['${attr}', ${bindExp}]);`);
+  let bindFunc = `${bindFuncName}(${scope}${params})`;
 	if (attr === 'value' && /input|select|textarea/.test(variable) && !/checkbox|radio/.test(type)) {
 		if (isSelMulti) {
-			areas.update.push(`_$bindMultiSelect(${variable}, ${bindFuncName}(${scope}${params}));`);
-			areas.unmount.push(`_$bindMultiSelect(${variable}, ${bindFuncName}(${scope}${params}));`);
+			areas.update.push(`_$bindMultiSelect(${variable}, ${bindFunc}[1]);`);
+			areas.unmount.push(`_$bindMultiSelect(${variable}, ${bindFunc}[1]);`);
 		} else {
-			areas.hydrate.push(`${variable}.value = _$toStr(${bindFuncName}(${scope}${params}));`);
+			areas.hydrate.push(`${variable}.value = _$toStr(${bindFunc}[1]);`);
 		}
 	} else if (attr === 'checked' && /input/.test(variable) && /checkbox|radio/.test(type)) {
-		areas.hydrate.push(`${variable}.checked = !!${bindFuncName}(${scope}${params});`);
+    areas.hydrate.push(`${variable}.checked = !!${bindFunc}[1];`);
 	} else {
-		areas.hydrate.push(`_$sa(${variable}, '${attr}', ${bindFuncName}(${scope}${params}));`);
+		areas.hydrate.push(`_$sa(${variable}, ${bindFunc});`);
 	}
-	!isSelMulti && areas.update.push(`_$iu(${variable}, '${attr}', ${bindFuncName}(${scope}${params}));`);
+	!isSelMulti && areas.update.push(`_$bu(${variable}, ${bindFunc});`);
 }

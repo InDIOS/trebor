@@ -4,12 +4,12 @@ import { getDoc } from './utilities/html';
 import { transpileModule } from 'typescript';
 import { optimize } from './utilities/context';
 import { minify as minifyES } from 'uglify-es';
+import { readFileSync, statSync, writeFile } from 'fs';
 import { basename, extname, dirname, join } from 'path';
-import { writeFileSync, readFileSync, statSync } from 'fs';
 import { genTemplate, CompilerOptions } from './generators';
-import { kebabToCamelCases, capitalize } from './utilities/tools';
+import { kebabToCamelCases, capitalize, camelToKebabCase } from './utilities/tools';
 
-const dest = `{ _$CompCtr, _$, _$d, _$a, _$add, _$remove, _$as, _$r, _$ce, _$cse, _$ct, _$iu, _$tu,
+const dest = `{ _$CompCtr, _$, _$d, _$a, _$add, _$remove, _$as, _$r, _$ce, _$cse, _$ct, _$bu, _$tu,
  _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, _$e, _$is, _$ds, _$toStr, _$bindMultiSelect, _$gv,
  _$setRef, _$noop, _$isType, _$isKey, _$bindGroup, _$cu, _$emptyElse, _$extends, _$updateMultiSelect }`;
 const esDeps = `import ${dest} from 'trebor/tools';`;
@@ -66,7 +66,7 @@ function compileFile(options: CompilerOptions) {
 		outputText = iifTpl(moduleName, outputText);
 	}
 	const min = options.format === 'es' ? minifyES : minify;
-	writeFileSync(join(options.out, fileName), options.minify ? min(outputText, uglifyOptions).code : outputText, 'utf8');
+	return [join(options.out, fileName), options.minify ? <string>min(outputText, uglifyOptions).code : outputText];
 }
 
 export function exportFormat(format: string, moduleName: string) {
@@ -108,20 +108,25 @@ function umdTpl(moduleName: string, body: string) {
 
 function iifTpl(moduleName: string, body: string) {
 	return `!function(glob) { 
-		${body.replace('module.exports =', `glob['${moduleName}'] =`)} 
+		${body.replace('module.exports =', `glob.${moduleName} =`)} 
 	}(this);`;
 }
 
 export default function cli(options: CompilerOptions) {
 	const info = statSync(options.input);
 	if (info.isFile()) {
-		compileFile(options);
+		let [path, code] = compileFile(options);
+		writeFile(path, code, 'utf8', err => err && console.log(err));
 	} else if (info.isDirectory()) {
 		glob(`${options.input}/**/*.html`, (err, files) => {
 			if (err) throw err;
-			files.filter(f => !f.includes('node_modules')).forEach(file => {
-				compileFile({ ...options, ...{ input: file } });
+			let codes = files.filter(f => !f.includes('node_modules')).map(file => {
+				let [path, code] = compileFile({ ...options, ...{ input: file } });
+				return new Promise<void>((res, rej) => {
+					writeFile(path, code, 'utf8', err => err ? rej(err) : res());
+				});
 			});
+			Promise.all(codes);
 		});
 	}
 }
