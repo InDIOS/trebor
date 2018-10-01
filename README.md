@@ -7,90 +7,28 @@
 
 A node js module to make standalone web components.
 
-# How to use
-
+## How to install
+Locally
 ```bash
 npm i trebor -D
 ```
-or
+or globally
 
 ```bash
 npm i trebor -g
 ```
 
-# Example
+## Documentation
 
-### Let's make a `Counter` component:
+Read the documentation [here](https://github.com/InDIOS/trebor/wiki)
 
-First we'll make an html file with name `counter`.
-```html
-<!-- counter.html -->
-<style>
-  .negative {
-    color: crimson;
-  }
-</style>
+## Contributions
 
-<div class="container">
-  <h3 class="title is-3">Counter Example</h3>
-  <label>Counter: </label>
-  <strong :class="negative">{{ count }}</strong>
-  <br/>
-  <button class="button is-primary" @click="increment()">Increment</button>
-  <button class="button is-danger" @click="decrement()">Decrement</button>
-</div>
+>TO-DO
 
-<script>
-  export default {
-    model: {
-      count: 0,
-      get negative() {
-	return { 'negative': this.count < 0 };
-      },
-      increment() {
-        this.$set('count', this.count + 1);
-      },
-      decrement() {
-        this.$set('count', this.count - 1);
-      }
-    }
-  };
-</script>
-```
-Then we'll compile the `counter` file to convert it in a standalone component
+## License
 
-```bash
-trebor -i counter.html
-```
-In the directory will appear one `js` file with `umd` sufix. Make a file named `index.html` like that
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Counter Component</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.5.0/css/bulma.min.css">
-</head>
-
-<body>
-  <main></main>
-  
-  <!-- Load Counter component -->
-  <script src="counter.umd.js"></script>
-  <!-- Initialize and Mount Counter component -->
-  <script>
-    var counter = new Counter();
-    counter.$mount('main');
-  </script>
-</body>
-
-</html>
-```
-Open the `index.html` file in the browser and see how the magic happens 🎉👍😁
+[MIT](https://github.com/InDIOS/trebor/blob/master/LICENSE)
 
 [npm-image]: https://img.shields.io/npm/v/trebor.svg
 [npm-url]: https://npmjs.org/package/trebor
