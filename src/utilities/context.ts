@@ -59,9 +59,17 @@ function visitExpressions(ast: RecastAST, ctx: string, globals: string[]) {
     visitProperty(path) {
       let { node } = path;
       node.shorthand = false;
-      canBeReplaced(node.key, path, globals) && node.computed && replace('key', ctx, path);
-      canBeReplaced(node.value, path, globals) && replace('value', ctx, path);
-      return node.computed && this.traverse(path);
+      if (node.computed) {
+        if (canBeReplaced(node.key, path, globals)) {
+          replace('key', ctx, path);
+        }
+        this.traverse(path);
+      }
+      if (canBeReplaced(node.value, path, globals)) {
+        replace('value', ctx, path);
+        return false;
+      }
+      this.traverse(path);
     },
     visitCallExpression(path) {
       let { node } = path;
