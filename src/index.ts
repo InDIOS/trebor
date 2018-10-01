@@ -52,7 +52,7 @@ function compileFile(options: CompilerOptions) {
 			...imports, tools
 		].join('\n'), source, exportFormat(options.format, moduleName)
 	].join('\n');
-	let { outputText } = transpileModule(code, { compilerOptions });
+  let { outputText } = transpileModule(code, { compilerOptions, moduleName: camelToKebabCase(moduleName) });
 
 	outputText = optimize(options.format === 'es' ? [...imports, outputText].join('\n') : outputText);
 
@@ -99,7 +99,7 @@ function getOptions(options: CompilerOptions) {
 function umdTpl(moduleName: string, body: string) {
 	return `!function (global, factory) {
 		typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-		typeof define === 'function' && define.amd ? define('${moduleName}', factory) :
+		typeof define === 'function' && define.amd ? define('${camelToKebabCase(moduleName)}', factory) :
 		(global.${moduleName} = factory());
 	}(this, function () {
 		${body.replace('module.exports =', 'return')}
