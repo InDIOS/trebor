@@ -1,6 +1,6 @@
 {
 	"name": "trebor",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"description": "A node js module to make standalone web components.",
 	"main": "./build/index.js",
 	"bin": {
@@ -14,7 +14,8 @@
 		"build:example:counter": "webpack --config ./examples/counter/webpack.config.js --watch",
 		"build:example:calendar": "webpack --config ./examples/calendar/webpack.config.js --watch",
 		"build:example:animation": "webpack --config ./examples/animation/webpack.config.js --watch",
-		"build:example:dynamic": "webpack --config ./examples/dynamic-component/webpack.config.js --watch"
+		"build:example:dynamic": "webpack --config ./examples/dynamic-component/webpack.config.js --watch",
+		"test": "tsc -p ./test && node ./bin/trebor.js -i ./test -o ./spec/components && jasmine"
 	},
 	"engines": {
 		"node": ">=4"
@@ -44,11 +45,16 @@
 		"@types/glob": "^5.0.35",
 		"@types/html-entities": "^1.2.16",
 		"@types/html-tag-names": "^1.1.0",
+		"@types/jasmine": "^2.8.8",
+		"@types/jsdom": "^11.0.6",
 		"@types/node": "^10.7.1",
 		"@types/parse5": "^5.0.0",
 		"@types/uglify-js": "^3.0.3",
 		"eslint-plugin-html": "^4.0.5",
 		"html-webpack-plugin": "^3.2.0",
+		"jasmine": "^3.2.0",
+		"jsdom": "^12.0.0",
+		"keysim": "^2.1.0",
 		"ts-loader": "^4.4.2",
 		"webpack": "^4.16.5",
 		"webpack-cli": "^3.1.0"
