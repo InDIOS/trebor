@@ -162,7 +162,8 @@ export class NodeElement {
   }
 
   hasExpression(): boolean {
-    return this.isUnknownElement || this.attributes.some(a => /^[$@:#]/.test(a.name)) ||
+		return this.isUnknownElement || this.tagName === 'slot' ||
+			this.attributes.some(a => /^[$@:#]/.test(a.name)) ||
       /\{\{\s*((?!\}\})(.|\n))*\}\}/.test(this.textContent) ||
       this.childNodes.some(c => c.hasExpression());
   }
