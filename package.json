@@ -1,6 +1,6 @@
 {
 	"name": "trebor",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "A node js module to make standalone web components.",
 	"main": "./build/index.js",
 	"bin": {
@@ -59,7 +59,13 @@
 		"webpack": "^4.16.5",
 		"webpack-cli": "^3.1.0"
 	},
-	"keywords": [],
+	"keywords": [
+		"single-file-component",
+		"standalone-components",
+		"no-framework",
+		"cli",
+		"web-components"
+	],
 	"author": "InDIOS",
 	"repository": {
 		"type": "git",

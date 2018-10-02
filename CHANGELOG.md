@@ -1,3 +1,7 @@
+0.2.1
+- Fixed issue analyzing slots.
+- Fixed bug mounting components.
+
 0.2.0
 - Added commonjs to the list of output formats.
 - Added new badges to the README.

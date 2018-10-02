@@ -142,7 +142,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
 		}`);
     }
   });
-  areas.unmount.push(`${variable}.$mount(_$frag, ${anchor});`);
+  areas.unmount.push(`${variable}.$mount(${root || '_$frag'}, ${anchor});`);
   if (varName === 'component') {
     let updateVar = `update${capitalize(variable)}`;
     areas.update.push(`let ${updateVar} = ${setComponent}(${isIsAttrExp ? [scope, ...params].join(', ') : ''});
