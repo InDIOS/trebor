@@ -10,7 +10,7 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   const anchor = getVarName(areas.variables, 'conditionAnchor');
   const block = getVarName(areas.variables, 'conditionBlock');
   const parent = node.parentElement;
-	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
+	let root = parent.dymTag ? parent.dymTag : parent.varName;
   areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
   node.removeAttribute('$if');
   areas.outer.push(genItemCondition(scope, node, areas, condition.index, 'if'));
@@ -32,7 +32,7 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   areas.outer.push(genCondition(scope, condition, condition.index));
   areas.create.push(`${block}.$create();`);
   areas.unmount.push(`${block}.$mount(${root || '_$frag'}, ${anchor});`);
-	areas.update.push(genConditionUpdate(scope, root || `${scope}.$parentEl`, block, anchor, condition.index));
+  areas.update.push(`${block} = _$cu(${block}, condition_${condition.index}, ${scope}, ${root || `${scope}.$parentEl`}, ${anchor});`);
   areas.destroy.push(`${block}.$destroy();`);
 }
 
@@ -53,9 +53,9 @@ function genItemCondition(scope: string, node: NodeElement, areas: BlockAreas, i
   subareas.globals = areas.globals;
   subareas.variables.push('_$frag');
   subareas.extras.push('_$frag = _$d();');
-  node['isBlock'] = true;
+  node.isBlock = true;
   let condition = genBlockAreas(node, subareas, scope);
-  delete node['isBlock'];
+  delete node.isBlock;
   areas.loops = subareas.loops;
   areas.conditions = subareas.conditions;
   const tag = node.tagName;
@@ -88,15 +88,4 @@ function genCondition(scope: string, { ifCond, elseIfConds, elseCond }: Conditio
   }
   condition += '}';
   return condition;
-}
-
-function genConditionUpdate(scope: string, root: string, block: string, anchor: string, cond: number) {
-  return `if (${block} && ${block}.type === condition_${cond}(${scope}).type) {
-		${block}.$update(${scope});
-	} else {
-		${block} && ${block}.$destroy();
-		${block} = condition_${cond}(${scope});
-		${block}.$create();
-		${block}.$mount(${root}, ${anchor});
-	}`;
 }

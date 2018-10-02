@@ -33,6 +33,9 @@ export class BlockAreas {
 }
 
 export class NodeElement {
+	isBlock: boolean;
+	varName: string;
+	dymTag: string;
   tagName: string;
   nodeType: number;
   isSVGElement: boolean;
@@ -48,7 +51,9 @@ export class NodeElement {
     this.tagName = (<DefaultTreeElement>node).tagName || node.nodeName;
     this.isUnknownElement = false;
     this.isSVGElement = (<DefaultTreeElement>node).namespaceURI === 'http://www.w3.org/2000/svg' && this.tagName !== 'template';
-    if (this.nodeType === 1) this.isUnknownElement = !(html5.includes(this.tagName) || svg2.includes(this.tagName));
+    if (this.nodeType === 1) {
+      this.isUnknownElement = !(html5.includes(this.tagName) || svg2.includes(this.tagName));
+    }
     this._textContent = (<DefaultTreeTextNode>node).value || '';
     this.attributes = (<DefaultTreeElement>node).attrs || [];
     this.content = null;
@@ -70,12 +75,7 @@ export class NodeElement {
 
   get textContent() {
     if (this.nodeType === 1 || this.nodeType === 11) {
-      this._textContent = this.childNodes.reduce((acc, cur) => {
-        if (cur.nodeType === 3) {
-          acc += cur.textContent;
-        }
-        return acc;
-      }, '');
+      this._textContent = this.childNodes.reduce((acc, cur) => acc += cur.textContent, '');
     }
     return this._textContent;
   }
@@ -159,6 +159,12 @@ export class NodeElement {
         this.childNodes.push(node);
       }
     });
+  }
+
+  hasExpression(): boolean {
+    return this.isUnknownElement || this.attributes.some(a => /^[$@:#]/.test(a.name)) ||
+      /\{\{\s*((?!\}\})(.|\n))*\}\}/.test(this.textContent) ||
+      this.childNodes.some(c => c.hasExpression());
   }
 
   removeChild(child: NodeElement) {

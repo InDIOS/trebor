@@ -1,10 +1,11 @@
 const { extname, basename } = require('path');
 const { transpileModule } = require('typescript');
 const { createFilter } = require('rollup-pluginutils');
-const { genSource, optimize, exportFormat } = require('./build');
+const { genSource, exportFormat } = require('./build');
+const { optimize } = require('./build/utilities/context');
 const { kebabToCamelCases, capitalize } = require('./build/utilities/tools');
 
-module.exports = function ({ include, exclude, comments }) {
+module.exports = function ({ include, exclude, comments } = {}) {
   const format = 'es';
 	const filter = createFilter(include || './**/*.html', exclude);
   return {

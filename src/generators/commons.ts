@@ -15,13 +15,13 @@ const entities = new AllHtmlEntities();
 export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: string) {
   if (node.nodeType === 3) {
     let variable = '';
-    if (/\{\{\s*((?!\}\})(.|\n))*\}\}/.test(node.textContent)) {
+    if (node.hasExpression()) {
       [scope] = scope.split(',');
       variable = getVarName(areas.variables, 'txt');
       const setVariable = `set${capitalize(variable)}`;
       areas.variables.push(setVariable);
       const codeFrag = node.textContent;
-      const intrps = codeFrag.split(/(\{\{\s*((?!\}\})(.|\n))*\}\})/).filter(int => !!clearText(int).trim());
+      const intrps = codeFrag.split(/(\{\{\s*(?:(?!\}\})(?:.|\n))*\}\})/).filter(int => !!clearText(int).trim());
       const code = intrps.map(int => {
         if (int.startsWith('{{') && int.endsWith('}}')) {
           int = int.replace(/\{\{(\s*((?!\}\})(.|\n))*)\}\}/g, (_, replacer: string) => replacer.trim());
@@ -32,9 +32,9 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
       const setTxt = `${setVariable}(${scope}${params})`;
       areas.extras.push(`${setVariable} = (${scope}${params}) => ${code};`);
-      areas.create.push(createNode(variable));
-      areas.create.push(`${variable}.data = ${setTxt};`);
-      areas.update.push(genTextUpdate(`${scope}${params}`, variable));
+			areas.create.push(`${createNode(variable)}
+			${variable}.data = ${setTxt};`);
+			areas.update.push(`_$tu(${variable}, set${capitalize(variable)}(${scope}${params}));`);
       return variable;
     } else {
       variable = getVarName(areas.variables, 'txt');
@@ -47,7 +47,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
         return genForItem(node, areas, scope);
       case node.hasAttribute('$if'):
         return genIf(node, areas, scope);
-      case node.hasAttribute('$html') && !node.getAttribute('$html'):
+      case !node.hasExpression() || node.hasAttribute('$html') && !node.getAttribute('$html'):
         return genHtml(node, areas);
       case node.hasAttribute('$html') && !!node.getAttribute('$html'):
         return genHtml(node, areas, scope);
@@ -58,13 +58,13 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       default:
         const tag = node.tagName;
         const isTpl = tag === 'template';
-        const isBlock = node['isBlock'];
+        const isBlock = node.isBlock;
         let variable = getVarName(areas.variables, tag);
-				node['varName'] = variable;
+				node.varName = variable;
         if (node.hasAttribute('$tag')) {
           areas.variables.pop();
           variable = genTag(node, areas, scope);
-					delete node['varName'];
+					delete node.varName;
         } else if (!isTpl || !isBlock) {
           areas.create.push(createElement(variable, tag, node.isSVGElement));
         }
@@ -110,11 +110,8 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 			${!condType ? '' : `type: '${condType}'
 			,`}$create${!!areas.create.length ? `() {
 				${areas.create.join('\n')}${!areas.hydrate.length ? '' : `
-				this.$hydrate();`}
-			}` : ': _$noop'},${!areas.hydrate.length ? '' : `
-			$hydrate() {
-				${areas.hydrate.join('\n')}
-			},`}
+				${areas.hydrate.join('\n')}`}
+			}` : ': _$noop'},
       $mount(parent, sibling) {
 				this.$unmount();
 				${areas.mount.join('\n')}${!areas.mountDirt.length ? '' : `
@@ -139,13 +136,4 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
       }
 		};
 	}`;
-}
-
-function genTextUpdate(scope: string, variable: string) {
-  const updateVar = `update${capitalize(variable)}`;
-  return `var ${updateVar} = set${capitalize(variable)}(${scope});
-	if (${variable}.data !== _$toStr(${updateVar})) {
-		${variable}.data = ${updateVar};
-	}
-	${updateVar} = void 0;`;
 }

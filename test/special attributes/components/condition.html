@@ -1,0 +1,14 @@
+<span $if="condition === 1">1</span>
+<span $else-if="condition === 2">2</span>
+<span $else>other</span>
+
+<div $if="condition_1 === 1">1</div>
+
+<script>
+	export default {
+		model: {
+			condition: 1,
+			condition_1: 1,
+		}
+	};
+</script>

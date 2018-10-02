@@ -7,17 +7,17 @@ import { genShow, genDirective, genValue, genName, genRefs } from './directives'
 
 export function genSetAttrs(target: string, node: NodeElement, scope: string, areas: BlockAreas) {
 	let res = '';
-  sortAttrs(node.attributes).forEach(({ name, value }) => {
-    let [attr] = name.split('.');
+	sortAttrs(node.attributes).forEach(({ name, value }) => {
+		let [attr] = name.split('.');
 		if (attr === '$show') {
 			genShow(target, node, areas, scope);
-    } else if (attr === '$value' || attr === '$name') {
-      if (attr === '$value') {
-        node.removeAttribute('$name');
-        genValue(target, node, areas, scope);
-      } else if (!node.hasAttribute('$value') && attr === '$name') {
-        genName(target, node, areas, scope);
-      }
+		} else if (attr === '$value' || attr === '$name') {
+			if (attr === '$value') {
+				node.removeAttribute('$name');
+				genValue(target, node, areas, scope);
+			} else if (!node.hasAttribute('$value') && attr === '$name') {
+				genName(target, node, areas, scope);
+			}
 		} else if (attr[0] === '$') {
 			genDirective(target, name.slice(1), value, areas, scope);
 		} else if (attr[0] === '@') {
@@ -30,20 +30,14 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
 		} else if (attr[0] === '#') {
 			genRefs(scope, areas, kebabToCamelCases(name.slice(1)), target);
 		} else {
-			res += `_$sa(${target}, '${attr}', ${value ? `'${value}'` : `''`});`;
+			res += `_$sa(${target}, ['${attr}', ${value ? `'${value}'` : `''`}]);`;
 		}
 	});
 	return res;
 }
 
 function sortAttrs(attrs: Attribute[]) {
-	return attrs.sort((a, b) => {
-		if (/^[$@:#]/.test(a.name) && !/^[$@:#]/.test(b.name)) {
-			return -1;
-		}
-		if (!/^[$@:#]/.test(a.name) && /^[$@:#]/.test(b.name)) {
-			return 1;
-		}
-		return 0;
-	});
+	let attrRegExp = /^[$@:#]/;
+	return attrs.sort((a, b) => attrRegExp.test(a.name) && !attrRegExp.test(b.name) ? -1 :
+		!attrRegExp.test(a.name) && attrRegExp.test(b.name) ? 1 : 0);
 }

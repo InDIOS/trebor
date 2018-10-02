@@ -1,0 +1,22 @@
+<div class="shadowbox">
+  <p>Here's a very interesting note displayed in a lovely shadowed box.</p>
+  <p>Any kind of content here. Such as &lt;p&gt;, &lt;table&gt;. You name it!</p>
+</div>
+<div>
+  <p>Some paragraph with text {{expression}}</p>
+</div>
+<div>
+  <p #some-attr="someVar">Some paragraph with {{text}} and {{attribute}} expressions</p>
+</div>
+<div $html>
+  <p $some-attr="someVar">Some paragraph with text intentional {{escaped}}</p>
+</div>
+<div $html="html"></div>
+
+<script>
+	export default {
+		model: {
+			html: '<p $some-attr="someVar">Some paragraph with text from {{model}}</p>'
+		}
+	};
+</script>

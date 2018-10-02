@@ -9,7 +9,7 @@ export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
   let element = getVarName(areas.variables, '_$node');
   const expression = node.getAttribute('$tag');
   node.removeAttribute('$tag');
-  if (node.childNodes.length) node['dymTag'] = element;
+  if (node.childNodes.length) node.dymTag = element;
   if (expression) {
     const setElement = `setTag${capitalize(element)}`;
     const updateTag = `updateTag${capitalize(element)}`;
@@ -43,7 +43,7 @@ export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
     }
   });
   const parent = node.parentElement;
-	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
+	let root = parent.dymTag ? parent.dymTag : parent.varName;
   areas.unmount.push(`_$a(${root || '_$frag'}, ${slot});`);
 }
 
@@ -55,7 +55,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   const anchor = getVarName(areas.variables, `${varName}Anchor`);
   const variable = getVarName(areas.variables, varName);
   const parent = node.parentElement;
-	let root = parent['dymTag'] ? parent['dymTag'] : parent['varName'];
+	let root = parent.dymTag ? parent.dymTag : parent.varName;
   let attrs = '{';
   const extras: string[] = [];
   let isValue: string;
@@ -76,7 +76,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     } else if (name[0] === '$' && !/model|show/.test(name.slice(1))) {
       genDirective(variable, name.slice(1), value, areas, scope);
     } else {
-      attrs += `${name}: '${value}'`;
+      attrs += `${kebabToCamelCases(name)}: '${value}'`;
     }
   });
   attrs += '}';
@@ -95,14 +95,12 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     init += `${globCompName} = ${setComponent}(${isIsAttrExp ? [scope, ...params].join(', ') : ''});`;
     areas.extras.push(`${init}
     ${anchor} = _$ct();
-    ${variable} = new ${globCompName}(${setAttrsComponent}(), ${scope});
-    ${variable} && _$add(${scope}, ${variable});`);
+    ${variable} = _$add(${scope}, ${globCompName}, ${setAttrsComponent}());`);
   } else {
     init += `${globCompName} = ${varName === 'selfRef' ? `${scope}.constructor` : `children['${tag}'] || window['${globCompName}']`};`;
     !areas.extras.includes(init) && areas.extras.push(init);
-  areas.extras.push(`${anchor} = _$ct();
-	${variable} = new ${globCompName}(${attrs}, ${scope});
-  _$add(${scope}, ${variable});`);
+		areas.extras.push(`${anchor} = _$ct();
+		${variable} = _$add(${scope}, ${globCompName}, ${attrs});`);
   }
   areas.create.push(`${variable}.$create();`);
   areas.extras = areas.extras.concat(extras);
@@ -156,9 +154,8 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
         ${variable}.$destroy();
         _$remove(${scope}, ${variable});
       }
-      ${variable} = new ${globCompName}(${setAttrsComponent}(), ${scope});
-      if (${variable}) {
-        _$add(${scope}, ${variable});
+      if (${globCompName}) {
+				${variable} = _$add(${scope}, ${globCompName}, ${setAttrsComponent}());
         ${variable}.$create();
         ${variable}.$mount(${root || `${scope}.$parentEl`}, ${anchor});
       }
