@@ -1,3 +1,12 @@
+0.2.0
+- Added commonjs to the list of output formats.
+- Added new badges to the README.
+- Added documentation and license link  to the README.
+- Added first test files.
+- Rewritten method to assign scope to javascript expressions.
+- Fixed some bugs and issues.
+- Optimized code generation and generated code.
+
 0.1.2
 - Added default include pattern to every file with extension html in rollup plugin.
 - Added a validator property to component attributes definition.
