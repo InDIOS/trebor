@@ -1,5 +1,6 @@
 import { genBlockAreas } from './commons';
 import { ctx } from '../utilities/context';
+import { genSetAttrs } from './attributes';
 import { genDirective } from './directives';
 import { NodeElement, BlockAreas } from '../utilities/classes';
 import { kebabToCamelCases, getVarName, capitalize, createElement, filterParser } from '../utilities/tools';
@@ -132,6 +133,10 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
           areas.unmount.push(`_$a(${slot}, ${el});`);
         }
       });
+      const attr = genSetAttrs(slot, n, scope, areas);
+      if (attr) {
+        areas.hydrate.push(attr);
+      }
       areas.unmount.push(`if (${slotDec}) {
 			_$a(${slotDec}, ${slot});
 		}`);
