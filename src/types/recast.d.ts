@@ -1,6 +1,6 @@
 import {
   Node, BinaryExpression, Literal, CallExpression,
-  MemberExpression, Identifier, Expression, BinaryOperator, Program, Property, ExpressionStatement, TemplateLiteral, ArrayExpression, ConditionalExpression, SpreadElement, UnaryExpression, LogicalExpression, UpdateExpression, AssignmentExpression, ImportDeclaration, ExportDefaultDeclaration, VariableDeclaration, FunctionDeclaration, FunctionExpression, SwitchStatement, WhileStatement, IfStatement, TryStatement
+  MemberExpression, Identifier, Expression, BinaryOperator, Program, Property, ExpressionStatement, TemplateLiteral, ArrayExpression, ConditionalExpression, SpreadElement, UnaryExpression, LogicalExpression, UpdateExpression, AssignmentExpression, ImportDeclaration, ExportDefaultDeclaration, VariableDeclaration, FunctionDeclaration, FunctionExpression, SwitchStatement, WhileStatement, IfStatement, TryStatement, SequenceExpression
 } from 'estree';
 
 interface NamedType {
@@ -91,6 +91,7 @@ interface Types {
     visitUpdateExpression?(this: Visitor, path: Path<UpdateExpression>, ...args: any[]): boolean | void;
     visitLogicalExpression?(this: Visitor, path: Path<LogicalExpression>, ...args: any[]): boolean | void;
     visitImportDeclaration?(this: Visitor, path: Path<ImportDeclaration>, ...args: any[]): boolean | void;
+    visitSequenceExpression?(this: Visitor, path: Path<SequenceExpression>, ...args: any[]): boolean | void;
     visitFunctionExpression?(this: Visitor, path: Path<FunctionExpression>, ...args: any[]): boolean | void;
     visitFunctionDeclaration?(this: Visitor, path: Path<FunctionDeclaration>, ...args: any[]): boolean | void;
     visitExpressionStatement?(this: Visitor, path: Path<ExpressionStatement>, ...args: any[]): boolean | void;
