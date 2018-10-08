@@ -1,5 +1,6 @@
 import { genBlockAreas } from './commons';
 import { ctx } from '../utilities/context';
+import { genSetAttrs } from './attributes';
 import { genDirective } from './directives';
 import { NodeElement, BlockAreas } from '../utilities/classes';
 import { kebabToCamelCases, getVarName, capitalize, createElement, filterParser } from '../utilities/tools';
@@ -12,18 +13,13 @@ export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
   if (node.childNodes.length) node.dymTag = element;
   if (expression) {
     const setElement = `setTag${capitalize(element)}`;
-    const updateTag = `updateTag${capitalize(element)}`;
     areas.variables.push(setElement);
     const code = ctx(filterParser(expression), scope, areas.globals);
     let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
     const setTag = `${setElement}(${scope}${params})`;
     areas.extras.push(`${setElement} = (${scope}${params}) => ${code};`);
     areas.create.push(`${element} = _$ce(${setTag});`);
-    areas.update.push(`let ${updateTag} = ${setTag};
-		if (${updateTag}.toUpperCase() !== ${element}.tagName) {
-			${element} = _$as(${element}, _$ce(${updateTag}));
-		}
-		${updateTag} = void 0;`);
+    areas.update.push(`${element} = _$nu(${element}, ${setTag});`);
   } else {
     element = getVarName(areas.variables, node.tagName);
   }
@@ -69,8 +65,8 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     if (name[0] === '@') {
       const eventVar = `event${capitalize(kebabToCamelCases(name.slice(1)))}${capitalize(variable)}`;
       areas.variables.push(eventVar);
-      extras.push(`${eventVar} = ${variable}.$on('${name.slice(1)}', ${ctx(value, scope, params)});`);
-      areas.destroy.push(`${eventVar}.off();`);
+      extras.push(`${eventVar} = ${variable}.$on('${name.slice(1)}', $data => { ${ctx(value, scope, params)}; });`);
+      areas.destroy.push(`${eventVar}.$off();`);
     } else if (name[0] === ':') {
       attrs += `${kebabToCamelCases(name.slice(1))}() { return ${ctx(value, scope, params)}; },`;
     } else if (name[0] === '$' && !/model|show/.test(name.slice(1))) {
@@ -137,6 +133,10 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
           areas.unmount.push(`_$a(${slot}, ${el});`);
         }
       });
+      const attr = genSetAttrs(slot, n, scope, areas);
+      if (attr) {
+        areas.hydrate.push(attr);
+      }
       areas.unmount.push(`if (${slotDec}) {
 			_$a(${slotDec}, ${slot});
 		}`);

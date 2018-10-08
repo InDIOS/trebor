@@ -5,6 +5,7 @@
 examples/
 src/
 test/
+spec/
 tools/index.ts
 tools/tsconfig.json
 package-lock.json

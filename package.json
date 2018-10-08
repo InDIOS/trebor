@@ -1,6 +1,6 @@
 {
 	"name": "trebor",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "A node js module to make standalone web components.",
 	"main": "./build/index.js",
 	"bin": {
