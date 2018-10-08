@@ -1,3 +1,9 @@
+0.2.2
+- Added Sequence expression to context generation.
+- Fixed missing attributes generating elements in slots.
+- Fixed bug generating code for component event attributes.
+- Fixed internal errors passing children in loops and conditions.
+
 0.2.1
 - Fixed issue analyzing slots.
 - Fixed bug mounting components.
