@@ -12,18 +12,13 @@ export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
   if (node.childNodes.length) node.dymTag = element;
   if (expression) {
     const setElement = `setTag${capitalize(element)}`;
-    const updateTag = `updateTag${capitalize(element)}`;
     areas.variables.push(setElement);
     const code = ctx(filterParser(expression), scope, areas.globals);
     let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
     const setTag = `${setElement}(${scope}${params})`;
     areas.extras.push(`${setElement} = (${scope}${params}) => ${code};`);
     areas.create.push(`${element} = _$ce(${setTag});`);
-    areas.update.push(`let ${updateTag} = ${setTag};
-		if (${updateTag}.toUpperCase() !== ${element}.tagName) {
-			${element} = _$as(${element}, _$ce(${updateTag}));
-		}
-		${updateTag} = void 0;`);
+    areas.update.push(`${element} = _$nu(${element}, ${setTag});`);
   } else {
     element = getVarName(areas.variables, node.tagName);
   }

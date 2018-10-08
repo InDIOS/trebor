@@ -580,6 +580,9 @@ export function _$bu(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaEle
 export function _$tu(text: Text, value: string) {
   if (text.data !== (value = _$toStr(value))) text.data = value;
 }
+export function _$nu<T extends keyof HTMLElementTagNameMap>(node: HTMLElement, tag: T) {
+  return tag.toUpperCase() !== node.tagName ? _$as(node, _$ce(tag)) : node;
+}
 export function _$f(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
   let items: ObjectLike<ComponentTemplate> = {}, loopParent: Element, loopSibling: Element;
   let globs = _$toArgs(arguments, 3);
