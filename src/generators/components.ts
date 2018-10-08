@@ -64,8 +64,8 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     if (name[0] === '@') {
       const eventVar = `event${capitalize(kebabToCamelCases(name.slice(1)))}${capitalize(variable)}`;
       areas.variables.push(eventVar);
-      extras.push(`${eventVar} = ${variable}.$on('${name.slice(1)}', ${ctx(value, scope, params)});`);
-      areas.destroy.push(`${eventVar}.off();`);
+      extras.push(`${eventVar} = ${variable}.$on('${name.slice(1)}', $data => { ${ctx(value, scope, params)}; });`);
+      areas.destroy.push(`${eventVar}.$off();`);
     } else if (name[0] === ':') {
       attrs += `${kebabToCamelCases(name.slice(1))}() { return ${ctx(value, scope, params)}; },`;
     } else if (name[0] === '$' && !/model|show/.test(name.slice(1))) {
