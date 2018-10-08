@@ -103,7 +103,8 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 
 export function genBody(funcName: string, scope: string, areas: BlockAreas, condType?: string) {
   return `${!areas.outer.length ? '' : `${areas.outer.join('\n')}
-	`}function ${funcName}(${scope}, children) {
+	`}function ${funcName}(${scope}) {
+    let { children } = ${scope.split(',')[0]}.$options;
 		${!areas.variables.length ? '' : `let ${areas.variables.join(', ')}`};${!areas.extras.length ? '' : `
 		${areas.extras.join('\n')}`}
 		return {

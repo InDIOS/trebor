@@ -1,7 +1,7 @@
 type AttrTypes = string | number | RegExp | null | boolean;
 type AttrParams = string[] | ObjectLike<AttrDefinition>;
 type DirectiveDefinition = (inst: Component, options: DirectiveOptions, node: HTMLElement) => void | DirectiveDefObject;
-type TemplateFn = (component: Component, children: ObjectLike<ComponentConstructor>) => ComponentTemplate;
+type TemplateFn = (component: Component) => ComponentTemplate;
 type IterateKey<T> = T extends any[] ? number : string;
 type IterateValue<T> = T extends any[] ? T[number] : T[keyof T];
 type PluginFn = (this: Component, ctor: ComponentConstructor, pluginOptions?: ObjectLike<any>) => void;
@@ -157,7 +157,7 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
       _$def(self, key, desc);
     }
   }
-  const tpl = template(self, opts.children);
+  const tpl = template(self);
   _$e(tpl, (value, key) => {
     _$def(self, key, {
       value: (function (key) {
