@@ -125,7 +125,7 @@ function _$CompCtr(attrs, template, options, parent) {
   for (var key in data) {
     _loop_1(key);
   }
-  var tpl = template(self, opts.children);
+  var tpl = template(self);
   _$e(tpl, function(value, key) {
     _$def(self, key, {
       value: function(key) {
@@ -456,8 +456,8 @@ function _$a(parent, child, sibling) {
 function _$ce(tagName) {
   return document.createElement(tagName || 'div');
 }
-function _$sa(el, attrOrBind) {
-  var attr = attrOrBind[0], value = attrOrBind[1];
+function _$sa(el, attrAndValue) {
+  var attr = attrAndValue[0], value = attrAndValue[1];
   el.setAttribute(attr, _$toStr(value));
   if (_$isValueAttr(attr) && !_$isStr(value))
     el[PROP_MAP._] = value;
@@ -473,6 +473,10 @@ function _$al(el, event, handler) {
 }
 function _$rl(el, event, handler) {
   el.removeEventListener(event, handler, false);
+}
+function _$bba(el, attrAndValue) {
+  var _a = attrAndValue.concat([el.hasAttribute(attrAndValue[0])]), attr = _a[0], value = _a[1], hasAttr = _a[2];
+  value == null || value === false ? hasAttr && el.removeAttribute(attr) : _$sa(el, [attr, '']);
 }
 function _$bu(el, binding) {
   var attr = binding[0], value = binding[1];
@@ -548,35 +552,35 @@ function _$tplBind(_$state) {
       _$al(input_2, 'change', handlerChangeEvent_1 = function(event) {
         changeEvent_1(_$state, event, input_2);
       });
-      input_2.checked = !!bindCheckedInput_2(_$state)[1];
+      _$bba(input_2, bindCheckedInput_2(_$state));
       _$sa(input_2, ['id', 'checkbox_1']);
       _$sa(input_2, ['type', 'checkbox']);
       _$sa(input_2, ['value', 'Yes']);
       _$al(input_3, 'change', handlerChangeEvent_2 = function(event) {
         changeEvent_2(_$state, event, input_3);
       });
-      input_3.checked = !!bindCheckedInput_3(_$state)[1];
+      _$bba(input_3, bindCheckedInput_3(_$state));
       _$sa(input_3, ['id', 'checkbox_2']);
       _$sa(input_3, ['type', 'checkbox']);
       _$sa(input_3, ['value', 'No']);
       _$al(input_4, 'change', handlerChangeEvent_3 = function(event) {
         changeEvent_3(_$state, event, input_4);
       });
-      input_4.checked = !!bindCheckedInput_4(_$state)[1];
+      _$bba(input_4, bindCheckedInput_4(_$state));
       _$sa(input_4, ['id', 'radio_1']);
       _$sa(input_4, ['type', 'radio']);
       _$sa(input_4, ['value', 'radio 1']);
       _$al(input_5, 'change', handlerChangeEvent_4 = function(event) {
         changeEvent_4(_$state, event, input_5);
       });
-      input_5.checked = !!bindCheckedInput_5(_$state)[1];
+      _$bba(input_5, bindCheckedInput_5(_$state));
       _$sa(input_5, ['id', 'radio_2']);
       _$sa(input_5, ['type', 'radio']);
       _$sa(input_5, ['value', 'radio 2']);
       _$al(input_6, 'change', handlerChangeEvent_5 = function(event) {
         changeEvent_5(_$state, event, input_6);
       });
-      input_6.checked = !!bindCheckedInput_6(_$state)[1];
+      _$bba(input_6, bindCheckedInput_6(_$state));
       _$sa(input_6, ['id', 'radio_3']);
       _$sa(input_6, ['type', 'radio']);
       _$sa(input_6, ['value', 'radio 3']);
@@ -591,11 +595,11 @@ function _$tplBind(_$state) {
 
     $update: function(_$state) {
       _$bu(input_1, bindValueInput_1(_$state));
-      _$bu(input_2, bindCheckedInput_2(_$state));
-      _$bu(input_3, bindCheckedInput_3(_$state));
-      _$bu(input_4, bindCheckedInput_4(_$state));
-      _$bu(input_5, bindCheckedInput_5(_$state));
-      _$bu(input_6, bindCheckedInput_6(_$state));
+      _$bba(input_2, bindCheckedInput_2(_$state));
+      _$bba(input_3, bindCheckedInput_3(_$state));
+      _$bba(input_4, bindCheckedInput_4(_$state));
+      _$bba(input_5, bindCheckedInput_5(_$state));
+      _$bba(input_6, bindCheckedInput_6(_$state));
     },
 
     $unmount: function() {

@@ -125,7 +125,7 @@ function _$CompCtr(attrs, template, options, parent) {
   for (var key in data) {
     _loop_1(key);
   }
-  var tpl = template(self, opts.children);
+  var tpl = template(self);
   _$e(tpl, function(value, key) {
     _$def(self, key, {
       value: function(key) {
@@ -469,8 +469,8 @@ function _$ce(tagName) {
 function _$ct(content) {
   return document.createTextNode(content || '');
 }
-function _$sa(el, attrOrBind) {
-  var attr = attrOrBind[0], value = attrOrBind[1];
+function _$sa(el, attrAndValue) {
+  var attr = attrAndValue[0], value = attrAndValue[1];
   el.setAttribute(attr, _$toStr(value));
   if (_$isValueAttr(attr) && !_$isStr(value))
     el[PROP_MAP._] = value;
