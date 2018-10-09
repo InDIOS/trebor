@@ -508,8 +508,8 @@ export function _$ct(content?: string) {
 export function _$cm(content?: string) {
   return document.createComment(content || '');
 }
-export function _$sa(el: Element & { _value?: any }, attrOrBind: [string, any]) {
-  let [attr, value] = attrOrBind;
+export function _$sa(el: Element & { _value?: any }, attrAndValue: [string, any]) {
+  let [attr, value] = attrAndValue;
   el.setAttribute(attr, _$toStr(value));
   if (_$isValueAttr(attr) && !_$isStr(value)) el[PROP_MAP._] = value;
 }
@@ -566,6 +566,10 @@ export function _$cu(block: { type: string } & ComponentTemplate, condition: Fun
     block.$mount(parent, anchor);
   }
   return block;
+}
+export function _$bba(el: Element, attrAndValue: [string, any]) {
+  let [attr, value, hasAttr] = attrAndValue.concat([el.hasAttribute(attrAndValue[0])]);
+  value == null || value === false ? hasAttr && el.removeAttribute(attr) : _$sa(el, [attr, '']);
 }
 export function _$bu(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) & { _value: any }, binding: [string, any]) {
   let [attr, value] = binding;

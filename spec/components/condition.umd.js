@@ -125,7 +125,7 @@ function _$CompCtr(attrs, template, options, parent) {
   for (var key in data) {
     _loop_1(key);
   }
-  var tpl = template(self, opts.children);
+  var tpl = template(self);
   _$e(tpl, function(value, key) {
     _$def(self, key, {
       value: function(key) {

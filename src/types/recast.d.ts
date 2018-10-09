@@ -26,10 +26,13 @@ interface BlockStatementType extends NamedType {
 interface UnaryExpressionType extends NamedType {
   name: 'UnaryExpression'
 }
+interface MemberExpressionType extends NamedType {
+  name: 'MemberExpression'
+}
 interface UpdateExpressionType extends NamedType {
   name: 'UpdateExpression'
 }
-interface AssignmentExpressionType extends NamedType { 
+interface AssignmentExpressionType extends NamedType {
   name: 'AssignmentExpression'
 }
 
@@ -40,6 +43,7 @@ interface NamedTypes {
   IfStatement: IfStatementType;
   BlockStatement: BlockStatementType;
   UnaryExpression: UnaryExpressionType;
+  MemberExpression: MemberExpressionType;
   UpdateExpression: UpdateExpressionType;
   AssignmentExpression: AssignmentExpressionType;
 }

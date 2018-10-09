@@ -1,3 +1,7 @@
+0.2.3
+- Added ability to add or remove boolean attributes.
+- Fixed some bugs on context assignment with Sequence and Assignment expressions.
+
 0.2.2
 - Added Sequence expression to context generation.
 - Fixed missing attributes generating elements in slots.
