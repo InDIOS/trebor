@@ -29,8 +29,6 @@ export function genBind(variable: string, attr: string, expression: string, area
     } else {
       areas.hydrate.push(`${variable}.value = _$toStr(${bindFunc}[1]);`);
     }
-  } else if (attr === 'checked' && /input/.test(variable) && /checkbox|radio/.test(type)) {
-    areas.hydrate.push(`${variable}.checked = !!${bindFunc}[1];`);
   } else if (isBooleanAttr(attr)) {
     areas.update.push(`_$bba(${variable}, ${bindFunc});`);
     areas.hydrate.push(`_$bba(${variable}, ${bindFunc});`);
