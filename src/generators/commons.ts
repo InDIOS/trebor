@@ -20,15 +20,13 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       variable = getVarName(areas.variables, 'txt');
       const setVariable = `set${capitalize(variable)}`;
       areas.variables.push(setVariable);
-      const codeFrag = node.textContent;
-      const intrps = codeFrag.split(/(\{\{\s*(?:(?!\}\})(?:.|\n))*\}\})/).filter(int => !!clearText(int).trim());
-      const code = intrps.map(int => {
+			const code = node.textContent.split(/(\{\{\s*(?:(?!\}\})(?:.|\n))*\}\})/).map(int => {
         if (int.startsWith('{{') && int.endsWith('}}')) {
           int = int.replace(/\{\{(\s*((?!\}\})(.|\n))*)\}\}/g, (_, replacer: string) => replacer.trim());
           return `(${ctx(filterParser(int), scope, areas.globals)})`;
-        }
+				}
         return `'${clearText(entities.decode(int))}'`;
-      }).join('+');
+			}).join('+').replace(/^' '\+/, '').replace(/\+' '$/, '');
       let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
       const setTxt = `${setVariable}(${scope}${params})`;
       areas.extras.push(`${setVariable} = (${scope}${params}) => ${code};`);
