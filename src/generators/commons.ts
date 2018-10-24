@@ -84,10 +84,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
             length = childNodes.length;
           }
         }
-        const attr = genSetAttrs(variable, node, scope, areas);
-        if (attr) {
-          areas.hydrate.push(attr);
-        }
+        genSetAttrs(variable, node, scope, areas);
         if (isTpl && areas.create.length === 0) {
           areas.variables.splice(areas.variables.indexOf(variable), 1);
           variable = '';

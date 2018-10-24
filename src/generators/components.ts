@@ -133,10 +133,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
           areas.unmount.push(`_$a(${slot}, ${el});`);
         }
       });
-      const attr = genSetAttrs(slot, n, scope, areas);
-      if (attr) {
-        areas.hydrate.push(attr);
-      }
+      genSetAttrs(slot, n, scope, areas);
       areas.unmount.push(`if (${slotDec}) {
 			_$a(${slotDec}, ${slot});
 		}`);

@@ -72,11 +72,8 @@ export function genHtml(node: NodeElement, areas: BlockAreas, scope?: string) {
 	} else {
 		content = `${variable}.innerHTML = '${node.innerHTML}';`;
 	}
-	const attr = genSetAttrs(variable, node, scope, areas);
-	if (attr) {
-		areas.hydrate.push(attr);
-	}
-	areas.create.push(content);
+	genSetAttrs(variable, node, scope, areas);
+	areas.create.push(`${variable}.innerHTML = ${content};`);
 	return variable;
 }
 
