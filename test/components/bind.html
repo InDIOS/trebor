@@ -1,0 +1,29 @@
+<input id="text" type="text" $value="textValue">
+<input id="number" type="number" $value="numValue">
+
+<input id="checkbox_1" type="checkbox" $name="checkboxes" value="Yes">
+<input id="checkbox_2" type="checkbox" $name="checkboxes" value="No">
+
+<input id="checkbox_3" type="checkbox" $name="checkboxes_1" :value="{value:'Yes'}">
+<input id="checkbox_4" type="checkbox" $name="checkboxes_1" :value="{value:'No'}">
+
+<input id="radio_1" type="radio" $name="radios" value="radio 1">
+<input id="radio_2" type="radio" $name="radios" value="radio 2">
+<input id="radio_3" type="radio" $name="radios" value="radio 3">
+
+<input id="radio_4" type="radio" $name="radios_1" :value="{value:'radio 4'}">
+<input id="radio_5" type="radio" $name="radios_1" :value="{value:'radio 5'}">
+<input id="radio_6" type="radio" $name="radios_1" :value="{value:'radio 6'}">
+
+<script>
+	export default {
+		model: {
+      radios: '',
+      radios_1: null,
+      numValue: 0,
+      textValue: '',
+      checkboxes: [],
+      checkboxes_1: []
+		}
+	};
+</script>

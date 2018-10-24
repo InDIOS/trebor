@@ -1,14 +1,16 @@
-import '../helpers/setup';
-const Component = require('../components/html.umd');
-
 describe('Component Html', () => {
   let instance, divs: NodeListOf<HTMLDivElement>;
 
-  beforeAll(done => {
-    instance = new Component();
+  beforeEach(done => {
+    instance = new Html();
     instance.$mount('main');
     done();
   });
+
+  afterEach(done => {
+    instance && instance.$destroy();
+    done();
+	});
 
   it('nodes without expression should be normally rendered', () => {
     divs = document.querySelectorAll('div');
