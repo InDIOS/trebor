@@ -6,7 +6,6 @@ import { BlockAreas, NodeElement } from '../utilities/classes';
 import { genShow, genDirective, genValue, genName, genRefs } from './directives';
 
 export function genSetAttrs(target: string, node: NodeElement, scope: string, areas: BlockAreas) {
-	let res = '';
 	sortAttrs(node.attributes).forEach(({ name, value }) => {
 		let [attr] = name.split('.');
 		if (attr === '$show') {
@@ -30,14 +29,13 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
 		} else if (attr[0] === '#') {
 			genRefs(scope, areas, kebabToCamelCases(name.slice(1)), target);
 		} else {
-			res += `_$sa(${target}, ['${attr}', ${value ? `'${value}'` : `''`}]);`;
+      areas.hydrate.push(`_$sa(${target}, ['${attr}', ${value ? `'${value}'` : `''`}]);`);
 		}
 	});
-	return res;
 }
 
 function sortAttrs(attrs: Attribute[]) {
 	let attrRegExp = /^[$@:#]/;
-	return attrs.sort((a, b) => attrRegExp.test(a.name) && !attrRegExp.test(b.name) ? -1 :
-		!attrRegExp.test(a.name) && attrRegExp.test(b.name) ? 1 : 0);
+	return attrs.sort((a, b) => attrRegExp.test(a.name) && !attrRegExp.test(b.name) ? 1 :
+		!attrRegExp.test(a.name) && attrRegExp.test(b.name) ? -1 : 0);
 }
