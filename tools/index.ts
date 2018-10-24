@@ -410,13 +410,16 @@ function _$toPlainObj(obj: Component) {
   });
   return _$isObject(obj) ? data : obj;
 }
-export function _$setRef(obj: Object, prop: string) {
-  const value = [];
-  _$def(obj, prop, {
-    get: () => value.length <= 1 ? value[0] : value,
-    set: val => { val && !~value.indexOf(val) && value.push(val); },
-    enumerable: true, configurable: true
-  });
+export function _$setRef(refs: Object, prop: string, node: HTMLElement) {
+  if (!_$hasProp(refs, prop)) {
+    const value = [];
+    _$def(refs, prop, {
+      get: () => value.length <= 1 ? value[0] : value,
+      set: val => { val && !~value.indexOf(val) && value.push(val); },
+      enumerable: true, configurable: true
+    });
+  }
+  refs[prop] = node;
 }
 function _$accesor(object: Component, path: string, value?: any) {
   return path.split('.').reduce((obj, key, i, arr) => {
@@ -567,16 +570,16 @@ export function _$cu(block: { type: string } & ComponentTemplate, condition: Fun
   }
   return block;
 }
-export function _$bba(el: Element, attrAndValue: [string, any]) {
+export function _$bba(el: HTMLElement, attrAndValue: [string, any]) {
   let [attr, value, hasAttr] = attrAndValue.concat([el.hasAttribute(attrAndValue[0])]);
   value == null || value === false ? hasAttr && el.removeAttribute(attr) : _$sa(el, [attr, '']);
 }
 export function _$bu(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) & { _value: any }, binding: [string, any]) {
   let [attr, value] = binding;
-  let _value: string | boolean = attr === 'checked' ? !!value : _$toStr(value);
-  if (/value|checked/.test(attr)) {
-    if (el[attr] !== _value) el[attr] = _$isValueAttr(attr) ? _value : value;
-    el[PROP_MAP._] = _$isValueAttr(attr) ? value : el[PROP_MAP.v];
+  let _value: string = _$toStr(value);
+  if (_$isValueAttr(attr)) {
+    if (el[attr] !== _value) el[attr] = _value;
+    el[PROP_MAP._] = value;
   } else if (_$ga(el, attr) !== _value) {
     _$sa(el, [attr, _value]);
   }
@@ -586,6 +589,30 @@ export function _$tu(text: Text, value: string) {
 }
 export function _$nu<T extends keyof HTMLElementTagNameMap>(node: HTMLElement, tag: T) {
   return tag.toUpperCase() !== node.tagName ? _$as(node, _$ce(tag)) : node;
+}
+export function _$rr(refs: Object, prop: string, node: HTMLElement) {
+  let nodes = refs[prop];
+  _$isArray(nodes) ? refs[prop].splice(nodes.indexOf(node), 1) : (delete refs[prop]);
+}
+export function _$hu(node: HTMLElement, value: string) {
+  if (node.innerHTML !== (value = _$toStr(value))) node.innerHTML = value;
+}
+export function _$pu(parent: Component, Ctor: ComponentConstructor, inst: Component, value: ComponentConstructor, attrs: AttrParams, el: HTMLElement, sibling: HTMLElement) {
+  if (value === Ctor) {
+    inst && inst.$update();
+  } else {
+    Ctor = value;
+    if (inst) {
+      inst.$destroy();
+      _$remove(parent, inst);
+    }
+    if (inst) {
+      inst = _$add(parent, Ctor, attrs);
+      inst.$create();
+      inst.$mount(el, sibling);
+    }
+  }
+  return [inst, Ctor];
 }
 export function _$f(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
   let items: ObjectLike<ComponentTemplate> = {}, loopParent: Element, loopSibling: Element;
@@ -637,7 +664,7 @@ export function _$is(id: string, css: string) {
     isNew = true;
     style = _$ce('style');
     style.id = id;
-    _$sa(style, ['refs', '1']);
+    _$sa(style, ['refs', 1]);
   }
   if (style.textContent !== css) {
     style.textContent = css;
@@ -646,7 +673,7 @@ export function _$is(id: string, css: string) {
     _$a(document.head, style);
   } else {
     let count = +_$ga(style, 'refs');
-    _$sa(style, ['refs', _$toStr(++count)]);
+		_$sa(style, ['refs', ++count]);
   }
 }
 export function _$ds(id: string) {
@@ -656,7 +683,7 @@ export function _$ds(id: string) {
     if (--count === 0) {
       _$r(style, document.head);
     } else {
-      _$sa(style, ['refs', _$toStr(count)]);
+			_$sa(style, ['refs', count]);
     }
   }
 }

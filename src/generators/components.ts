@@ -80,6 +80,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   let init = `const `;
   let setComponent = `set${capitalize(variable)}`;
   let setAttrsComponent = `setAttrs${capitalize(variable)}`;
+	let setComponentCall = `${setComponent}(${isIsAttrExp ? [scope, ...params].join(', ') : ''})`;
   if (varName === 'component') {
     globCompName = capitalize(variable);
     areas.variables.push(setComponent, setAttrsComponent);
@@ -88,7 +89,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
       let comp = ${ctx(isValue, scope, areas.globals.concat(params))};
       return _$isType(comp, 'string') ? children[comp] : comp;
     }` : `() => children['${isValue}']`};`);
-    init += `${globCompName} = ${setComponent}(${isIsAttrExp ? [scope, ...params].join(', ') : ''});`;
+		init += `${globCompName} = ${setComponentCall};`;
     areas.extras.push(`${init}
     ${anchor} = _$ct();
     ${variable} = _$add(${scope}, ${globCompName}, ${setAttrsComponent}());`);
@@ -141,23 +142,13 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   });
   areas.unmount.push(`${variable}.$mount(${root || '_$frag'}, ${anchor});`);
   if (varName === 'component') {
-    let updateVar = `update${capitalize(variable)}`;
-    areas.update.push(`let ${updateVar} = ${setComponent}(${isIsAttrExp ? [scope, ...params].join(', ') : ''});
-    if (${updateVar} === ${globCompName}) {
-      ${variable} && ${variable}.$update();
-    } else {
-      ${globCompName} = ${updateVar};
-      if (${variable}) {
-        ${variable}.$destroy();
-        _$remove(${scope}, ${variable});
-      }
-      if (${globCompName}) {
-				${variable} = _$add(${scope}, ${globCompName}, ${setAttrsComponent}());
-        ${variable}.$create();
-        ${variable}.$mount(${root || `${scope}.$parentEl`}, ${anchor});
-      }
-    }
-    ${updateVar} = void 0;`);
+		areas.update.push(`[${variable}, ${globCompName}] = _$pu(${scope}, 
+			${globCompName}, 
+			${variable}, 
+			${setComponentCall}, 
+			${setAttrsComponent}(), 
+			${root || `${scope}.$parentEl`}, 
+			${anchor});`);
   } else {
     areas.update.push(`${variable} && ${variable}.$update();`);
   }
