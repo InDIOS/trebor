@@ -2,7 +2,7 @@
 <a href="#" @click.prevent="foo = 'blue'">Blue </a>
 <a href="#" @click.prevent="foo = 'green'">Gree </a>
 
-<component :is="children[foo]" name="thing" />
+<component :is="children[foo]" text="thing" />
 
 <script>
   import red from './red.html';
