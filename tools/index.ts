@@ -617,7 +617,7 @@ export function _$pu(parent: Component, Ctor: ComponentConstructor, inst: Compon
 export function _$f(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
   let items: ObjectLike<ComponentTemplate> = {}, loopParent: Element, loopSibling: Element;
   let globs = _$toArgs(arguments, 3);
-  _$e(obj, (item, i) => { items[i] = loop.apply(null, [root, item, i].concat(globs)); });
+	_$e(obj, (item, i, index) => { items[i] = loop.apply(null, [root, item, i, index].concat(globs)); });
   return {
     $create() {
       _$e(items, item => { item.$create(); });
@@ -629,17 +629,17 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
     },
     $update(root: Component, obj: any[]) {
       let globs = _$toArgs(arguments, 2);
-      _$e(items, (item, i) => {
+      _$e(items, (item, i, index) => {
         if (obj[i]) {
-          item.$update.apply(item, [root, obj[i], i].concat(globs));
+					item.$update.apply(item, [root, obj[i], i, index].concat(globs));
         } else {
           item.$destroy();
           delete items[i];
         }
       });
-      _$e(obj, (item, i) => {
+			_$e(obj, (item, i, index) => {
         if (!items[i]) {
-          items[i] = loop.apply(null, [root, item, i].concat(globs));
+					items[i] = loop.apply(null, [root, item, i, index].concat(globs));
           items[i].$create();
           items[i].$mount(loopParent, loopSibling);
         }
@@ -650,10 +650,11 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
     }
   };
 }
-export function _$e<T>(obj: T, cb: (value: IterateValue<T>, key: IterateKey<T>) => void) {
-  for (const key in obj) {
-    if (_$hasProp(obj, key)) {
-      cb(<any>obj[key], <any>(isNaN(+key) ? key : +key));
+export function _$e<T>(obj: T, cb: (value: IterateValue<T>, key: IterateKey<T>, index?: number) => void) {
+	let i = 0;
+	for (const key in obj) {
+		if (_$hasProp(obj, key)) {
+			cb(<any>obj[key], <any>(isNaN(+key) ? key : +key), i++);
     }
   }
 }
