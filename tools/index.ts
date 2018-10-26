@@ -46,6 +46,8 @@ interface ComponentTemplate {
 
 interface Component extends ComponentTemplate {
   $parent: Component;
+  $parentEl: HTMLElement;
+  $siblingEl: HTMLElement;
   readonly $refs: ObjectLike<HTMLElement[]>;
   readonly $slots: ObjectLike<DocumentFragment>;
   readonly $filters: ObjectLike<(...args: any[]) => any>;
@@ -323,6 +325,9 @@ export function _$extends(ctor: Function, exts: Function) {
 export function _$isType(value: any, type: string | Function) {
   return _$type(type) === 'string' ? (<string>type).split('|').some(t => t.trim() === _$type(value)) : value instanceof <Function>type;
 }
+function _$apply(callee: Function, args: any[], globs: any[], thisArg: any = null) {
+  return callee.apply(thisArg, args.concat(globs));
+}
 function _$isObject(obj) {
   return _$isType(obj, 'object');
 }
@@ -559,20 +564,21 @@ export function _$bs(value: string | ObjectLike<any>) {
     return '';
   }
 }
-export function _$cu(block: { type: string } & ComponentTemplate, condition: Function, inst: Component, parent: Element, anchor: Element) {
-  if (block && block.type === condition(inst).type) {
-    block.$update(inst);
+export function _$cu(block: { type: string } & ComponentTemplate, condition: Function, parent: Element, anchor: Element, inst: Component) {
+  let globs = _$toArgs(arguments, 5);
+  if (block && block.type === _$apply(condition, [inst], globs).type) {
+    _$apply(block.$update, [inst], globs, block);
   } else {
     block && block.$destroy();
-    block = condition(inst);
+    block = _$apply(condition, [inst], globs);
     block.$create();
-    block.$mount(parent, anchor);
+    block.$mount(parent || inst.$parentEl, anchor);
   }
   return block;
 }
 export function _$bba(el: HTMLElement, attrAndValue: [string, any]) {
-  let [attr, value, hasAttr] = attrAndValue.concat([el.hasAttribute(attrAndValue[0])]);
-  value == null || value === false ? hasAttr && el.removeAttribute(attr) : _$sa(el, [attr, '']);
+  let [attr, value] = attrAndValue;
+  el[attr] = value == null || value === false ? (el.removeAttribute(attr), false) : (_$sa(el, [attr, '']), true);
 }
 export function _$bu(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) & { _value: any }, binding: [string, any]) {
   let [attr, value] = binding;
@@ -617,7 +623,7 @@ export function _$pu(parent: Component, Ctor: ComponentConstructor, inst: Compon
 export function _$f(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
   let items: ObjectLike<ComponentTemplate> = {}, loopParent: Element, loopSibling: Element;
   let globs = _$toArgs(arguments, 3);
-	_$e(obj, (item, i, index) => { items[i] = loop.apply(null, [root, item, i, index].concat(globs)); });
+  _$e(obj, (item, i, index) => { items[i] = _$apply(loop, [root, item, i, index], globs); });
   return {
     $create() {
       _$e(items, item => { item.$create(); });
@@ -631,15 +637,15 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
       let globs = _$toArgs(arguments, 2);
       _$e(items, (item, i, index) => {
         if (obj[i]) {
-					item.$update.apply(item, [root, obj[i], i, index].concat(globs));
+          _$apply(item.$update, [root, obj[i], i, index], globs, item);
         } else {
           item.$destroy();
           delete items[i];
         }
       });
-			_$e(obj, (item, i, index) => {
+      _$e(obj, (item, i, index) => {
         if (!items[i]) {
-					items[i] = loop.apply(null, [root, item, i, index].concat(globs));
+          items[i] = _$apply(loop, [root, item, i, index], globs);
           items[i].$create();
           items[i].$mount(loopParent, loopSibling);
         }
@@ -651,10 +657,10 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
   };
 }
 export function _$e<T>(obj: T, cb: (value: IterateValue<T>, key: IterateKey<T>, index?: number) => void) {
-	let i = 0;
-	for (const key in obj) {
-		if (_$hasProp(obj, key)) {
-			cb(<any>obj[key], <any>(isNaN(+key) ? key : +key), i++);
+  let i = 0;
+  for (const key in obj) {
+    if (_$hasProp(obj, key)) {
+      cb(<any>obj[key], <any>(isNaN(+key) ? key : +key), i++);
     }
   }
 }
@@ -674,7 +680,7 @@ export function _$is(id: string, css: string) {
     _$a(document.head, style);
   } else {
     let count = +_$ga(style, 'refs');
-		_$sa(style, ['refs', ++count]);
+    _$sa(style, ['refs', ++count]);
   }
 }
 export function _$ds(id: string) {
@@ -684,7 +690,7 @@ export function _$ds(id: string) {
     if (--count === 0) {
       _$r(style, document.head);
     } else {
-			_$sa(style, ['refs', count]);
+      _$sa(style, ['refs', count]);
     }
   }
 }
