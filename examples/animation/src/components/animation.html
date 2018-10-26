@@ -25,7 +25,7 @@
 				animation.ended(() => { !value && this.$update(); });
 				if (value) {
 					this.$set('visible', value);
-					 animation.in(refs.box);
+					animation.in(refs.box);
 				} else {
 					this.visible = value;
 					animation.out(refs.box);
