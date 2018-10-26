@@ -18,7 +18,8 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
   const [key, val, index] = vars.split(',').map(v => v.replace(/[()]/g, '').trim());
   let [asNumber, ...rest] = variable.split('\|');
   let [start, end] = asNumber.split('..');
-  let globs = `${params.length ? `, ${params.join(', ')}` : ''}`;
+	let globs = `${params.length ? `, ${params.join(', ')}` : ''}`;
+	let fglobs = `${params.length ? `, ${params.filter(p => (p !== '_$i' && p !== '_$v')).join(', ')}` : ''}`;
   if (!isNaN(+start)) {
     let length = (+end || 0) - (+start);
     let array = [...Array(length > 0 ? length : -length)].map((_, i) => end ? i + (+start) : i);
@@ -26,12 +27,12 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
   }
   variable = ctx(filterParser(variable), scope, areas.globals.concat(params));
   areas.variables.push(loopBlock);
-  areas.extras.push(`${loopBlock} = _$f(${scope}, ${variable}, itemLoop_${areas.loops}${globs});
+	areas.extras.push(`${loopBlock} = _$f(${scope}, ${variable}, itemLoop_${areas.loops}${fglobs});
   ${anchor} = _$ct();`);
   areas.outer.push(genLoopItem(`${scope}${globs}`, node, key, val, index, areas));
   areas.create.push(`${loopBlock}.$create();`);
   areas.unmount.push(`${loopBlock}.$mount(${root || '_$frag'}, ${anchor});`);
-  areas.update.push(`${loopBlock}.$update(${scope}, ${variable}${globs});`);
+	areas.update.push(`${loopBlock}.$update(${scope}, ${variable}${fglobs});`);
   areas.destroy.push(`${loopBlock}.$destroy();`);
 }
 
@@ -40,19 +41,11 @@ function genLoopItem(scope: string, node: NodeElement, variable: string, value: 
   const loop = `itemLoop_${areas.loops}`;
   let params: string[] = [];
   [scope, ...params] = scope.split(', ');
-	let parameters: Set<string> = new Set([scope]);
 	subareas.globals.push(variable);
-	parameters.add(variable);
-	if (value) {
-		parameters.add(value);
-		subareas.globals.push(value);
-	}
-	if (index) {
-		parameters.add(index);
-		subareas.globals.push(index);
-	}
+	value && subareas.globals.push(value);
+	index && subareas.globals.push(index);
   subareas.globals.push(...params);
-	scope = [...parameters, ...params].join(', ');
+	scope = [...new Set([scope, variable, value || '_$v', index || '_$i', ...params])].join(', ');
   const tag = node.tagName;
   if (tag === 'template') {
     node.appendChild(node.content);
@@ -60,7 +53,7 @@ function genLoopItem(scope: string, node: NodeElement, variable: string, value: 
   subareas.variables.push('_$frag');
   subareas.extras.push('_$frag = _$d();');
   node.isBlock = true;
-  let item = genBlockAreas(node, subareas, scope);
+	let item = genBlockAreas(node, subareas, scope.replace(', _$v', '').replace(', _$i', ''));
   delete node.isBlock;
   areas.loops = subareas.loops;
   areas.conditions = subareas.conditions;
