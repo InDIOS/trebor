@@ -1,8 +1,4 @@
-!function (global, factory) {
-		typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-		typeof define === 'function' && define.amd ? define('condition', factory) :
-		(global.Condition = factory());
-	}(this, function () {
+!function(glob) { 
 		'use strict';
 var PROP_MAP = {
   p: '__TP__',
@@ -145,6 +141,9 @@ function _$CompCtr(attrs, template, options, parent) {
       return _$toPlainObj(this);
     }
   });
+}
+function _$isValueAttr(attr) {
+  return attr === 'value';
 }
 function _$subs(dep, listener) {
   if (!this[PROP_MAP.s][dep]) {
@@ -389,7 +388,6 @@ function _$drt(dd) {
     }
   };
 }
-function _$noop() {}
 function _$toStr(obj) {
   var str = _$type(obj);
   return !/null|undefined/.test(str) ? obj.toString() : str;
@@ -432,14 +430,10 @@ function _$accesor(object, path, value) {
     return obj ? obj[key] : null;
   }, object);
 }
-function _$emptyElse() {
-  return {
-    type: 'empty-else',
-    $create: _$noop,
-    $mount: _$noop,
-    $update: _$noop,
-    $destroy: _$noop
-  };
+function _$bindGroup(input, selection) {
+  var _value = _$gv(input);
+  var _$index = selection.indexOf(_value);
+  input.checked && !~_$index ? selection.push(_value) : selection.splice(_$index, 1);
 }
 function _$(selector, parent) {
   return _$isStr(selector) ? (parent || document).querySelector(selector) : selector;
@@ -458,19 +452,39 @@ function _$a(parent, child, sibling) {
 function _$ce(tagName) {
   return document.createElement(tagName || 'div');
 }
-function _$ct(content) {
-  return document.createTextNode(content || '');
+function _$sa(el, attrAndValue) {
+  var attr = attrAndValue[0], value = attrAndValue[1];
+  el.setAttribute(attr, _$toStr(value));
+  if (_$isValueAttr(attr) && !_$isStr(value))
+    el[PROP_MAP._] = value;
 }
-function _$cu(block, condition, inst, parent, anchor) {
-  if (block && block.type === condition(inst).type) {
-    block.$update(inst);
-  } else {
-    block && block.$destroy();
-    block = condition(inst);
-    block.$create();
-    block.$mount(parent, anchor);
+function _$ga(el, attr) {
+  return _$isValueAttr(attr) ? _$gv(el) : el.getAttribute(attr);
+}
+function _$gv(el) {
+  return _$hasProp(el, PROP_MAP._) ? el[PROP_MAP._] : el[PROP_MAP.v];
+}
+function _$al(el, event, handler) {
+  el.addEventListener(event, handler, false);
+}
+function _$rl(el, event, handler) {
+  el.removeEventListener(event, handler, false);
+}
+function _$bba(el, attrAndValue) {
+  var _a = attrAndValue.concat([el.hasAttribute(attrAndValue[0])]), attr = _a[0], value = _a[1], hasAttr = _a[2];
+  value == null || value === false ? hasAttr && el.removeAttribute(attr) : _$sa(el, [attr, '']);
+}
+function _$bu(el, binding) {
+  var attr = binding[0], value = binding[1];
+  var _value = _$toStr(value);
+  if (_$isValueAttr(attr)) {
+    if (el[attr] !== _value) {
+      el[attr] = _value;
+    }
+    el[PROP_MAP._] = value;
+  } else if (_$ga(el, attr) !== _value) {
+    _$sa(el, [attr, _value]);
   }
-  return block;
 }
 function _$e(obj, cb) {
   for (var key in obj) {
@@ -479,143 +493,49 @@ function _$e(obj, cb) {
     }
   }
 }
-function ifCondition_1() {
-  var _$frag, span_1;
+function _$tplIndex(_$state) {
+  var _$frag, input_1, changeEvent_1, handlerChangeEvent_1, bindCheckedInput_1, bindValueInput_1, input_2, changeEvent_2, handlerChangeEvent_2, bindCheckedInput_2, bindValueInput_2;
   _$frag = _$d();
-  return {
-    type: 'if',
-
-    $create: function() {
-      span_1 = _$ce('span');
-      span_1.innerHTML = '1';
-    },
-
-    $mount: function(parent, sibling) {
-      this.$unmount();
-      _$a(_$(parent), _$frag, _$(sibling));
-    },
-
-    $update: _$noop,
-
-    $unmount: function() {
-      _$a(_$frag, span_1);
-    },
-
-    $destroy: function() {
-      this.$unmount();
-      _$frag = span_1 = void 0;
-    }
+  changeEvent_1 = function(_$state, $event, $el) {
+    _$bindGroup($el, _$state.checkboxes);
   };
-}
-function elseIf_1_condition_1() {
-  var _$frag, span_1;
-  _$frag = _$d();
-  return {
-    type: 'elseIf_1',
-
-    $create: function() {
-      span_1 = _$ce('span');
-      span_1.innerHTML = '2';
-    },
-
-    $mount: function(parent, sibling) {
-      this.$unmount();
-      _$a(_$(parent), _$frag, _$(sibling));
-    },
-
-    $update: _$noop,
-
-    $unmount: function() {
-      _$a(_$frag, span_1);
-    },
-
-    $destroy: function() {
-      this.$unmount();
-      _$frag = span_1 = void 0;
-    }
+  bindCheckedInput_1 = function(_$state) {
+    return ['checked', !!~_$state.checkboxes.indexOf(_$ga(input_1, 'value'))];
   };
-}
-function elseCondition_1() {
-  var _$frag, span_1;
-  _$frag = _$d();
-  return {
-    type: 'else',
-
-    $create: function() {
-      span_1 = _$ce('span');
-      span_1.innerHTML = 'other';
-    },
-
-    $mount: function(parent, sibling) {
-      this.$unmount();
-      _$a(_$(parent), _$frag, _$(sibling));
-    },
-
-    $update: _$noop,
-
-    $unmount: function() {
-      _$a(_$frag, span_1);
-    },
-
-    $destroy: function() {
-      this.$unmount();
-      _$frag = span_1 = void 0;
-    }
+  bindValueInput_1 = function() {
+    return ['value', {
+      value: 'No'
+    }];
   };
-}
-function condition_1(_$state) {
-  if (_$state.condition === 1)
-    return ifCondition_1(_$state);
-  else if (_$state.condition === 2)
-    return elseIf_1_condition_1(_$state);
-  else
-    return elseCondition_1(_$state);
-}
-function ifCondition_2() {
-  var _$frag, div_1;
-  _$frag = _$d();
-  return {
-    type: 'if',
-
-    $create: function() {
-      div_1 = _$ce();
-      div_1.innerHTML = '1';
-    },
-
-    $mount: function(parent, sibling) {
-      this.$unmount();
-      _$a(_$(parent), _$frag, _$(sibling));
-    },
-
-    $update: _$noop,
-
-    $unmount: function() {
-      _$a(_$frag, div_1);
-    },
-
-    $destroy: function() {
-      this.$unmount();
-      _$frag = div_1 = void 0;
-    }
+  changeEvent_2 = function(_$state, $event, $el) {
+    _$bindGroup($el, _$state.checkboxes);
   };
-}
-function condition_2(_$state) {
-  if (_$state.condition_1 === 1)
-    return ifCondition_2(_$state);
-  else
-    return _$emptyElse();
-}
-function _$tplCondition(_$state) {
-  var _$frag, conditionAnchor_1, conditionBlock_1, conditionAnchor_2, conditionBlock_2;
-  _$frag = _$d();
-  conditionAnchor_1 = _$ct();
-  conditionAnchor_2 = _$ct();
+  bindCheckedInput_2 = function(_$state) {
+    return ['checked', !!~_$state.checkboxes.indexOf(_$ga(input_2, 'value'))];
+  };
+  bindValueInput_2 = function() {
+    return ['value', {
+      value: 'Yes'
+    }];
+  };
   return {
     $create: function() {
-      conditionBlock_1 = condition_1(_$state);
-      conditionBlock_1.$create();
-      conditionBlock_2 = condition_2(_$state);
-      conditionBlock_2.$create();
+      input_1 = _$ce('input');
+      input_2 = _$ce('input');
+      _$al(input_1, 'change', handlerChangeEvent_1 = function(event) {
+        changeEvent_1(_$state, event, input_1);
+      });
+      _$bba(input_1, bindCheckedInput_1(_$state));
+      _$sa(input_1, bindValueInput_1(_$state));
+      _$sa(input_1, ['id', 'checkbox_1']);
+      _$sa(input_1, ['type', 'checkbox']);
+      _$al(input_2, 'change', handlerChangeEvent_2 = function(event) {
+        changeEvent_2(_$state, event, input_2);
+      });
+      _$bba(input_2, bindCheckedInput_2(_$state));
+      _$sa(input_2, bindValueInput_2(_$state));
+      _$sa(input_2, ['id', 'checkbox_2']);
+      _$sa(input_2, ['type', 'checkbox']);
     },
 
     $mount: function(parent, sibling) {
@@ -626,27 +546,15 @@ function _$tplCondition(_$state) {
     },
 
     $update: function(_$state) {
-      conditionBlock_1 = _$cu(
-        conditionBlock_1,
-        condition_1,
-        _$state,
-        _$state.$parentEl,
-        conditionAnchor_1
-      );
-      conditionBlock_2 = _$cu(
-        conditionBlock_2,
-        condition_2,
-        _$state,
-        _$state.$parentEl,
-        conditionAnchor_2
-      );
+      _$bba(input_1, bindCheckedInput_1(_$state));
+      _$bu(input_1, bindValueInput_1(_$state));
+      _$bba(input_2, bindCheckedInput_2(_$state));
+      _$bu(input_2, bindValueInput_2(_$state));
     },
 
     $unmount: function() {
-      _$a(_$frag, conditionAnchor_1);
-      conditionBlock_1.$mount(_$frag, conditionAnchor_1);
-      _$a(_$frag, conditionAnchor_2);
-      conditionBlock_2.$mount(_$frag, conditionAnchor_2);
+      _$a(_$frag, input_1);
+      _$a(_$frag, input_2);
     },
 
     $destroy: function() {
@@ -655,23 +563,22 @@ function _$tplCondition(_$state) {
       this.$parentEl = null;
       this.$siblingEl = null;
       this.$children.splice(0, this.$children.length);
-      conditionBlock_1.$destroy();
-      conditionBlock_2.$destroy();
+      _$rl(input_1, 'change', handlerChangeEvent_1);
+      _$rl(input_2, 'change', handlerChangeEvent_2);
       delete _$state.$root;
-      _$frag = conditionAnchor_1 = conditionBlock_1 = conditionAnchor_2 = conditionBlock_2 = void 0;
+      _$frag = input_1 = changeEvent_1 = handlerChangeEvent_1 = bindCheckedInput_1 = bindValueInput_1 = input_2 = changeEvent_2 = handlerChangeEvent_2 = bindCheckedInput_2 = bindValueInput_2 = void 0;
     }
   };
 }
-function Condition(_$attrs, _$parent) {
-  _$CompCtr.call(this, _$attrs, _$tplCondition, {
+function Index(_$attrs, _$parent) {
+  _$CompCtr.call(this, _$attrs, _$tplIndex, {
     model: {
-      condition: 1,
-      condition_1: 1
+      checkboxes: []
     }
   }, _$parent);
   !_$parent && this.$create();
 }
-_$extends(Condition, _$CompCtr);
-return Condition;
-
-	});
+_$extends(Index, _$CompCtr);
+glob.Index = Index;
+ 
+	}(this);

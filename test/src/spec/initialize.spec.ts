@@ -1,21 +1,18 @@
-import '../helpers/setup';
-const Component = require('../components/init.umd');
-
 describe('Component', () => {
 
 	it('should be a function constructor', () => {
-		expect(Component).not.toBeNull();
-		expect(typeof Component).toBe('function');
+		expect(Init).not.toBeNull();
+		expect(typeof Init).toBe('function');
 	});
 
 	it('should get an instance when is used with new', () => {
-		let instance = new Component();
+		let instance = new Init();
 		expect(typeof instance).toBe('object');
-		expect(instance.constructor).toEqual(Component);
+		expect(instance.constructor).toEqual(Init);
 	});
 
 	it('instance should have prototype methods', () => {
-		let instance = new Component();
+		let instance = new Init();
 		expect('$refs' in instance).toBeTruthy();
 		expect('$create' in instance).toBeTruthy();
 		expect('$mount' in instance).toBeTruthy();
@@ -27,7 +24,7 @@ describe('Component', () => {
 	});
 
 	it('instance should have option properties', () => {
-		let instance = new Component();
+		let instance = new Init();
 		expect('text' in instance).toBeTruthy();
 		expect(instance.text).toBe('World');
 	});
@@ -35,16 +32,16 @@ describe('Component', () => {
 
 describe('Component Instance', () => {
 	let instance, main;
-	beforeAll(done => {
-		instance = new Component();
+  beforeEach(done => {
+		instance = new Init();
 		main = document.querySelector('main');
 		done();
 	});
 
-	afterEach(done => {
-		instance.$unmount();
-		done();
-	});
+  afterEach(done => {
+    instance && instance.$destroy();
+    done();
+  });
 
 	it('should be mounted in an element selector', () => {
 		instance.$mount('main');
@@ -72,8 +69,8 @@ describe('Component Instance', () => {
 
 	it('should not update the view correctly if `$set` method is not used', () => {
 		instance.$mount('main');
-		let h1 = main.firstChild;
-		instance.text = 'World';
-		expect(h1.textContent).toBe('Hello, Somebody!!');
+    let h1 = main.firstChild;
+    instance.text = 'Somebody';
+    expect(h1.textContent).toBe('Hello, World!!');
 	});
 });

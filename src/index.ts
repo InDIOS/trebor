@@ -9,9 +9,10 @@ import { basename, extname, dirname, join } from 'path';
 import { genTemplate, CompilerOptions } from './generators';
 import { kebabToCamelCases, capitalize, camelToKebabCase } from './utilities/tools';
 
-const dest = `{ _$CompCtr, _$, _$d, _$a, _$add, _$remove, _$as, _$r, _$ce, _$cse, _$ct, _$bu, _$tu, _$nu,
- _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f, _$e, _$is, _$ds, _$toStr, _$bindMultiSelect, _$gv,
- _$setRef, _$noop, _$isType, _$isKey, _$bindGroup, _$cu, _$bba, _$emptyElse, _$extends, _$updateMultiSelect }`;
+const dest = `{ _$CompCtr, _$, _$d, _$a, _$add, _$remove, _$as, _$r, _$ce, _$cse, _$ct,
+ _$bu, _$tu, _$nu, _$rr, _$hu, _$pu, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f,
+ _$e, _$is, _$ds, _$toStr, _$bindMultiSelect, _$gv, _$setRef, _$noop, _$isType, _$isKey,
+ _$bindGroup, _$cu, _$bba, _$emptyElse, _$extends, _$updateMultiSelect }`;
 const esDeps = `import ${dest} from 'trebor/tools';`;
 const cjsDeps = `const ${dest} = require('trebor/tools');`;
 const tools = readFileSync(join(__dirname, '../tools/index.js'), 'utf8');

@@ -1,3 +1,11 @@
+0.2.4
+- Added ability to get the iteration index when iterate over obejcts.
+- Fixed issue initializing element attributes.
+- Fixed missing spaces in adjacent interpolation expressions.
+- Fixed missing attribute generation.
+- Fixed scope issue when conditional are inside loops.
+- Changed test to work with PhantomJS.
+
 0.2.3
 - Added ability to add or remove boolean attributes.
 - Fixed some bugs on context assignment with Sequence and Assignment expressions.

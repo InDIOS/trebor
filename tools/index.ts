@@ -46,6 +46,8 @@ interface ComponentTemplate {
 
 interface Component extends ComponentTemplate {
   $parent: Component;
+  $parentEl: HTMLElement;
+  $siblingEl: HTMLElement;
   readonly $refs: ObjectLike<HTMLElement[]>;
   readonly $slots: ObjectLike<DocumentFragment>;
   readonly $filters: ObjectLike<(...args: any[]) => any>;
@@ -323,6 +325,9 @@ export function _$extends(ctor: Function, exts: Function) {
 export function _$isType(value: any, type: string | Function) {
   return _$type(type) === 'string' ? (<string>type).split('|').some(t => t.trim() === _$type(value)) : value instanceof <Function>type;
 }
+function _$apply(callee: Function, args: any[], globs: any[], thisArg: any = null) {
+  return callee.apply(thisArg, args.concat(globs));
+}
 function _$isObject(obj) {
   return _$isType(obj, 'object');
 }
@@ -410,13 +415,16 @@ function _$toPlainObj(obj: Component) {
   });
   return _$isObject(obj) ? data : obj;
 }
-export function _$setRef(obj: Object, prop: string) {
-  const value = [];
-  _$def(obj, prop, {
-    get: () => value.length <= 1 ? value[0] : value,
-    set: val => { val && !~value.indexOf(val) && value.push(val); },
-    enumerable: true, configurable: true
-  });
+export function _$setRef(refs: Object, prop: string, node: HTMLElement) {
+  if (!_$hasProp(refs, prop)) {
+    const value = [];
+    _$def(refs, prop, {
+      get: () => value.length <= 1 ? value[0] : value,
+      set: val => { val && !~value.indexOf(val) && value.push(val); },
+      enumerable: true, configurable: true
+    });
+  }
+  refs[prop] = node;
 }
 function _$accesor(object: Component, path: string, value?: any) {
   return path.split('.').reduce((obj, key, i, arr) => {
@@ -556,27 +564,28 @@ export function _$bs(value: string | ObjectLike<any>) {
     return '';
   }
 }
-export function _$cu(block: { type: string } & ComponentTemplate, condition: Function, inst: Component, parent: Element, anchor: Element) {
-  if (block && block.type === condition(inst).type) {
-    block.$update(inst);
+export function _$cu(block: { type: string } & ComponentTemplate, condition: Function, parent: Element, anchor: Element, inst: Component) {
+  let globs = _$toArgs(arguments, 5);
+  if (block && block.type === _$apply(condition, [inst], globs).type) {
+    _$apply(block.$update, [inst], globs, block);
   } else {
     block && block.$destroy();
-    block = condition(inst);
+    block = _$apply(condition, [inst], globs);
     block.$create();
-    block.$mount(parent, anchor);
+    block.$mount(parent || inst.$parentEl, anchor);
   }
   return block;
 }
-export function _$bba(el: Element, attrAndValue: [string, any]) {
-  let [attr, value, hasAttr] = attrAndValue.concat([el.hasAttribute(attrAndValue[0])]);
-  value == null || value === false ? hasAttr && el.removeAttribute(attr) : _$sa(el, [attr, '']);
+export function _$bba(el: HTMLElement, attrAndValue: [string, any]) {
+  let [attr, value] = attrAndValue;
+  el[attr] = value == null || value === false ? (el.removeAttribute(attr), false) : (_$sa(el, [attr, '']), true);
 }
 export function _$bu(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) & { _value: any }, binding: [string, any]) {
   let [attr, value] = binding;
-  let _value: string | boolean = attr === 'checked' ? !!value : _$toStr(value);
-  if (/value|checked/.test(attr)) {
-    if (el[attr] !== _value) el[attr] = _$isValueAttr(attr) ? _value : value;
-    el[PROP_MAP._] = _$isValueAttr(attr) ? value : el[PROP_MAP.v];
+  let _value: string = _$toStr(value);
+  if (_$isValueAttr(attr)) {
+    if (el[attr] !== _value) el[attr] = _value;
+    el[PROP_MAP._] = value;
   } else if (_$ga(el, attr) !== _value) {
     _$sa(el, [attr, _value]);
   }
@@ -587,10 +596,34 @@ export function _$tu(text: Text, value: string) {
 export function _$nu<T extends keyof HTMLElementTagNameMap>(node: HTMLElement, tag: T) {
   return tag.toUpperCase() !== node.tagName ? _$as(node, _$ce(tag)) : node;
 }
+export function _$rr(refs: Object, prop: string, node: HTMLElement) {
+  let nodes = refs[prop];
+  _$isArray(nodes) ? refs[prop].splice(nodes.indexOf(node), 1) : (delete refs[prop]);
+}
+export function _$hu(node: HTMLElement, value: string) {
+  if (node.innerHTML !== (value = _$toStr(value))) node.innerHTML = value;
+}
+export function _$pu(parent: Component, Ctor: ComponentConstructor, inst: Component, value: ComponentConstructor, attrs: AttrParams, el: HTMLElement, sibling: HTMLElement) {
+  if (value === Ctor) {
+    inst && inst.$update();
+  } else {
+    Ctor = value;
+    if (inst) {
+      inst.$destroy();
+      _$remove(parent, inst);
+    }
+    if (inst) {
+      inst = _$add(parent, Ctor, attrs);
+      inst.$create();
+      inst.$mount(el, sibling);
+    }
+  }
+  return [inst, Ctor];
+}
 export function _$f(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
   let items: ObjectLike<ComponentTemplate> = {}, loopParent: Element, loopSibling: Element;
   let globs = _$toArgs(arguments, 3);
-  _$e(obj, (item, i) => { items[i] = loop.apply(null, [root, item, i].concat(globs)); });
+  _$e(obj, (item, i, index) => { items[i] = _$apply(loop, [root, item, i, index], globs); });
   return {
     $create() {
       _$e(items, item => { item.$create(); });
@@ -602,17 +635,17 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
     },
     $update(root: Component, obj: any[]) {
       let globs = _$toArgs(arguments, 2);
-      _$e(items, (item, i) => {
+      _$e(items, (item, i, index) => {
         if (obj[i]) {
-          item.$update.apply(item, [root, obj[i], i].concat(globs));
+          _$apply(item.$update, [root, obj[i], i, index], globs, item);
         } else {
           item.$destroy();
           delete items[i];
         }
       });
-      _$e(obj, (item, i) => {
+      _$e(obj, (item, i, index) => {
         if (!items[i]) {
-          items[i] = loop.apply(null, [root, item, i].concat(globs));
+          items[i] = _$apply(loop, [root, item, i, index], globs);
           items[i].$create();
           items[i].$mount(loopParent, loopSibling);
         }
@@ -623,10 +656,11 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
     }
   };
 }
-export function _$e<T>(obj: T, cb: (value: IterateValue<T>, key: IterateKey<T>) => void) {
+export function _$e<T>(obj: T, cb: (value: IterateValue<T>, key: IterateKey<T>, index?: number) => void) {
+  let i = 0;
   for (const key in obj) {
     if (_$hasProp(obj, key)) {
-      cb(<any>obj[key], <any>(isNaN(+key) ? key : +key));
+      cb(<any>obj[key], <any>(isNaN(+key) ? key : +key), i++);
     }
   }
 }
@@ -637,7 +671,7 @@ export function _$is(id: string, css: string) {
     isNew = true;
     style = _$ce('style');
     style.id = id;
-    _$sa(style, ['refs', '1']);
+    _$sa(style, ['refs', 1]);
   }
   if (style.textContent !== css) {
     style.textContent = css;
@@ -646,7 +680,7 @@ export function _$is(id: string, css: string) {
     _$a(document.head, style);
   } else {
     let count = +_$ga(style, 'refs');
-    _$sa(style, ['refs', _$toStr(++count)]);
+    _$sa(style, ['refs', ++count]);
   }
 }
 export function _$ds(id: string) {
@@ -656,7 +690,7 @@ export function _$ds(id: string) {
     if (--count === 0) {
       _$r(style, document.head);
     } else {
-      _$sa(style, ['refs', _$toStr(count)]);
+      _$sa(style, ['refs', count]);
     }
   }
 }

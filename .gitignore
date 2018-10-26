@@ -1,6 +1,9 @@
 # Dependency directories
 node_modules/
-
+specs/*
+!specs/components
+specs/components/*
+!specs/components/readme.txt
 build/
 tools/*.js
 tools/*.map

@@ -31,8 +31,8 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   parent.removeChild(node);
   areas.outer.push(genCondition(scope, condition, condition.index));
   areas.create.push(`${block}.$create();`);
-  areas.unmount.push(`${block}.$mount(${root || '_$frag'}, ${anchor});`);
-  areas.update.push(`${block} = _$cu(${block}, condition_${condition.index}, ${scope}, ${root || `${scope}.$parentEl`}, ${anchor});`);
+	areas.unmount.push(`${block}.$mount(${root || '_$frag'}, ${anchor});`);
+  areas.update.push(`${block} = _$cu(${block}, condition_${condition.index}, ${root}, ${anchor}, ${scope});`);
   areas.destroy.push(`${block}.$destroy();`);
 }
 

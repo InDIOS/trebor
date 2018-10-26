@@ -11,7 +11,8 @@ export function genValue(target: string, node: NodeElement, areas: BlockAreas, s
 	const isMultiSelect = /select/.test(node.tagName) && node.hasAttribute('multiple');
 	if (/input|select|textarea/.test(node.tagName) && !/checkbox|radio/.test(type)) {
 		const event = /date|file/.test(type) || node.tagName === 'select' ? 'change' : 'input';
-		const expression = isMultiSelect ? `_$updateMultiSelect(${target}, ${scope}, '${value}')` : `${value} = ${/number|range/.test(type) ? '+' : ''}$el.value`;
+    const expression = isMultiSelect ? `_$updateMultiSelect(${target}, ${scope}, '${value}')` :
+      `${value} = ${/number|range/.test(type) ? '+' : ''}$el.value`;
 		genEvent(target, event, expression, areas, scope);
 		genBind(target, 'value', value, areas, scope, isMultiSelect ? 'multiple' : type, null);
 	} else if (node.tagName === 'input' && /checkbox|radio/.test(type)) {
@@ -46,7 +47,7 @@ export function genShow(target: string, node: NodeElement, areas: BlockAreas, sc
 	[scope] = scope.split(', ');
 	let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
 	const expression = ctx(node.getAttribute('$show'), scope, areas.globals);
-	areas.extras.push(`const ${funcName} = function (${scope}${params}, el, display) {
+	areas.extras.push(`const ${funcName} = (${scope}${params}, el, display) => {
 		el.style.display = ${expression} ? display : 'none';
 	};`);
 	areas.hydrate.push(`${varDisplay} = ${target}.style.display;
@@ -62,36 +63,26 @@ export function genHtml(node: NodeElement, areas: BlockAreas, scope?: string) {
 	let content = '';
 	if (html) {
 		const setContent = getVarName(areas.variables, `content${capitalize(variable)}`);
+		content = `${setContent}(${scope})`;
 		areas.extras.push(`${setContent} = (${scope}) => ${ctx(html, scope.split(', ')[0], areas.globals)};`);
-		areas.update.push(`let update${capitalize(setContent)} = ${setContent}(${scope});
-		if (${variable}.innerHTML !== update${capitalize(setContent)}) {
-			${variable}.innerHTML = update${capitalize(setContent)};
-		}
-		update${capitalize(setContent)} = void 0;`);
-		content = `${variable}.innerHTML = ${setContent}(${scope});`;
+		areas.update.push(`_$hu(${variable}, ${content});`);
 	} else {
-		content = `${variable}.innerHTML = '${node.innerHTML}';`;
+		content = `'${node.innerHTML}'`;
 	}
-	const attr = genSetAttrs(variable, node, scope, areas);
-	if (attr) {
-		areas.hydrate.push(attr);
-	}
-	areas.create.push(content);
+	genSetAttrs(variable, node, scope, areas);
+	areas.create.push(`${variable}.innerHTML = ${content};`);
 	return variable;
 }
 
 export function genRefs(scope: string, areas: BlockAreas, value: string, target: string) {
-	const [env] = scope.split(', ');
-	areas.variables.push('_refs');
-	areas.extras.push(`_refs = ${env}.$refs;`);
-	areas.create.push(`!_refs['${value}'] && _$setRef(_refs, '${value}');
-	_refs['${value}'] = ${target};`);
-	areas.destroy.push(`if (_$isType(_refs['${value}'], 'array')) {
-		const index${capitalize(target)} = _refs['${value}'].indexOf(${target});
-		_refs['${value}'].splice(index${capitalize(target)}, 1);
-	} else {
-		delete _refs['${value}'];
-	}`);
+	[scope] = scope.split(', ');
+	const init = `_refs = ${scope}.$refs;`;
+	if (!areas.extras.includes(init)) {
+		areas.variables.push('_refs');
+		areas.extras.push(`_refs = ${scope}.$refs;`);
+	}
+	areas.create.push(`_$setRef(_refs, '${value}', ${target});`);
+	areas.destroy.push(`_$rr(_refs, '${value}', ${target});`);
 }
 
 export function genDirective(target: string, attr: string, value: string, areas: BlockAreas, scope: string) {
