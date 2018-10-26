@@ -6,7 +6,10 @@ import { BlockAreas, NodeElement } from '../utilities/classes';
 import { genShow, genDirective, genValue, genName, genRefs } from './directives';
 
 export function genSetAttrs(target: string, node: NodeElement, scope: string, areas: BlockAreas) {
-	sortAttrs(node.attributes).forEach(({ name, value }) => {
+	const attrs = sortAttrs(node.attributes);
+	let { length } = attrs;
+	for (let i = 0; i < length; i++) {
+		const { name, value } = attrs[i];
 		let [attr] = name.split('.');
 		if (attr === '$show') {
 			genShow(target, node, areas, scope);
@@ -29,9 +32,13 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
 		} else if (attr[0] === '#') {
 			genRefs(scope, areas, kebabToCamelCases(name.slice(1)), target);
 		} else {
-      areas.hydrate.push(`_$sa(${target}, ['${attr}', ${value ? `'${value}'` : `''`}]);`);
+			areas.hydrate.push(`_$sa(${target}, ['${attr}', ${value ? `'${value}'` : `''`}]);`);
 		}
-	});
+		if (length !== attrs.length) {
+			i--;
+			length = attrs.length;
+		}
+	}
 }
 
 function sortAttrs(attrs: Attribute[]) {
