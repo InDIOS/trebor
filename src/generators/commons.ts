@@ -122,11 +122,7 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				${areas.unmount.join('\n')}
 			}` : ': _$noop'},
       $destroy() {
-				this.$unmount();
-        ${condType || scope.includes(',') ? '' : `this.$parent = null;
-        this.$parentEl = null;
-        this.$siblingEl = null;
-				this.$children.splice(0, this.$children.length);`}
+        ${condType || scope.includes(',') ? 'this.$unmount();' : `_$dc(this);`}
 				${areas.destroy.join('\n')}
 				${areas.variables.join(' = ')} = void 0;
       }

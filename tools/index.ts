@@ -40,7 +40,7 @@ interface ComponentTemplate {
   $hydrate?(): void;
   $mount(parent: string | Element, sibling?: string | boolean | Element): void;
   $update(state: Component, ...args: any[]): void;
-  $unmout(): void;
+  $unmount(): void;
   $destroy(): void;
 }
 
@@ -324,6 +324,13 @@ export function _$extends(ctor: Function, exts: Function) {
 }
 export function _$isType(value: any, type: string | Function) {
   return _$type(type) === 'string' ? (<string>type).split('|').some(t => t.trim() === _$type(value)) : value instanceof <Function>type;
+}
+export function _$dc(component: Component) {
+  component.$unmount();
+  component.$parent = null;
+  component.$parentEl = null;
+  component.$siblingEl = null;
+  component.$children.splice(0, component.$children.length);
 }
 function _$apply(callee: Function, args: any[], globs: any[], thisArg: any = null) {
   return callee.apply(thisArg, args.concat(globs));
