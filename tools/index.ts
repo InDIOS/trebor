@@ -163,8 +163,8 @@ function _$BaseComponent(attrs: AttrParams, template: TemplateFn, options: Compo
     _$define(self, key, {
       value: (function (key) {
         const hook = key[1].toUpperCase() + key.slice(2);
-        const bhook = opts[`before${hook}`];
-        const ahook = opts[`after${hook}`];
+        const bhook = opts[`will${hook}`];
+        const ahook = opts[`did${hook}`];
         return function () {
           bhook && bhook.call(this);
           key.slice(1) === 'update' ? value.call(this, this) : value.apply(this, arguments);

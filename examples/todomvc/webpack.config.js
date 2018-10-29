@@ -26,7 +26,7 @@ module.exports = {
 	},
 	resolve: {
 		alias: {
-			'trebor/tools': resolve(__dirname, '../../tools')
+			'trebor-tools': resolve(__dirname, '../../../trebor-tools')
 		}
 	},
 	resolveLoader: {

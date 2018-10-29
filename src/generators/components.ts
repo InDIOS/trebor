@@ -96,7 +96,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
   } else {
     init += `${globCompName} = ${varName === 'selfRef' ? `${scope}.constructor` : `children['${tag}'] || window['${globCompName}']`};`;
     !areas.extras.includes(init) && areas.extras.push(init);
-		areas.extras.push(`${anchor} = _$ct();
+		areas.extras.push(`${anchor} = _$text();
 		${variable} = _$addChild(${scope}, ${globCompName}, ${attrs});`);
   }
   areas.create.push(`${variable}.$create();`);
