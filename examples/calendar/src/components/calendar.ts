@@ -53,7 +53,7 @@ export default {
       })
     }
   },
-  afterMount() {
+  didMount() {
     this.$set('date', new Date(this.value.valueOf()));
     this.createCalendar(this.date.getMonth(), this.date.getFullYear());
   },

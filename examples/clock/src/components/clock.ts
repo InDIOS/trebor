@@ -1,10 +1,10 @@
 export default {
-  afterMount() {
+  didMount() {
     this.interval = setInterval(() => {
       this.$set('time', new Date());
     }, 1000);
   },
-  beforeDestroy() {
+  willDestroy() {
     clearInterval(this.interval);
   },
   model: {
