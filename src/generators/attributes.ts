@@ -32,7 +32,7 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
 		} else if (attr[0] === '#') {
 			genRefs(scope, areas, kebabToCamelCases(name.slice(1)), target);
 		} else {
-			areas.hydrate.push(`_$sa(${target}, ['${attr}', ${value ? `'${value}'` : `''`}]);`);
+			areas.hydrate.push(`_$setAttr(${target}, ['${attr}', ${value ? `'${value}'` : `''`}]);`);
 		}
 		if (length !== attrs.length) {
 			i--;

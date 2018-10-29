@@ -4,17 +4,21 @@ import { getDoc } from './utilities/html';
 import { transpileModule } from 'typescript';
 import { optimize } from './utilities/context';
 import { minify as minifyES } from 'uglify-es';
-import { readFileSync, statSync, writeFile } from 'fs';
 import { basename, extname, dirname, join } from 'path';
 import { genTemplate, CompilerOptions } from './generators';
+import { readFileSync, statSync, writeFile, existsSync } from 'fs';
 import { kebabToCamelCases, capitalize, camelToKebabCase } from './utilities/tools';
 
-const dest = `{ _$CompCtr, _$, _$d, _$a, _$add, _$remove, _$as, _$r, _$ce, _$cse, _$ct,
- _$bu, _$tu, _$nu, _$rr, _$hu, _$pu, _$cm, _$sa, _$ga, _$al, _$ul, _$rl, _$bc, _$bs, _$f,
- _$e, _$is, _$ds, _$toStr, _$bindMultiSelect, _$gv, _$setRef, _$noop, _$isType, _$isKey,
- _$bindGroup, _$cu, _$bba, _$emptyElse, _$extends, _$updateMultiSelect }`;
-const esDeps = `import ${dest} from 'trebor/tools';`;
-const cjsDeps = `const ${dest} = require('trebor/tools');`;
+const dest = `{
+	_$extend, _$removeChild, _$bindGroup, _$emptyElse, _$Ctor, _$bindMultiSelect, _$setAttr,
+  _$removeEl, _$assignEl, _$el, _$bindStyle, _$forLoop, _$each, _$insertStyle, _$removeStyle,
+  _$getAttr, _$addListener, _$updateListener, _$removeListener, _$bindClasses, _$destroyComponent,
+  _$svg, _$noop, _$toString, _$setReference, _$isType, _$isKey, _$select, _$docFragment, _$append,
+	_$updateMultiSelect, _$componentUpdate, _$htmlUpdate, _$tagUpdate, _$bindBooleanAttr, _$removeReference,
+	_$addChild, _$textUpdate, _$getValue, _$text, _$conditionalUpdate, _$bindUpdate, _$comment, _$setElements
+}`;
+const esDeps = `import ${dest} from 'trebor-tools';`;
+const cjsDeps = `const ${dest} = require('trebor-tools');`;
 const tools = readFileSync(join(__dirname, '../tools/index.js'), 'utf8');
 
 export function genSource(html: string, opts: CompilerOptions) {
@@ -24,13 +28,8 @@ export function genSource(html: string, opts: CompilerOptions) {
 	if (opts.format === 'es') {
 		imports.unshift(esDeps);
 	}
-	const source = [template, extras,
-		`function ${moduleName}(_$attrs, _$parent) {
-			_$CompCtr.call(this, _$attrs, _$tpl${moduleName}, ${options}, _$parent);
-			!_$parent && this.$create();
-		}
-    _$extends(${moduleName}, _$CompCtr);`
-	].filter(c => !!c.length).join('\n');
+	const source = [template, extras, `const ${moduleName} = _$Ctor('${moduleName}', _$tpl${moduleName}, ${options});`]
+		.filter(c => !!c.length).join('\n');
 	return { imports, source };
 }
 
@@ -53,7 +52,7 @@ function compileFile(options: CompilerOptions) {
 			...imports, tools
 		].join('\n'), source, exportFormat(options.format, moduleName)
 	].join('\n');
-  let { outputText } = transpileModule(code, { compilerOptions, moduleName: camelToKebabCase(moduleName) });
+	let { outputText } = transpileModule(code, { compilerOptions, moduleName: camelToKebabCase(moduleName) });
 
 	outputText = optimize(options.format === 'es' ? [...imports, outputText].join('\n') : outputText);
 
@@ -113,8 +112,15 @@ function iifTpl(moduleName: string, body: string) {
 	}(this);`;
 }
 
+function checkExistToolsModule() {
+	return existsSync(join(__dirname, '..', '..', 'trebor-tools', 'package.json'));
+}
+
 export default function cli(options: CompilerOptions) {
 	const info = statSync(options.input);
+	if (options.format && /es|cjs/.test(options.format) && !checkExistToolsModule()) {
+		console.log('You must install `trebor-tools` or set it as dependency if you want use the components.');
+	}
 	if (info.isFile()) {
 		let [path, code] = compileFile(options);
 		writeFile(path, code, 'utf8', err => err && console.log(err));

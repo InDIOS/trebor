@@ -10,14 +10,14 @@ truespeed,typemustmatch,visible`);
 
 export function genBind(variable: string, attr: string, expression: string, areas: BlockAreas, scope: string, type: string, classes: string) {
   [scope] = scope.split(', ');
-  const globals = [variable, '_$ga'];
+  const globals = [variable, '_$getAttr'];
   const bindFuncName = `bind${capitalize(attr)}${capitalize(variable)}`;
   const isSelMulti = /select/.test(variable) && type === 'multiple';
   let params = areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
   let bindExp = expression === null ? 'true' : `${ctx(filterParser(expression), scope, areas.globals.concat(globals))}`;
   if (attr === 'class' || attr === 'style') {
     bindExp = attr === 'style' ?
-      `_$bs(${bindExp})` : `(${classes ? `'${classes} ' + ` : ''}_$bc(${bindExp})).trim()`;
+			`_$bindStyle(${bindExp})` : `(${classes ? `'${classes} ' + ` : ''}_$bindClasses(${bindExp})).trim()`;
   }
   areas.variables.push(bindFuncName);
   areas.extras.push(`${bindFuncName} = (${scope}${params}) => (['${attr}', ${bindExp}]);`);
@@ -27,15 +27,15 @@ export function genBind(variable: string, attr: string, expression: string, area
       areas.update.push(`_$bindMultiSelect(${variable}, ${bindFunc}[1]);`);
       areas.unmount.push(`_$bindMultiSelect(${variable}, ${bindFunc}[1]);`);
     } else {
-      areas.hydrate.push(`${variable}.value = _$toStr(${bindFunc}[1]);`);
+      areas.hydrate.push(`${variable}.value = _$toString(${bindFunc}[1]);`);
     }
   } else if (isBooleanAttr(attr)) {
-    areas.update.push(`_$bba(${variable}, ${bindFunc});`);
-    areas.hydrate.push(`_$bba(${variable}, ${bindFunc});`);
+    areas.update.push(`_$bindBooleanAttr(${variable}, ${bindFunc});`);
+    areas.hydrate.push(`_$bindBooleanAttr(${variable}, ${bindFunc});`);
   } else {
-    areas.hydrate.push(`_$sa(${variable}, ${bindFunc});`);
+		areas.hydrate.push(`_$setAttr(${variable}, ${bindFunc});`);
   }
-  !isSelMulti && !isBooleanAttr(attr) && areas.update.push(`_$bu(${variable}, ${bindFunc});`);
+	!isSelMulti && !isBooleanAttr(attr) && areas.update.push(`_$bindUpdate(${variable}, ${bindFunc});`);
 }
 
 function toMap(str: string) {

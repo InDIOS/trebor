@@ -27,8 +27,8 @@ export function genTemplate(node: NodeElement, scope: string, opts: CompilerOpti
 		if (styleNode.hasAttribute('scoped')) {
 			const styleAst = toJSON(styleNode.textContent);
 			const { className, styleText } = toCSS(styleAst);
-			areas.mount.push(`_$is('${className}', ${JSON.stringify(styleText)});`);
-			areas.destroy.push(`_$ds('${className}');`);
+			areas.mount.push(`_$insertStyle('${className}', ${JSON.stringify(styleText)});`);
+			areas.destroy.push(`_$removeStyle('${className}');`);
 			walkNode(node, el => {
 				if (el.nodeType === 1 && !/template|slot|options/.test(el.tagName)) {
 					el.setAttribute('class', `${className}${el.getAttribute('class') ? ` ${el.getAttribute('class')}` : ''}`);
@@ -36,16 +36,16 @@ export function genTemplate(node: NodeElement, scope: string, opts: CompilerOpti
 			});
 		} else {
 			const className = `scope_${hash(opts.input)}`;
-      areas.mount.push(`_$is('${className}', ${JSON.stringify(toCSS.minify(styleNode.textContent.trim()))});`);
-			areas.destroy.push(`_$ds('${className}');`);
+			areas.mount.push(`_$insertStyle('${className}', ${JSON.stringify(toCSS.minify(styleNode.textContent.trim()))});`);
+			areas.destroy.push(`_$removeStyle('${className}');`);
 		}
 	} else if (links.length) {
 		links.forEach(link => {
 			if (link.getAttribute('rel') === 'stylesheet') {
 				const className = `scope_${hash(link.getAttribute('href'))}`;
 				areas.outer.push(`import style${capitalize(className)} from '${link.getAttribute('href')}';`);
-				areas.mount.push(`_$is('${className}', style${capitalize(className)});`);
-				areas.destroy.push(`_$ds('${className}');`);
+				areas.mount.push(`_$insertStyle('${className}', style${capitalize(className)});`);
+				areas.destroy.push(`_$removeStyle('${className}');`);
 			}
 		});
 	}
@@ -61,20 +61,20 @@ export function genTemplate(node: NodeElement, scope: string, opts: CompilerOpti
   }
 	const { imports, options, extras } = toOptions(script);
 	areas.variables.push('_$frag');
-	areas.extras.push('_$frag = _$d();');
+	areas.extras.push('_$frag = _$docFragment();');
 	let { length } = node.childNodes;
 	for (let i = 0; i < length; i++) {
 		const n = node.childNodes[i];
 		const el = genBlockAreas(n, areas, scope);
 		if (el) {
-			areas.unmount.push(`_$a(_$frag, ${el});`);
+			areas.unmount.push(`_$append(_$frag, ${el});`);
 		}
 		if (length !== node.childNodes.length) {
 			i--;
 			length = node.childNodes.length;
 		}
 	}
-	areas.mount.push('_$a(_$(parent), _$frag, _$(sibling));');
+	areas.mount.push('_$append(_$select(parent), _$frag, _$select(sibling));');
 	areas.destroy.push(`delete ${scope}.$root;`);
 	const template = genBody(`_$tpl${opts.moduleName}`, scope, areas);
 	return { imports, template, extras, options };

@@ -13,7 +13,7 @@ glob(specs, (err, test) => {
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Jasmine Spec Runner v3.2.1</title>
+		<title>Jasmine Spec Runner</title>
 		<link rel="shortcut icon" type="image/png" href="${jasmineCoreDir}/images/jasmine_favicon.png">
 		<link rel="stylesheet" href="${jasmineCoreDir}/lib/jasmine-core/jasmine.css">
 		<!-- Jasmine lib files here... -->
@@ -22,7 +22,7 @@ glob(specs, (err, test) => {
 		<script src="${jasmineCoreDir}/lib/jasmine-core/boot.js"></script>
 		<script>
 			var env = jasmine.getEnv();
-			env.randomizeTests(false);
+			env.configure({ random: false });
 		</script>
 		<!-- include source files here... -->
 		${insertScripts(utils)}

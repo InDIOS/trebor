@@ -32,7 +32,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
       areas.extras.push(`${setVariable} = (${scope}${params}) => ${code};`);
 			areas.create.push(`${createNode(variable)}
 			${variable}.data = ${setTxt};`);
-			areas.update.push(`_$tu(${variable}, set${capitalize(variable)}(${scope}${params}));`);
+			areas.update.push(`_$textUpdate(${variable}, ${setTxt});`);
       return variable;
     } else {
       variable = getVarName(areas.variables, 'txt');
@@ -75,7 +75,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
           const n = childNodes[i];
           const el = genBlockAreas(n, areas, scope);
           if (el) {
-            areas.unmount.push(`_$a(${variable}${isTpl && !isBlock ? '.content' : ''}, ${el});`);
+            areas.unmount.push(`_$append(${variable}${isTpl && !isBlock ? '.content' : ''}, ${el});`);
           }
           if (length !== childNodes.length) {
             i--;
@@ -112,8 +112,7 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				this.$unmount();
 				${areas.mount.join('\n')}${!areas.mountDirt.length ? '' : `
 				${areas.mountDirt.join('\n')}`}
-        ${condType || scope.includes(',') ? '' : `this.$siblingEl = _$(sibling);
-        this.$parentEl = sibling && _$(sibling).parentElement || _$(parent);`}
+        ${condType || scope.includes(',') ? '' : `_$setElements(this, parent, sibling);`}
 			},
 			$update${!!areas.update.length ? `(${scope}) {
         ${areas.update.join('\n')}
@@ -122,11 +121,7 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				${areas.unmount.join('\n')}
 			}` : ': _$noop'},
       $destroy() {
-				this.$unmount();
-        ${condType || scope.includes(',') ? '' : `this.$parent = null;
-        this.$parentEl = null;
-        this.$siblingEl = null;
-				this.$children.splice(0, this.$children.length);`}
+        ${condType || scope.includes(',') ? 'this.$unmount();' : `_$destroyComponent(this);`}
 				${areas.destroy.join('\n')}
 				${areas.variables.join(' = ')} = void 0;
       }

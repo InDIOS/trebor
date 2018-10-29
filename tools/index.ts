@@ -37,10 +37,9 @@ interface ComponentOptions {
 
 interface ComponentTemplate {
   $create(): void;
-  $hydrate?(): void;
   $mount(parent: string | Element, sibling?: string | boolean | Element): void;
   $update(state: Component, ...args: any[]): void;
-  $unmout(): void;
+  $unmount(): void;
   $destroy(): void;
 }
 
@@ -82,11 +81,11 @@ const _$assign = Object['assign'] || function (t: Object) {
   }
   return t;
 };
-export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: ComponentOptions, parent: Component) {
+function _$BaseComponent(attrs: AttrParams, template: TemplateFn, options: ComponentOptions, parent: Component) {
   const self = this;
-  const _$set = (prop: string, value: any) => { _$def(self, prop, { value, writable: true }); };
+  const _$set = (prop: string, value: any) => { _$define(self, prop, { value, writable: true }); };
   if (!attrs) attrs = {};
-  _$e(PROPS, prop => { _$def(self, prop, { value: {} }); });
+  _$each(PROPS, prop => { _$define(self, prop, { value: {} }); });
   _$set('$parent', parent || null);
   _$set('$children', []);
   _$set(PROP_MAP.s, {});
@@ -94,13 +93,13 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
   const opts: ComponentOptions = self.$options;
   if (!opts.attrs) opts.attrs = {};
   if (!opts.children) opts.children = {};
-  _$e(TPS, (plugin) => { plugin.fn.call(self, _$CompCtr, plugin.options); });
+  _$each(TPS, (plugin) => { plugin.fn.call(self, _$BaseComponent, plugin.options); });
   if (opts.filters) _$assign(self.$filters, opts.filters);
-  if (opts.directives) _$e(opts.directives, (drt, k) => { self.$directives[k] = _$drt(drt); });
-  _$e(opts.attrs, (attrOps, key) => {
-    _$def(self, <string>(_$isType(key, 'number') ? attrOps : key), {
+  if (opts.directives) _$each(opts.directives, (drt, k) => { self.$directives[k] = _$directive(drt); });
+  _$each(opts.attrs, (attrOps, key) => {
+    _$define(self, <string>(_$isType(key, 'number') ? attrOps : key), {
       get() {
-        if (_$isStr(attrOps)) {
+        if (_$isString(attrOps)) {
           let value = attrs[<string>attrOps];
           return _$isFunction(value) ? value() : value;
         } else {
@@ -156,12 +155,12 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
           };
         }
       }
-      _$def(self, key, desc);
+      _$define(self, key, desc);
     }
   }
   const tpl = template(self);
-  _$e(tpl, (value, key) => {
-    _$def(self, key, {
+  _$each(tpl, (value, key) => {
+    _$define(self, key, {
       value: (function (key) {
         const hook = key[1].toUpperCase() + key.slice(2);
         const bhook = opts[`before${hook}`];
@@ -174,7 +173,7 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
       })(<string>key)
     });
   });
-  _$def(self, '$data', {
+  _$define(self, '$data', {
     get() {
       return _$toPlainObj(this);
     }
@@ -183,16 +182,16 @@ export function _$CompCtr(attrs: AttrParams, template: TemplateFn, options: Comp
 function _$isValueAttr(attr: string) {
   return attr === 'value';
 }
-function _$subs(dep: string, listener: Function) {
+function _$subscribers(dep: string, listener: Function) {
   if (!this[PROP_MAP.s][dep]) {
     this[PROP_MAP.s][dep] = [];
   }
   return this[PROP_MAP.s][dep].push(listener.bind(this)) - 1;
 }
-function _$def(obj: Object, key: string, desc: PropertyDescriptor) {
+function _$define(obj: Object, key: string, desc: PropertyDescriptor) {
   Object.defineProperty(obj, key, desc);
 }
-_$assign(_$CompCtr[PROP_MAP.h], {
+_$assign(_$BaseComponent[PROP_MAP.h], {
   $get(path: string) {
     return _$accesor(this, path);
   },
@@ -218,26 +217,26 @@ _$assign(_$CompCtr[PROP_MAP.h], {
   },
   $fire(event: string, data: any) {
     if (this[PROP_MAP.e][event]) {
-      _$e(this[PROP_MAP.e][event], handler => { handler(data); });
+      _$each(this[PROP_MAP.e][event], handler => { handler(data); });
     }
   },
   $notify(key: string) {
     if (this[PROP_MAP.s][key]) {
-      _$e(this[PROP_MAP.s][key], suscriber => { suscriber(); });
+      _$each(this[PROP_MAP.s][key], suscriber => { suscriber(); });
     }
   },
   $observe(deps: string | string[], listener: Function) {
     const subs: { sub: string, i: number }[] = [];
     if (_$isArray(deps)) {
-      _$e(<string[]>deps, dep => {
-        subs.push({ sub: dep, i: _$subs.call(this, dep, listener) });
+      _$each(<string[]>deps, dep => {
+        subs.push({ sub: dep, i: _$subscribers.call(this, dep, listener) });
       });
     } else {
-      subs.push({ sub: <string>deps, i: _$subs.call(this, deps, listener) });
+      subs.push({ sub: <string>deps, i: _$subscribers.call(this, deps, listener) });
     }
     return {
       $unobserve: () => {
-        _$e(subs, sub => {
+        _$each(subs, sub => {
           this[PROP_MAP.s][sub.sub].splice(sub.i, 1);
         });
       }
@@ -269,11 +268,11 @@ function _$List(value: any[], root: Component, key: string) {
   let self = this;
   Array.apply(self, [value.length]);
   let desc = { writable: false, configurable: false, enumerable: false };
-  _$def(self, '_key', _$assign({ value: key }, desc));
-  _$def(self, '_root', _$assign({ value: root }, desc));
+  _$define(self, '_key', _$assign({ value: key }, desc));
+  _$define(self, '_root', _$assign({ value: root }, desc));
   _$arrayValues(self, value, root, key);
   desc.writable = true;
-  _$def(self, 'length', _$assign({ value: self.length }, desc));
+  _$define(self, 'length', _$assign({ value: self.length }, desc));
 }
 _$extends(_$List, Array);
 ['pop', 'push', 'reverse', 'shift', 'sort', 'fill', 'unshift', 'splice'].forEach(method => {
@@ -311,19 +310,41 @@ _$List[PROP_MAP.h].pull = function (index: number) {
 function _$dispatch(root: Component, key: string, oldVal, value) {
   root.$notify(key);
   if (root[PROP_MAP.w][key]) {
-    _$e(root[PROP_MAP.w][key], watcher => { watcher(oldVal, value); });
+    _$each(root[PROP_MAP.w][key], watcher => { watcher(oldVal, value); });
   }
   root.$update();
 }
-export function _$extends(ctor: Function, exts: Function) {
-  ctor['plugin'] = function (fn: PluginFn, options?: ObjectLike<any>) {
-    TPS.push({ options, fn });
-  };
+function _$extends(ctor: Function, exts: Function) {
   ctor[PROP_MAP.h] = Object.create(exts[PROP_MAP.h]);
   ctor[PROP_MAP.h].constructor = ctor;
 }
+export function _$Ctor(moduleName: string, tpl: Function, options: Object) {
+	const ctor: ComponentConstructor = <any>{
+    [moduleName](_$attrs, _$parent) {
+      _$BaseComponent.call(this, _$attrs, tpl, options, _$parent);
+      !_$parent && this.$create();
+    }
+	}[moduleName];
+	ctor.plugin = (fn: PluginFn, options?: ObjectLike<any>) => {
+		TPS.push({ options, fn });
+	};
+  _$extends(ctor, _$BaseComponent);
+  return ctor;
+}
 export function _$isType(value: any, type: string | Function) {
   return _$type(type) === 'string' ? (<string>type).split('|').some(t => t.trim() === _$type(value)) : value instanceof <Function>type;
+}
+export function _$destroyComponent(component: Component) {
+  component.$unmount();
+  component.$parent = null;
+  component.$parentEl = null;
+  component.$siblingEl = null;
+  component.$children.splice(0, component.$children.length);
+}
+export function _$setElements(component: Component, parent: HTMLElement, sibling?: HTMLElement) {
+  let brother = _$select(sibling);
+  component.$siblingEl = brother;
+  component.$parentEl = sibling && brother.parentElement || _$select(parent);
 }
 function _$apply(callee: Function, args: any[], globs: any[], thisArg: any = null) {
   return callee.apply(thisArg, args.concat(globs));
@@ -337,7 +358,7 @@ function _$isArray(obj) {
 function _$isFunction(obj) {
   return _$isType(obj, 'function');
 }
-function _$isStr(obj) {
+function _$isString(obj) {
   return _$isType(obj, 'string');
 }
 function _$toType(value, type, root: Component, key: string) {
@@ -345,11 +366,11 @@ function _$toType(value, type, root: Component, key: string) {
     case 'date':
       return new Date(value);
     case 'string':
-      return _$toStr(value);
+      return _$toString(value);
     case 'number':
       return +value;
     case 'boolean':
-      return _$isStr(value) && !value ? true : !!value;
+      return _$isString(value) && !value ? true : !!value;
     case 'array':
       return _$isType(value, _$List) ? value : new _$List(value, root, key);
     default:
@@ -362,8 +383,9 @@ function _$type(obj: any) {
 function _$hasProp(obj: Object, prop: string) {
   return obj.hasOwnProperty(prop);
 }
-function _$drt(dd: DirectiveDefinition): DirectiveDefObject {
-  const hasProp = (prop, instance, options, element) => _$isObject(dd) && dd[prop] && dd[prop](instance, options, element);
+function _$directive(dd: DirectiveDefinition): DirectiveDefObject {
+  const hasProp = (prop, instance, options, element) =>
+    _$isObject(dd) && dd[prop] && dd[prop](instance, options, element);
   return {
     $init(instance, options, element) {
       hasProp('$init', instance, options, element);
@@ -384,7 +406,7 @@ function _$drt(dd: DirectiveDefinition): DirectiveDefObject {
   };
 }
 export function _$noop() { }
-export function _$add(inst: Component, Child: ComponentConstructor, attrs: string[] | ObjectLike<AttrDefinition>) {
+export function _$addChild(inst: Component, Child: ComponentConstructor, attrs: string[] | ObjectLike<AttrDefinition>) {
   let child: Component = null;
   if (Child) {
     child = new Child(attrs, inst);
@@ -392,17 +414,17 @@ export function _$add(inst: Component, Child: ComponentConstructor, attrs: strin
   }
   return child;
 }
-export function _$remove(inst: Component, child: Component) {
+export function _$removeChild(inst: Component, child: Component) {
   let index = inst.$children.indexOf(child);
   index >= 0 && inst.$children.splice(index, 1);
 }
-export function _$toStr(obj: any): string {
+export function _$toString(obj: any): string {
   const str: string = _$type(obj);
   return !/null|undefined/.test(str) ? obj.toString() : str;
 }
 function _$toPlainObj(obj: Component) {
   const data: ObjectLike<any> = {};
-  _$e(_$isObject(obj) ? obj : {}, (_v, k) => {
+  _$each(_$isObject(obj) ? obj : {}, (_v, k) => {
     if (k[0] !== '$' && !_$isFunction(obj[k])) {
       if (_$isType(obj[k], _$List)) {
         data[k] = obj[k].map(_$toPlainObj);
@@ -415,10 +437,10 @@ function _$toPlainObj(obj: Component) {
   });
   return _$isObject(obj) ? data : obj;
 }
-export function _$setRef(refs: Object, prop: string, node: HTMLElement) {
+export function _$setReference(refs: Object, prop: string, node: HTMLElement) {
   if (!_$hasProp(refs, prop)) {
     const value = [];
-    _$def(refs, prop, {
+    _$define(refs, prop, {
       get: () => value.length <= 1 ? value[0] : value,
       set: val => { val && !~value.indexOf(val) && value.push(val); },
       enumerable: true, configurable: true
@@ -435,7 +457,7 @@ function _$accesor(object: Component, path: string, value?: any) {
       }
     } else {
       if (i === arr.length - 1) {
-        if (_$isType(obj, _$List) && _$toStr(+key) === key) {
+        if (_$isType(obj, _$List) && _$toString(+key) === key) {
           obj.pull(+key, value);
         } else {
           let oldVal = obj[key];
@@ -456,7 +478,7 @@ export function _$isKey(event: KeyboardEvent, key: string) {
   return event.key.toLowerCase() === key || !!event[`${key}Key`];
 }
 export function _$bindGroup(input: HTMLInputElement, selection: string[]) {
-  let _value = _$gv(input);
+  let _value = _$getValue(input);
   let _$index = selection.indexOf(_value);
   input.checked && !~_$index ? selection.push(_value) : selection.splice(_$index, 1);
 }
@@ -464,7 +486,7 @@ export function _$bindMultiSelect(select: HTMLSelectElement, selections: any[]) 
   if (!selections.length) return;
   let { options } = select;
   for (let i = 0; i < options.length; i++) {
-    options[i].selected = !!~selections.indexOf(_$gv(options[i]));
+    options[i].selected = !!~selections.indexOf(_$getValue(options[i]));
   }
 }
 export function _$updateMultiSelect(select: HTMLSelectElement, obj: Component, prop: string) {
@@ -472,26 +494,26 @@ export function _$updateMultiSelect(select: HTMLSelectElement, obj: Component, p
   let selection = obj[prop];
   let { selectedOptions } = select;
   for (let i = 0; i < selectedOptions.length; i++) {
-    items.push(_$gv(selectedOptions[i]));
+    items.push(_$getValue(selectedOptions[i]));
   }
   obj[prop] = new _$List(items, selection['_root'], selection['_key']);
   obj.$update();
 }
-export function _$(selector: string | Element, parent?: Element) {
-  return _$isStr(selector) ? (parent || document).querySelector(<string>selector) : <Element>selector;
+export function _$select(selector: string | Element, parent?: Element): HTMLElement {
+  return _$isString(selector) ? (parent || document).querySelector(<string>selector) : <HTMLElement>selector;
 }
-export function _$d() {
+export function _$docFragment() {
   return document.createDocumentFragment();
 }
-export function _$a(parent: Element, child: Element, sibling?: boolean | Element) {
+export function _$append(parent: Element, child: Element, sibling?: boolean | Element) {
   if (_$isType(sibling, 'boolean') && sibling) parent.parentElement.replaceChild(child, parent);
   else if (!sibling) parent.appendChild(child);
   else parent.insertBefore(child, <Element>sibling);
 }
-export function _$as(source: Element, dest: Element) {
+export function _$assignEl(source: Element, dest: Element) {
   const { childNodes, attributes } = source;
   for (let i = 0; i < childNodes.length; i++) {
-    _$a(dest, <Element>childNodes[i]);
+    _$append(dest, <Element>childNodes[i]);
   }
   for (let i = 0; i < attributes.length; i++) {
     const attr = attributes[i];
@@ -500,71 +522,71 @@ export function _$as(source: Element, dest: Element) {
   source.parentElement.replaceChild(dest, source);
   return dest;
 }
-export function _$r(el: Element, parent: Element) {
+export function _$removeEl(el: Element, parent: Element) {
   let root = parent || el.parentElement;
   if (root) root.removeChild(el);
 }
-export function _$ce<T extends keyof HTMLElementTagNameMap>(tagName?: T) {
+export function _$el<T extends keyof HTMLElementTagNameMap>(tagName?: T) {
   return document.createElement(tagName || 'div');
 }
-export function _$cse<T extends keyof SVGElementTagNameMap>(tagName?: T) {
+export function _$svg<T extends keyof SVGElementTagNameMap>(tagName?: T) {
   return document.createElementNS('http://www.w3.org/2000/svg', tagName || 'svg');
 }
-export function _$ct(content?: string) {
+export function _$text(content?: string) {
   return document.createTextNode(content || '');
 }
-export function _$cm(content?: string) {
+export function _$comment(content?: string) {
   return document.createComment(content || '');
 }
-export function _$sa(el: Element & { _value?: any }, attrAndValue: [string, any]) {
+export function _$setAttr(el: Element & { _value?: any }, attrAndValue: [string, any]) {
   let [attr, value] = attrAndValue;
-  el.setAttribute(attr, _$toStr(value));
-  if (_$isValueAttr(attr) && !_$isStr(value)) el[PROP_MAP._] = value;
+  el.setAttribute(attr, _$toString(value));
+  if (_$isValueAttr(attr) && !_$isString(value)) el[PROP_MAP._] = value;
 }
-export function _$ga(el: Element, attr: string) {
-  return _$isValueAttr(attr) ? _$gv(<HTMLInputElement>el) : el.getAttribute(attr);
+export function _$getAttr(el: Element, attr: string) {
+  return _$isValueAttr(attr) ? _$getValue(<HTMLInputElement>el) : el.getAttribute(attr);
 }
-export function _$gv(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | HTMLOptionElement) & { _value?: any }) {
+export function _$getValue(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | HTMLOptionElement) & { _value?: any }) {
   return _$hasProp(el, PROP_MAP._) ? el[PROP_MAP._] : el[PROP_MAP.v];
 }
-export function _$al(el: HTMLElement, event: string, handler: EventListenerOrEventListenerObject) {
+export function _$addListener(el: HTMLElement, event: string, handler: EventListenerOrEventListenerObject) {
   el.addEventListener(event, handler, false);
 }
-export function _$ul(el: HTMLElement, event: string, oldHandler: EventListenerOrEventListenerObject, newHandler: EventListenerOrEventListenerObject) {
-  _$rl(el, event, oldHandler);
-  _$al(el, event, oldHandler = newHandler);
+export function _$updateListener(el: HTMLElement, event: string, oldHandler: EventListenerOrEventListenerObject, newHandler: EventListenerOrEventListenerObject) {
+  _$removeListener(el, event, oldHandler);
+  _$addListener(el, event, oldHandler = newHandler);
   return oldHandler;
 }
-export function _$rl(el: HTMLElement, event: string, handler: EventListenerOrEventListenerObject) {
+export function _$removeListener(el: HTMLElement, event: string, handler: EventListenerOrEventListenerObject) {
   el.removeEventListener(event, handler, false);
 }
-export function _$bc(value: string | ObjectLike<boolean> | (string | ObjectLike<boolean>)[]) {
+export function _$bindClasses(value: string | ObjectLike<boolean> | (string | ObjectLike<boolean>)[]) {
   let classes = '';
-  if (_$isStr(value)) {
+  if (_$isString(value)) {
     classes += ` ${value}`;
   } else if (_$isArray(value)) {
-    classes = (<any[]>value).map(_$bc).join(' ');
+    classes = (<any[]>value).map(_$bindClasses).join(' ');
   } else if (_$isObject(value)) {
     for (let key in <Object>value)
       if (_$hasProp(value, key) && value[key]) classes += ` ${key}`;
   }
   return classes.trim();
 }
-export function _$bs(value: string | ObjectLike<any>) {
-  let el = _$ce();
+export function _$bindStyle(value: string | ObjectLike<any>) {
+  let el = _$el();
   if (_$isObject(value)) {
     const { style } = <HTMLElement>el;
-    _$e(value, (val, prop) => {
+    _$each(value, (val, prop) => {
       if (val !== style[prop]) style[prop] = val;
     });
     return style.cssText;
-  } else if (_$isStr(value)) {
+  } else if (_$isString(value)) {
     return value;
   } else {
     return '';
   }
 }
-export function _$cu(block: { type: string } & ComponentTemplate, condition: Function, parent: Element, anchor: Element, inst: Component) {
+export function _$conditionalUpdate(block: { type: string } & ComponentTemplate, condition: Function, parent: Element, anchor: Element, inst: Component) {
   let globs = _$toArgs(arguments, 5);
   if (block && block.type === _$apply(condition, [inst], globs).type) {
     _$apply(block.$update, [inst], globs, block);
@@ -576,66 +598,66 @@ export function _$cu(block: { type: string } & ComponentTemplate, condition: Fun
   }
   return block;
 }
-export function _$bba(el: HTMLElement, attrAndValue: [string, any]) {
+export function _$bindBooleanAttr(el: HTMLElement, attrAndValue: [string, any]) {
   let [attr, value] = attrAndValue;
-  el[attr] = value == null || value === false ? (el.removeAttribute(attr), false) : (_$sa(el, [attr, '']), true);
+  el[attr] = value == null || value === false ? (el.removeAttribute(attr), false) : (_$setAttr(el, [attr, '']), true);
 }
-export function _$bu(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) & { _value: any }, binding: [string, any]) {
+export function _$bindUpdate(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) & { _value: any }, binding: [string, any]) {
   let [attr, value] = binding;
-  let _value: string = _$toStr(value);
+  let _value: string = _$toString(value);
   if (_$isValueAttr(attr)) {
     if (el[attr] !== _value) el[attr] = _value;
     el[PROP_MAP._] = value;
-  } else if (_$ga(el, attr) !== _value) {
-    _$sa(el, [attr, _value]);
+  } else if (_$getAttr(el, attr) !== _value) {
+    _$setAttr(el, [attr, _value]);
   }
 }
-export function _$tu(text: Text, value: string) {
-  if (text.data !== (value = _$toStr(value))) text.data = value;
+export function _$textUpdate(text: Text, value: string) {
+  if (text.data !== (value = _$toString(value))) text.data = value;
 }
-export function _$nu<T extends keyof HTMLElementTagNameMap>(node: HTMLElement, tag: T) {
-  return tag.toUpperCase() !== node.tagName ? _$as(node, _$ce(tag)) : node;
+export function _$tagUpdate<T extends keyof HTMLElementTagNameMap>(node: HTMLElement, tag: T) {
+  return tag.toUpperCase() !== node.tagName ? _$assignEl(node, _$el(tag)) : node;
 }
-export function _$rr(refs: Object, prop: string, node: HTMLElement) {
+export function _$removeReference(refs: Object, prop: string, node: HTMLElement) {
   let nodes = refs[prop];
   _$isArray(nodes) ? refs[prop].splice(nodes.indexOf(node), 1) : (delete refs[prop]);
 }
-export function _$hu(node: HTMLElement, value: string) {
-  if (node.innerHTML !== (value = _$toStr(value))) node.innerHTML = value;
+export function _$htmlUpdate(node: HTMLElement, value: string) {
+  if (node.innerHTML !== (value = _$toString(value))) node.innerHTML = value;
 }
-export function _$pu(parent: Component, Ctor: ComponentConstructor, inst: Component, value: ComponentConstructor, attrs: AttrParams, el: HTMLElement, sibling: HTMLElement) {
+export function _$componentUpdate(parent: Component, Ctor: ComponentConstructor, inst: Component, value: ComponentConstructor, attrs: AttrParams, el: HTMLElement, sibling: HTMLElement) {
   if (value === Ctor) {
     inst && inst.$update();
   } else {
     Ctor = value;
     if (inst) {
       inst.$destroy();
-      _$remove(parent, inst);
+      _$removeChild(parent, inst);
     }
     if (inst) {
-      inst = _$add(parent, Ctor, attrs);
+      inst = _$addChild(parent, Ctor, attrs);
       inst.$create();
-      inst.$mount(el, sibling);
+      inst.$mount(el || parent.$parentEl, sibling);
     }
   }
   return [inst, Ctor];
 }
-export function _$f(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
+export function _$forLoop(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
   let items: ObjectLike<ComponentTemplate> = {}, loopParent: Element, loopSibling: Element;
   let globs = _$toArgs(arguments, 3);
-  _$e(obj, (item, i, index) => { items[i] = _$apply(loop, [root, item, i, index], globs); });
+  _$each(obj, (item, i, index) => { items[i] = _$apply(loop, [root, item, i, index], globs); });
   return {
     $create() {
-      _$e(items, item => { item.$create(); });
+      _$each(items, item => { item.$create(); });
     },
     $mount(parent, sibling) {
-      loopParent = _$(parent);
-      loopSibling = _$(sibling);
-      _$e(items, item => { item.$mount(loopParent, loopSibling); });
+      loopParent = _$select(parent);
+      loopSibling = _$select(sibling);
+      _$each(items, item => { item.$mount(loopParent, loopSibling); });
     },
     $update(root: Component, obj: any[]) {
       let globs = _$toArgs(arguments, 2);
-      _$e(items, (item, i, index) => {
+      _$each(items, (item, i, index) => {
         if (obj[i]) {
           _$apply(item.$update, [root, obj[i], i, index], globs, item);
         } else {
@@ -643,7 +665,7 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
           delete items[i];
         }
       });
-      _$e(obj, (item, i, index) => {
+      _$each(obj, (item, i, index) => {
         if (!items[i]) {
           items[i] = _$apply(loop, [root, item, i, index], globs);
           items[i].$create();
@@ -652,11 +674,11 @@ export function _$f(root: Component, obj: any[], loop: (...args: any[]) => Compo
       });
     },
     $destroy() {
-      _$e(items, item => { item.$destroy(); });
+      _$each(items, item => { item.$destroy(); });
     }
   };
 }
-export function _$e<T>(obj: T, cb: (value: IterateValue<T>, key: IterateKey<T>, index?: number) => void) {
+export function _$each<T>(obj: T, cb: (value: IterateValue<T>, key: IterateKey<T>, index?: number) => void) {
   let i = 0;
   for (const key in obj) {
     if (_$hasProp(obj, key)) {
@@ -664,33 +686,33 @@ export function _$e<T>(obj: T, cb: (value: IterateValue<T>, key: IterateKey<T>, 
     }
   }
 }
-export function _$is(id: string, css: string) {
+export function _$insertStyle(id: string, css: string) {
   let isNew = false;
-  let style = _$(`#${id}`, document.head);
+  let style = _$select(`#${id}`, document.head);
   if (!style) {
     isNew = true;
-    style = _$ce('style');
+    style = _$el('style');
     style.id = id;
-    _$sa(style, ['refs', 1]);
+    _$setAttr(style, ['refs', 1]);
   }
   if (style.textContent !== css) {
     style.textContent = css;
   }
   if (isNew) {
-    _$a(document.head, style);
+    _$append(document.head, style);
   } else {
-    let count = +_$ga(style, 'refs');
-    _$sa(style, ['refs', ++count]);
+    let count = +_$getAttr(style, 'refs');
+    _$setAttr(style, ['refs', ++count]);
   }
 }
-export function _$ds(id: string) {
-  let style = _$(`#${id}`, document.head);
+export function _$removeStyle(id: string) {
+  let style = _$select(`#${id}`, document.head);
   if (style) {
-    let count = +_$ga(style, 'refs');
+    let count = +_$getAttr(style, 'refs');
     if (--count === 0) {
-      _$r(style, document.head);
+      _$removeEl(style, document.head);
     } else {
-      _$sa(style, ['refs', count]);
+      _$setAttr(style, ['refs', count]);
     }
   }
 }
