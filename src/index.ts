@@ -4,9 +4,9 @@ import { getDoc } from './utilities/html';
 import { transpileModule } from 'typescript';
 import { optimize } from './utilities/context';
 import { minify as minifyES } from 'uglify-es';
-import { readFileSync, statSync, writeFile } from 'fs';
 import { basename, extname, dirname, join } from 'path';
 import { genTemplate, CompilerOptions } from './generators';
+import { readFileSync, statSync, writeFile, existsSync } from 'fs';
 import { kebabToCamelCases, capitalize, camelToKebabCase } from './utilities/tools';
 
 const dest = `{
@@ -112,8 +112,15 @@ function iifTpl(moduleName: string, body: string) {
 	}(this);`;
 }
 
+function checkExistToolsModule() {
+	return existsSync(join(__dirname, '..', '..', 'trebor-tools', 'package.json'));
+}
+
 export default function cli(options: CompilerOptions) {
 	const info = statSync(options.input);
+	if (options.format && /es|cjs/.test(options.format) && !checkExistToolsModule()) {
+		console.log('You must install `trebor-tools` or set it as dependency if you want use the components.');
+	}
 	if (info.isFile()) {
 		let [path, code] = compileFile(options);
 		writeFile(path, code, 'utf8', err => err && console.log(err));
