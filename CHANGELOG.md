@@ -1,3 +1,9 @@
+0.3.0
+- Added warning when trebor-tools module are not installed.
+- Added trebor-tools as dependency when format is 'es' or 'cjs'.
+- Refactored helper function names to be compatible with 'trebor-tools'.
+- Optimized component destroy hook.
+
 0.2.4
 - Added ability to get the iteration index when iterate over obejcts.
 - Fixed issue initializing element attributes.
