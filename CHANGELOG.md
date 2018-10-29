@@ -1,3 +1,7 @@
+0.3.1
+- Fixed missing hook prefixes.
+- Fixed issue with transition to trebor-tools module.
+
 0.3.0
 - Added warning when trebor-tools module are not installed.
 - Added trebor-tools as dependency when format is 'es' or 'cjs'.
