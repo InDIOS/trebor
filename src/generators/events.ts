@@ -2,7 +2,7 @@ import { ctx } from '../utilities/context';
 import { BlockAreas } from '../utilities/classes';
 import { getVarName, capitalize } from '../utilities/tools';
 
-const globals = ['_$bindGroup', '_$updateMultiSelect', '_$ga', '_$gv'];
+const globals = ['_$bindGroup', '_$updateMultiSelect', '_$getAttr', '_$getValue'];
 export function genEvent(variable: string, eventArgs: string, expression: string, areas: BlockAreas, scope: string) {
   const [event, ...args] = eventArgs.split('.');
   const hasStop = args.indexOf('stop');
@@ -32,9 +32,9 @@ export function genEvent(variable: string, eventArgs: string, expression: string
     ${eventFuncName}(${scope}${params}, event, ${variable});
     ${keys ? '}' : ''}
 	}`;
-	areas.hydrate.push(`_$al(${variable}, '${event}', ${handlerFuncName} = ${handler});`);
+	areas.hydrate.push(`_$addListener(${variable}, '${event}', ${handlerFuncName} = ${handler});`);
 	if (!!areas.globals.length || variable.startsWith('_$node')) {
-		areas.update.push(`${handlerFuncName} = _$ul(${variable}, '${event}', ${handlerFuncName}, ${handler});`);
+		areas.update.push(`${handlerFuncName} = _$updateListener(${variable}, '${event}', ${handlerFuncName}, ${handler});`);
 	}
-	areas.destroy.push(`_$rl(${variable}, '${event}', ${handlerFuncName});`);
+	areas.destroy.push(`_$removeListener(${variable}, '${event}', ${handlerFuncName});`);
 }

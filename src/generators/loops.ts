@@ -12,7 +12,7 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
   const parent = node.parentElement;
   let root = parent.dymTag ? parent.dymTag : parent.varName;
   const anchor = getVarName(areas.variables, `loopAnchor_${areas.loops}`);
-  areas.unmount.push(`_$a(${root || '_$frag'}, ${anchor});`);
+  areas.unmount.push(`_$append(${root || '_$frag'}, ${anchor});`);
   const loopBlock = `loopBlock_${areas.loops}`;
   let [vars, variable] = value.split(' in ');
   const [key, val, index] = vars.split(',').map(v => v.replace(/[()]/g, '').trim());
@@ -27,8 +27,8 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
   }
   variable = ctx(filterParser(variable), scope, areas.globals.concat(params));
   areas.variables.push(loopBlock);
-	areas.extras.push(`${loopBlock} = _$f(${scope}, ${variable}, itemLoop_${areas.loops}${fglobs});
-  ${anchor} = _$ct();`);
+	areas.extras.push(`${loopBlock} = _$forLoop(${scope}, ${variable}, itemLoop_${areas.loops}${fglobs});
+  ${anchor} = _$text();`);
   areas.outer.push(genLoopItem(`${scope}${globs}`, node, key, val, index, areas));
   areas.create.push(`${loopBlock}.$create();`);
   areas.unmount.push(`${loopBlock}.$mount(${root || '_$frag'}, ${anchor});`);
@@ -51,16 +51,16 @@ function genLoopItem(scope: string, node: NodeElement, variable: string, value: 
     node.appendChild(node.content);
   }
   subareas.variables.push('_$frag');
-  subareas.extras.push('_$frag = _$d();');
+  subareas.extras.push('_$frag = _$docFragment();');
   node.isBlock = true;
 	let item = genBlockAreas(node, subareas, scope.replace(', _$v', '').replace(', _$i', ''));
   delete node.isBlock;
   areas.loops = subareas.loops;
   areas.conditions = subareas.conditions;
   if (tag === 'template') {
-    subareas.create.unshift(`${item} = _$d();`);
+		subareas.create.unshift(`${item} = _$docFragment();`);
   }
-  item && subareas.unmount.push(`_$a(_$frag, ${item});`);
-  subareas.mount.push('_$a(_$(parent), _$frag, _$(sibling));');
+  item && subareas.unmount.push(`_$append(_$frag, ${item});`);
+  subareas.mount.push('_$append(_$select(parent), _$frag, _$select(sibling));');
   return genBody(loop, scope, subareas);
 }

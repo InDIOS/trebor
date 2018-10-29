@@ -11,11 +11,11 @@ export function escapeExp(str: string) {
 }
 
 export function createElement(variable: string, tag: string, isSVG: boolean) {
-  return `${variable} = ${isSVG ? '_$cse' : '_$ce'}(${tag === 'div' || tag === 'svg' ? '' : `'${tag}'`});`;
+  return `${variable} = ${isSVG ? '_$svg' : '_$el'}(${tag === 'div' || tag === 'svg' ? '' : `'${tag}'`});`;
 }
 
 export function createNode(variable: string, content?: string) {
-  return `${variable} = ${variable.split('_')[0] === 'txt' ? '_$ct' : '_$cm'}(${content || ''});`;
+  return `${variable} = ${variable.split('_')[0] === 'txt' ? '_$text' : '_$comment'}(${content || ''});`;
 }
 
 export function getVarName(variables: string[], variable: string) {

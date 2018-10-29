@@ -30,10 +30,10 @@ export function genName(target: string, node: NodeElement, areas: BlockAreas, sc
 		const group = node.getAttribute('$name');
 		if (type === 'checkbox') {
 			genEvent(target, 'change', `_$bindGroup($el, ${group})`, areas, scope);
-			genBind(target, 'checked', `!!~${group}.indexOf(_$ga(${target}, 'value'))`, areas, scope, type, null);
+			genBind(target, 'checked', `!!~${group}.indexOf(_$getAttr(${target}, 'value'))`, areas, scope, type, null);
 		} else if (type === 'radio') {
-			genEvent(target, 'change', `${group} = $el.checked ? _$gv($el) : ${group}`, areas, scope);
-			genBind(target, 'checked', `${group} === _$ga(${target}, 'value')`, areas, scope, type, null);
+			genEvent(target, 'change', `${group} = $el.checked ? _$getValue($el) : ${group}`, areas, scope);
+			genBind(target, 'checked', `${group} === _$getAttr(${target}, 'value')`, areas, scope, type, null);
 		}
 	}
 }
@@ -65,7 +65,7 @@ export function genHtml(node: NodeElement, areas: BlockAreas, scope?: string) {
 		const setContent = getVarName(areas.variables, `content${capitalize(variable)}`);
 		content = `${setContent}(${scope})`;
 		areas.extras.push(`${setContent} = (${scope}) => ${ctx(html, scope.split(', ')[0], areas.globals)};`);
-		areas.update.push(`_$hu(${variable}, ${content});`);
+		areas.update.push(`_$htmlUpdate(${variable}, ${content});`);
 	} else {
 		content = `'${node.innerHTML}'`;
 	}
@@ -81,8 +81,8 @@ export function genRefs(scope: string, areas: BlockAreas, value: string, target:
 		areas.variables.push('_refs');
 		areas.extras.push(`_refs = ${scope}.$refs;`);
 	}
-	areas.create.push(`_$setRef(_refs, '${value}', ${target});`);
-	areas.destroy.push(`_$rr(_refs, '${value}', ${target});`);
+	areas.create.push(`_$setReference(_refs, '${value}', ${target});`);
+	areas.destroy.push(`_$removeReference(_refs, '${value}', ${target});`);
 }
 
 export function genDirective(target: string, attr: string, value: string, areas: BlockAreas, scope: string) {
