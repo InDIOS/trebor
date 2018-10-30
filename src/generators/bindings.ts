@@ -1,6 +1,6 @@
 import { ctx } from '../utilities/context';
 import { BlockAreas } from '../utilities/classes';
-import { capitalize, filterParser } from '../utilities/tools';
+import { capitalize, filterParser, toMap } from '../utilities/tools';
 
 const isBooleanAttr = toMap(`allowfullscreen,async,autofocus,autoplay,checked,compact,controls,
 declare,default,defaultchecked,defaultmuted,defaultselected,defer,disabled,enabled,formnovalidate,
@@ -36,10 +36,4 @@ export function genBind(variable: string, attr: string, expression: string, area
 		areas.hydrate.push(`_$setAttr(${variable}, ${bindFunc});`);
   }
 	!isSelMulti && !isBooleanAttr(attr) && areas.update.push(`_$bindUpdate(${variable}, ${bindFunc});`);
-}
-
-function toMap(str: string) {
-  const map: Record<string, boolean> = str
-    .split(',').reduce((map, val) => (map[val.trim()] = 1, map), {});
-  return (val: string) => !!map[val];
 }

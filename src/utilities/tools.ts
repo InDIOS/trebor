@@ -42,6 +42,12 @@ export function camelToKebabCase(str: string) {
   return kebab;
 }
 
+export function toMap(str: string) {
+  const map: Record<string, boolean> = str
+    .split(',').reduce((map, val) => (map[val.trim()] = 1, map), {});
+  return (val: string) => !!map[val];
+}
+
 function pad(hash: string, len: number) {
   while (hash.length < len) {
     hash = `0${hash}`;
