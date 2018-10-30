@@ -474,6 +474,10 @@ function _$accesor(object: Component, path: string, value?: any) {
 export function _$emptyElse() {
   return { type: 'empty-else', $create: _$noop, $mount: _$noop, $update: _$noop, $destroy: _$noop };
 }
+export function _$emptySlot(inst: Component, slot: string) {
+	let slots = inst.$slots;
+	return slots[slot] && !slots[slot].hasChildNodes() ? (slots[slot] = _$docFragment()) : null;
+}
 export function _$isKey(event: KeyboardEvent, key: string) {
   return event.key.toLowerCase() === key || !!event[`${key}Key`];
 }
