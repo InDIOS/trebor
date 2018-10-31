@@ -530,7 +530,7 @@ function isDeclared(node: Identifier, { scope }: Path<Node>) {
 function isGlobal(node: Identifier, globals = []) {
   let { name } = node;
   let isGlob = name in builtin || name in browser || name in nodejs || name in amd;
-  return isGlob || !!~globals.indexOf(name);
+  return name === 'name' ? false : isGlob || !!~globals.indexOf(name);
 }
 
 function isReplaceable(node: Node, path: Path<Node>, globals: string[]) {

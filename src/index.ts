@@ -10,12 +10,13 @@ import { readFileSync, statSync, writeFile, existsSync } from 'fs';
 import { kebabToCamelCases, capitalize, camelToKebabCase } from './utilities/tools';
 
 const dest = `{
-	_$extend, _$removeChild, _$bindGroup, _$emptyElse, _$Ctor, _$bindMultiSelect, _$setAttr,
-  _$removeEl, _$assignEl, _$el, _$bindStyle, _$forLoop, _$each, _$insertStyle, _$removeStyle,
-  _$getAttr, _$addListener, _$updateListener, _$removeListener, _$bindClasses, _$destroyComponent,
-  _$svg, _$noop, _$toString, _$setReference, _$isType, _$isKey, _$select, _$docFragment, _$append,
-	_$updateMultiSelect, _$componentUpdate, _$htmlUpdate, _$tagUpdate, _$bindBooleanAttr, _$removeReference,
-	_$addChild, _$textUpdate, _$getValue, _$text, _$conditionalUpdate, _$bindUpdate, _$comment, _$setElements
+  _$bindUpdate, _$comment, _$setElements, _$emptySlot, _$appendToSlot, _$declareSlots,
+  _$updateMultiSelect, _$componentUpdate, _$htmlUpdate, _$tagUpdate, _$bindBooleanAttr,
+  _$removeReference, _$addChild, _$textUpdate, _$getValue, _$text, _$conditionalUpdate,
+  _$noop, _$toString, _$setReference, _$isType, _$isKey, _$select, _$docFragment, _$append,
+  _$removeChild, _$bindGroup, _$emptyElse, _$Ctor, _$bindMultiSelect, _$setAttr, _$removeEl,
+  _$assignEl, _$el, _$bindStyle, _$forLoop, _$each, _$insertStyle, _$removeStyle, _$getAttr,
+  _$addListener, _$updateListener, _$removeListener, _$bindClasses, _$destroyComponent, _$svg,
 }`;
 const esDeps = `import ${dest} from 'trebor-tools';`;
 const cjsDeps = `const ${dest} = require('trebor-tools');`;
@@ -28,7 +29,7 @@ export function genSource(html: string, opts: CompilerOptions) {
 	if (opts.format === 'es') {
 		imports.unshift(esDeps);
 	}
-	const source = [template, extras, `const ${moduleName} = _$Ctor('${moduleName}', _$tpl${moduleName}, ${options});`]
+	const source = [template, extras, `const ${moduleName} = _$Ctor(_$tpl${moduleName}, ${options});`]
 		.filter(c => !!c.length).join('\n');
 	return { imports, source };
 }

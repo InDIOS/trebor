@@ -318,13 +318,11 @@ function _$extends(ctor: Function, exts: Function) {
   ctor[PROP_MAP.h] = Object.create(exts[PROP_MAP.h]);
   ctor[PROP_MAP.h].constructor = ctor;
 }
-export function _$Ctor(moduleName: string, tpl: Function, options: Object) {
-	const ctor: ComponentConstructor = <any>{
-    [moduleName](_$attrs, _$parent) {
-      _$BaseComponent.call(this, _$attrs, tpl, options, _$parent);
-      !_$parent && this.$create();
-    }
-	}[moduleName];
+export function _$Ctor(tpl: Function, options: Object) {
+	const ctor: ComponentConstructor = <any>function (_$attrs, _$parent) {
+		_$BaseComponent.call(this, _$attrs, tpl, options, _$parent);
+		!_$parent && this.$create();
+	};
 	ctor.plugin = (fn: PluginFn, options?: ObjectLike<any>) => {
 		TPS.push({ options, fn });
 	};
@@ -474,6 +472,10 @@ function _$accesor(object: Component, path: string, value?: any) {
 export function _$emptyElse() {
   return { type: 'empty-else', $create: _$noop, $mount: _$noop, $update: _$noop, $destroy: _$noop };
 }
+export function _$emptySlot(inst: Component, slot: string) {
+	let slots = inst.$slots;
+	return slots[slot] && !slots[slot].hasChildNodes() ? (slots[slot] = _$docFragment()) : null;
+}
 export function _$isKey(event: KeyboardEvent, key: string) {
   return event.key.toLowerCase() === key || !!event[`${key}Key`];
 }
@@ -509,6 +511,12 @@ export function _$append(parent: Element, child: Element, sibling?: boolean | El
   if (_$isType(sibling, 'boolean') && sibling) parent.parentElement.replaceChild(child, parent);
   else if (!sibling) parent.appendChild(child);
   else parent.insertBefore(child, <Element>sibling);
+}
+export function _$appendToSlot(slots: ObjectLike<DocumentFragment>, slot: string, el: HTMLElement) {
+	!slots[slot].firstChild && _$append(<any>slots[slot], el);
+}
+export function _$declareSlots($slots: ObjectLike<DocumentFragment>, slots: string[]) {
+	_$each(slots, slot => { $slots[slot] = _$docFragment(); });
 }
 export function _$assignEl(source: Element, dest: Element) {
   const { childNodes, attributes } = source;

@@ -18,6 +18,7 @@ declare const Html: ComponentConstructor;
 declare const Init: ComponentConstructor;
 declare const Loop: ComponentConstructor;
 declare const Condition: ComponentConstructor;
+declare const Components: ComponentConstructor;
 declare const Interpolation: ComponentConstructor;
 
 declare module 'system' {
