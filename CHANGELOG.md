@@ -1,3 +1,8 @@
+0.3.2
+- Added slot function helper.
+- Refactored slot elements generation.
+- Fixed issue with 'name' as global.
+
 0.3.1
 - Fixed missing hook prefixes.
 - Fixed issue with transition to trebor-tools module.
