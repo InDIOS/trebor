@@ -1,0 +1,17 @@
+<comp-inst></comp-inst>
+<comp-inst>Some other text</comp-inst>
+<comp-inst>
+	<span>Some span text</span>
+	<span slot="header">Some header</span>
+	<span slot="footer">Some footer</span>
+</comp-inst>
+
+<script>
+	/* global Comp */
+	
+	export default {
+		children: {
+			'comp-inst': Comp
+		}
+	};
+</script>
