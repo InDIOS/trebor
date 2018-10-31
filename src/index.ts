@@ -10,7 +10,7 @@ import { readFileSync, statSync, writeFile, existsSync } from 'fs';
 import { kebabToCamelCases, capitalize, camelToKebabCase } from './utilities/tools';
 
 const dest = `{
-  _$bindUpdate, _$comment, _$setElements, _$emptySlot,
+  _$bindUpdate, _$comment, _$setElements, _$emptySlot, _$appendToSlot, _$declareSlots,
   _$updateMultiSelect, _$componentUpdate, _$htmlUpdate, _$tagUpdate, _$bindBooleanAttr,
   _$removeReference, _$addChild, _$textUpdate, _$getValue, _$text, _$conditionalUpdate,
   _$noop, _$toString, _$setReference, _$isType, _$isKey, _$select, _$docFragment, _$append,
@@ -29,7 +29,7 @@ export function genSource(html: string, opts: CompilerOptions) {
 	if (opts.format === 'es') {
 		imports.unshift(esDeps);
 	}
-	const source = [template, extras, `const ${moduleName} = _$Ctor('${moduleName}', _$tpl${moduleName}, ${options});`]
+	const source = [template, extras, `const ${moduleName} = _$Ctor(_$tpl${moduleName}, ${options});`]
 		.filter(c => !!c.length).join('\n');
 	return { imports, source };
 }

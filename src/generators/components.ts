@@ -30,19 +30,29 @@ export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
 
 export function genSlot(node: NodeElement, areas: BlockAreas, scope: string) {
   const slotName = node.getAttribute('name') || 'default';
-  const slot = `${scope.split(', ')[0]}.$slots['${slotName}']`;
-  areas.extras.push(`${slot} = _$docFragment();`);
+	const slot = `_$slots`;
+	const slotDec = `${slot}['${slotName}']`;
+	const init = `const ${slot} = ${scope.split(', ')[0]}.$slots;`;
+	!areas.extras.includes(init) && areas.extras.push(init);
+	let dec = areas.extras.find(extra => extra.startsWith('_$declareSlots(_$slots, ['));
+	if (dec) {
+		let index = areas.extras.indexOf(dec);
+		dec = dec.replace(']);', `, '${slotName}']);`);
+		areas.extras.splice(index, 1, dec);
+	} else {
+		areas.extras.push(`_$declareSlots(${slot}, ['${slotName}']);`);
+	}
   const roots: string[] = [];
   node.childNodes.forEach(n => {
     const el = genBlockAreas(n, areas, scope);
     if (el) {
       roots.push(el);
-      areas.unmount.push(`_$append(${slot}, ${el});`);
+			areas.unmount.push(`_$appendToSlot(${slot}, '${slotName}', ${el});`);
     }
   });
   const parent = node.parentElement;
   let root = parent.dymTag ? parent.dymTag : parent.varName;
-  areas.unmount.push(`_$append(${root || '_$frag'}, ${slot});`);
+	areas.unmount.push(`_$append(${root || '_$frag'}, ${slotDec});`);
 }
 
 function genSlotElement(node: NodeElement, areas: BlockAreas, scope: string, variable: string) {
@@ -122,7 +132,7 @@ export function genComponent(node: NodeElement, areas: BlockAreas, scope: string
     ${anchor} = _$text();
     ${variable} = _$addChild(${scope}, ${globCompName}, ${setAttrsComponent}());`);
   } else {
-    init += `${globCompName} = ${varName === 'selfRef' ? `${scope}.constructor` : `children['${tag}'] || window['${globCompName}']`};`;
+		init += `${globCompName} = ${varName === 'selfRef' ? `${scope}.constructor` : `children['${tag}'] || window.${globCompName}`};`;
     !areas.extras.includes(init) && areas.extras.push(init);
     areas.extras.push(`${anchor} = _$text();
     ${variable} = _$addChild(${scope}, ${globCompName}, ${attrs});`);
