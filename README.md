@@ -5,14 +5,25 @@
 [![Release][github-img]][github-url]
 [![Build Status][travis-image]][travis-url]
 
-A node js module to make standalone web components.
 
-## How to install
-Locally
+### Overview
+
+[TreborJS](https://npmjs.org/package/trebor) is a [NodeJS](http://nodejs.org) module to compile `component declarated files` into `stand-alone web component` javascript files to be used
+in the browser. The format of a [component declaration file](https://github.com/InDIOS/trebor/wiki/Component-declaration) is specified be the module and described 
+in it's [documentation](https://github.com/InDIOS/trebor/wiki).
+
+### Why?
+
+In this days front-end frameworks are very populars comming to be an important part of a web application. Almost all of then have a runtime library that is part of the application, [Vue](https://github.com/vuejs/vue), [React](https://github.com/facebook/react), [Angular](https://github.com/angular/angular), but what if we can do a component that no need a runtime lib? 
+what if can create all components without useless code and can run it self?. That is what `TreborJS` do, a module that compile an structured html file in a javascript file with just the code you need and nothing more.
+
+## How to use
+
+Install locally
 ```bash
 npm i trebor -D
 ```
-or globally
+or install globally
 
 ```bash
 npm i trebor -g

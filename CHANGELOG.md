@@ -1,3 +1,7 @@
+0.3.3
+- Added project descriptions to Readme.
+- Fixed bug when template elements are condition or loop blocks.
+
 0.3.2
 - Added slot function helper.
 - Refactored slot elements generation.
