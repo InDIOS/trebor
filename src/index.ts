@@ -42,7 +42,7 @@ function compileFile(options: CompilerOptions) {
 	const file = basename(options.input, ext);
 	let moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
 	options.moduleName = options.moduleName || moduleName;
-	const fileName = `${file}.${options.format}.js`;
+	const fileName = `${file}${options.minify ? '.min' : ''}.js`;
 	if (!options.out) {
 		options.out = dir;
 	}
