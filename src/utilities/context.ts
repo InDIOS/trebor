@@ -2,7 +2,7 @@ import recast from 'recast';
 import { parse as parser } from 'espree';
 import { Recast, Path, RecastAST } from '../types/recast';
 import { builtin, browser, node as nodejs, amd } from 'globals';
-import { analyze, Scope, Variable, Reference } from 'eslint-scope';
+import { analyze, Scope, Variable, Reference, ScopeManager } from 'eslint-scope';
 import {
   Node, Expression, Identifier, AssignmentExpression, UpdateExpression,
   UnaryExpression, BinaryExpression, BinaryOperator, Literal, UnaryOperator,
@@ -314,7 +314,9 @@ function findUnused({ program }: RecastAST) {
     }
   });
   let scopeManager = analyze(program, { sourceType: 'module', ecmaVersion: 10 });
-  return collectUnuseds(scopeManager.acquire(program), []).reduce<Identifier[]>((result, variable) => {
+  let scope = scopeManager.acquire(program);
+  scope['context'] = scopeManager;
+  return collectUnuseds(scope, []).reduce<Identifier[]>((result, variable) => {
     if (variable.references.length) {
       result.push(...variable.references.map(({ identifier: id, resolved }) => {
         return id['parent'].type === 'CallExpression' ? resolved.defs[0].name : id;
@@ -462,6 +464,13 @@ function isUsedVar({ defs, references }: Variable) {
   });
 }
 
+function isAfterLastUsedArg(variable: Variable, context: ScopeManager) {
+  const def = variable.defs[0];
+  const params = context.getDeclaredVariables(def.node);
+  const posteriorParams = params.slice(params.indexOf(variable) + 1);
+  return !posteriorParams.some(v => v.references.length > 0);
+}
+
 function collectUnuseds(scope: Scope, unusedVars: Variable[]) {
   let i, l;
   const { variables, childScopes } = scope;
@@ -470,7 +479,7 @@ function collectUnuseds(scope: Scope, unusedVars: Variable[]) {
     if (scope.type === 'class' && (<FunctionExpression>scope.block).id === variable.identifiers[0]) {
       continue;
     }
-    if (scope.functionExpressionScope || variable['eslintUsed']) {
+    if (scope.functionExpressionScope) {
       continue;
     }
     if (scope.type === 'function' && variable.name === 'arguments' && variable.identifiers.length === 0) {
@@ -482,11 +491,16 @@ function collectUnuseds(scope: Scope, unusedVars: Variable[]) {
       if ((type === 'Property' || type === 'MethodDefinition') && kind === 'set') {
         continue;
       }
+      if (types.namedTypes.Function.check(def.name['parent']) && !isAfterLastUsedArg(variable, scope['context'])) {
+        continue;
+      }
     }
     !isUsedVar(variable) && !isExported(variable) && unusedVars.push(variable);
   }
   for (i = 0, l = childScopes.length; i < l; ++i) {
-    collectUnuseds(childScopes[i], unusedVars);
+    let childScope = childScopes[i];
+    childScope['context'] = scope['context'];
+    collectUnuseds(childScope, unusedVars);
   }
   return unusedVars;
 }
