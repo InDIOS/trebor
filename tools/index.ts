@@ -175,7 +175,21 @@ function _$BaseComponent(attrs: AttrParams, template: TemplateFn, options: Compo
   });
   _$define(self, '$data', {
     get() {
-      return _$toPlainObj(this);
+      return function plainObject(obj: Component) {
+        const data: ObjectLike<any> = {};
+        _$each<Component>(_$isObject(obj) ? obj : <any>{}, (value, k) => {
+          if (k[0] !== '$' && !_$isFunction(value)) {
+            if (_$isType(value, _$List)) {
+              data[k] = value.map(plainObject);
+            } else if (_$isObject(value)) {
+              data[k] = plainObject(value);
+            } else {
+              data[k] = value;
+            }
+          }
+        });
+        return _$isObject(obj) ? data : obj;
+      }(this);
     }
   });
 }
@@ -419,21 +433,6 @@ export function _$removeChild(inst: Component, child: Component) {
 export function _$toString(obj: any): string {
   const str: string = _$type(obj);
   return !/null|undefined/.test(str) ? obj.toString() : str;
-}
-function _$toPlainObj(obj: Component) {
-  const data: ObjectLike<any> = {};
-  _$each(_$isObject(obj) ? obj : {}, (_v, k) => {
-    if (k[0] !== '$' && !_$isFunction(obj[k])) {
-      if (_$isType(obj[k], _$List)) {
-        data[k] = obj[k].map(_$toPlainObj);
-      } else if (_$isObject(obj[k])) {
-        data[k] = _$toPlainObj(obj[k]);
-      } else {
-        data[k] = obj[k];
-      }
-    }
-  });
-  return _$isObject(obj) ? data : obj;
 }
 export function _$setReference(refs: Object, prop: string, node: HTMLElement) {
   if (!_$hasProp(refs, prop)) {
