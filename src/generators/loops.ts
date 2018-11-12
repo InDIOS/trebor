@@ -1,7 +1,7 @@
 import { ctx } from '../utilities/context';
 import { genBlockAreas, genBody } from './commons';
+import { getVarName, filters } from '../utilities/tools';
 import { NodeElement, BlockAreas } from '../utilities/classes';
-import { getVarName, filterParser } from '../utilities/tools';
 
 export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) {
   areas.loops = areas.loops + 1;
@@ -25,7 +25,7 @@ export function genForItem(node: NodeElement, areas: BlockAreas, scope: string) 
     let array = [...Array(length > 0 ? length : -length)].map((_, i) => end ? i + (+start) : i);
     variable = [`[${array.join(', ')}]`, ...rest].join('|');
   }
-  variable = ctx(filterParser(variable), scope, areas.globals.concat(params));
+  variable = ctx(filters(scope, variable), scope, areas.globals.concat(params));
   areas.variables.push(loopBlock);
 	areas.extras.push(`${loopBlock} = _$forLoop(${scope}, ${variable}, itemLoop_${areas.loops}${fglobs});
   ${anchor} = _$text();`);

@@ -7,7 +7,7 @@ import { AllHtmlEntities } from 'html-entities';
 import { genSlot, genComponent, genTag } from './components';
 import { NodeElement, BlockAreas } from '../utilities/classes';
 import {
-  getVarName, capitalize, createNode, createElement, escapeExp, filterParser, clearText
+  getVarName, capitalize, createNode, createElement, escapeExp, filters, clearText
 } from '../utilities/tools';
 
 const entities = new AllHtmlEntities();
@@ -23,7 +23,7 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
 			const code = node.textContent.split(/(\{\{\s*(?:(?!\}\})(?:.|\n))*\}\})/).map(int => {
         if (int.startsWith('{{') && int.endsWith('}}')) {
           int = int.replace(/\{\{(\s*((?!\}\})(.|\n))*)\}\}/g, (_, replacer: string) => replacer.trim());
-          return `(${ctx(filterParser(int), scope, areas.globals)})`;
+          return `(${ctx(filters(scope, int), scope, areas.globals)})`;
 				}
         return `'${clearText(entities.decode(int))}'`;
 			}).join('+').replace(/^'\s*'\+/, '').replace(/\+'\s*'$/, '');

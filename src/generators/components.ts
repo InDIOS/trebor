@@ -3,7 +3,7 @@ import { ctx } from '../utilities/context';
 import { genSetAttrs } from './attributes';
 import { genDirective } from './directives';
 import { NodeElement, BlockAreas } from '../utilities/classes';
-import { kebabToCamelCases, getVarName, capitalize, createElement, filterParser, toMap } from '../utilities/tools';
+import { kebabToCamelCases, getVarName, capitalize, createElement, filters, toMap } from '../utilities/tools';
 
 const buildinDirective = toMap(`for,if,value,name,show,html`);
 
@@ -16,7 +16,7 @@ export function genTag(node: NodeElement, areas: BlockAreas, scope: string) {
   if (expression) {
     const setElement = `setTag${capitalize(element)}`;
     areas.variables.push(setElement);
-    const code = ctx(filterParser(expression), scope, areas.globals);
+    const code = ctx(filters(scope, expression), scope, areas.globals);
     let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
     const setTag = `${setElement}(${scope}${params})`;
     areas.extras.push(`${setElement} = (${scope}${params}) => ${code};`);

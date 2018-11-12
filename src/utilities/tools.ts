@@ -19,16 +19,14 @@ export function createNode(variable: string, content?: string) {
 }
 
 export function getVarName(variables: string[], variable: string) {
+  let varName = variable;
   variable = `${variable}_1`;
   if (variables.includes(variable)) {
-    let [varName] = variable.split('_');
-    let count = variables.filter(varb => varb.split('_')[0] === varName).length;
+    let count = variables.filter(varb => varb.startsWith(varName)).length;
     varName = `${varName}_${count + 1}`;
-    variables.push(varName);
-    return varName;
+    return variables[variables.push(varName) - 1];
   } else {
-    let varName = variables.push(variable);
-    return variables[varName - 1];
+    return variables[variables.push(variable) - 1];
   }
 }
 
@@ -80,28 +78,27 @@ export function hash(value: string) {
   return pad(preHash.toString(16), 8);
 }
 
-export function filterParser(expression: string) {
+export function filters(scope: string, expression: string) {
   let pos = 0;
-  let variable = '';
+  let stmt = '';
   let exps = expression.split(/\s*\|\s*/);
   for (let i = 0; i < exps.length; i++) {
     const exp = exps[i];
     if (exps[i + 1] === '') {
       let after = exps[i + 2];
-      variable = `${variable ? variable : exp} || ${after}`;
+      stmt = `${stmt ? stmt : exp} || ${after}`;
       i++;
     } else {
       pos = i;
       i = exps.length;
     }
   }
-  if (!variable) {
-    variable = exps[pos];
+  if (!stmt) {
+    stmt = exps[pos];
   }
   let filters = exps.slice(pos + 1, exps.length);
-  return filters.length === 0 ? variable : filters.reduce((prevfilter, filter) => {
-    const [filterName, ...args] = filter.split(/\s/);
-    const params = args.join(', ');
-    return `$filters.${filterName}(${prevfilter ? prevfilter : variable}${params ? `, ${params}` : params})`;
-  }, '');
+  return filters.length === 0 ? stmt : `_$filters(${scope}, ${stmt}, ${filters.map(filter => {
+    const [name, params] = filter.split(/\((.*)\)/);
+    return `['${name}'${params ? `, ${params}` : ''}]`;
+  }, '')})`;
 }

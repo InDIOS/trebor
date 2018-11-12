@@ -1,6 +1,6 @@
 import { ctx } from '../utilities/context';
 import { BlockAreas } from '../utilities/classes';
-import { capitalize, filterParser, toMap } from '../utilities/tools';
+import { capitalize, filters, toMap } from '../utilities/tools';
 
 const isBooleanAttr = toMap(`allowfullscreen,async,autofocus,autoplay,checked,compact,controls,
 declare,default,defaultchecked,defaultmuted,defaultselected,defer,disabled,enabled,formnovalidate,
@@ -10,11 +10,10 @@ truespeed,typemustmatch,visible`);
 
 export function genBind(variable: string, attr: string, expression: string, areas: BlockAreas, scope: string, type: string, classes: string) {
   [scope] = scope.split(', ');
-  const globals = [variable, '_$getAttr'];
   const bindFuncName = `bind${capitalize(attr)}${capitalize(variable)}`;
   const isSelMulti = /select/.test(variable) && type === 'multiple';
   let params = areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
-  let bindExp = expression === null ? 'true' : `${ctx(filterParser(expression), scope, areas.globals.concat(globals))}`;
+  let bindExp = expression === null ? 'true' : `${ctx(filters(scope, expression), scope, areas.globals.concat([variable]))}`;
   if (attr === 'class' || attr === 'style') {
     bindExp = attr === 'style' ?
 			`_$bindStyle(${bindExp})` : `(${classes ? `'${classes} ' + ` : ''}_$bindClasses(${bindExp})).trim()`;
