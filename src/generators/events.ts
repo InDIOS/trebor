@@ -2,7 +2,6 @@ import { ctx } from '../utilities/context';
 import { BlockAreas } from '../utilities/classes';
 import { getVarName, capitalize } from '../utilities/tools';
 
-const globals = ['_$bindGroup', '_$updateMultiSelect', '_$getAttr', '_$getValue'];
 export function genEvent(variable: string, eventArgs: string, expression: string, areas: BlockAreas, scope: string) {
   const [event, ...args] = eventArgs.split('.');
   const hasStop = args.indexOf('stop');
@@ -23,7 +22,7 @@ export function genEvent(variable: string, eventArgs: string, expression: string
 	[scope] = scope.split(', ');
   let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
 	areas.extras.push(`${eventFuncName} = (${scope}${params}, $event, $el) => {
-    ${ctx(expression, scope, ['$event', '$el'].concat(globals, areas.variables, areas.globals))};
+    ${ctx(expression, scope, ['$event', '$el'].concat(areas.variables, areas.globals))};
   };`);
 	const handler = `event => {
     ${!!~hasPrevent ? `event.preventDefault();` : ''}
