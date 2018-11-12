@@ -1,10 +1,8 @@
 import glob = require('glob');
 import { promisify } from 'util';
-import { minify } from 'uglify-js';
+import { minify } from 'uglify-es';
 import { getDoc } from './utilities/html';
 import { transpileModule } from 'typescript';
-import { optimize } from './utilities/context';
-import { minify as minifyES } from 'uglify-es';
 import { basename, extname, dirname, join } from 'path';
 import { genTemplate, CompilerOptions } from './generators';
 import { readFileSync, statSync, writeFile, existsSync } from 'fs';
@@ -52,7 +50,7 @@ function compileFile(options: CompilerOptions) {
   const code = [utilities, source, exportFormat(options.format, moduleName)].join('\n');
 
   let { outputText } = transpileModule(code, { compilerOptions, moduleName: camelToKebabCase(moduleName) });
-  outputText = optimize(outputText);
+  outputText = minify(outputText, uglifyOptions).code;
 
   if (options.format === 'umd') {
     outputText = umdTpl(moduleName, outputText);
@@ -62,8 +60,8 @@ function compileFile(options: CompilerOptions) {
     }
     outputText = iifTpl(moduleName, outputText);
   }
-  const min = options.format === 'es' ? minifyES : minify;
-  return [join(options.out, fileName), options.minify ? <string>min(outputText, uglifyOptions).code : outputText];
+  
+  return [join(options.out, fileName), minify(outputText, uglifyOptions).code];
 }
 
 export function exportFormat(format: string, moduleName: string) {
@@ -71,7 +69,9 @@ export function exportFormat(format: string, moduleName: string) {
 }
 
 function getOptions(options: CompilerOptions) {
-  let uglifyOptions: { [key: string]: any } = { compress: { toplevel: true } };
+  let uglifyOptions: { [key: string]: any } = {
+    compress: { toplevel: true }, output: { beautify: true }
+  };
   let compilerOptions: { [key: string]: any } = {
     sourceMap: false, importHelpers: false, target: 1, module: 1, removeComments: true
   };
@@ -87,8 +87,21 @@ function getOptions(options: CompilerOptions) {
   } else if (options.format === 'system') {
     compilerOptions.module = 4;
   }
+  uglifyOptions.mangle = false;
   if (options.minify) {
-    uglifyOptions.mangle = {};
+    uglifyOptions.output.beautify = false;
+    uglifyOptions.mangle = { toplevel: true };
+  } else {
+    uglifyOptions.output.indent_level = 2;
+    uglifyOptions.output.bracketize = true;
+
+    uglifyOptions.compress.inline = false;
+    uglifyOptions.compress.if_return = false;
+    uglifyOptions.compress.join_vars = false;
+    uglifyOptions.compress.sequences = false;
+    uglifyOptions.compress.reduce_vars = false;
+    uglifyOptions.compress.reduce_funcs = false;
+    uglifyOptions.compress.collapse_vars = false;
   }
   return { uglifyOptions, compilerOptions };
 }
