@@ -17,6 +17,7 @@ declare const Bind: ComponentConstructor;
 declare const Html: ComponentConstructor;
 declare const Init: ComponentConstructor;
 declare const Loop: ComponentConstructor;
+declare const Filters: ComponentConstructor;
 declare const Condition: ComponentConstructor;
 declare const Components: ComponentConstructor;
 declare const Interpolation: ComponentConstructor;
