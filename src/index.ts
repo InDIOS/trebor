@@ -35,9 +35,8 @@ export function genSource(html: string, opts: CompilerOptions) {
 function compileFile(options: CompilerOptions) {
   options.format = options.format || 'umd';
   const html = readFileSync(options.input, 'utf8');
-  const ext = extname(options.input);
   const dir = dirname(options.input);
-  const file = basename(options.input, ext);
+  const file = basename(options.input, extname(options.input));
   let moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
   options.moduleName = options.moduleName || moduleName;
   const fileName = `${file}${options.minify ? '.min' : ''}.js`;
@@ -55,9 +54,6 @@ function compileFile(options: CompilerOptions) {
   if (options.format === 'umd') {
     outputText = umdTpl(moduleName, outputText);
   } else if (options.format === 'iif') {
-    if (options.minify) {
-      uglifyOptions.compress = uglifyOptions.compress || {};
-    }
     outputText = iifTpl(moduleName, outputText);
   }
   
