@@ -75,7 +75,7 @@ export class NodeElement {
 
   get textContent() {
     if (this.nodeType === 1 || this.nodeType === 11) {
-      this._textContent = this.childNodes.reduce((acc, cur) => acc += cur.textContent, '');
+      this._textContent = this.childNodes.reduce((text, child) => text += child.textContent, '');
     }
     return this._textContent;
   }
@@ -98,7 +98,7 @@ export class NodeElement {
         const index = this.parentElement.childNodes.indexOf(this);
         const { length } = this.parentElement.childNodes;
         const nexts = this.parentElement.childNodes.slice(index + 1, length);
-        return nexts.filter(n => n.nodeType === 1).shift() || null;
+        return nexts.filter(n => n.nodeType === 1)[0] || null;
       }
     }
     return null;
@@ -162,8 +162,8 @@ export class NodeElement {
   }
 
   hasExpression(): boolean {
-		return this.isBlock || this.isUnknownElement || this.tagName === 'slot' ||
-			this.attributes.some(a => /^[$@:#]/.test(a.name)) ||
+    return this.isBlock || this.isUnknownElement || this.tagName === 'slot' ||
+      this.attributes.some(a => /^[$@:#]/.test(a.name)) ||
       /\{\{\s*((?!\}\})(.|\n))*\}\}/.test(this.textContent) ||
       this.childNodes.some(c => c.hasExpression());
   }

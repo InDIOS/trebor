@@ -20,14 +20,6 @@
 			]
 		},
 		{
-			"type": "firefox",
-			"request": "launch",
-			"reAttach": true,
-			"name": "Launch index.html",
-			"firefoxExecutable": "D:\\INSTALLERS\\Internet\\FirefoxPortable\\App\\Firefox\\firefox.exe",
-			"file": "${workspaceFolder}/todomvc/dist/index.html"
-		},
-		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Generator",
@@ -41,18 +33,22 @@
 			"request": "launch",
 			"name": "Launch CLI",
 			"program": "${workspaceFolder}/bin/trebor.js",
-			"cwd": "D:\\OTHERS\\Downloads\\electric-count",
+			"cwd": "D:\\DEVELOP\\Work in Progress\\trebor-repos\\trebor\\examples\\sample",
 			"args": [
 				"-i",
-				"electric-count.html",
+				// "app.html",
+				"donut.html",
 				// "./examples/counter/src/components/counter.html",
 				// "-o",
 				// "./examples/counter/src/components/counter.umd.js"
 				// "-i",
 				// "./examples/todomvc/src/components/todo.html",
 				// "-o",
-				// "./examples/todomvc/src/components/todo.umd.js"
-			]
+        // "./examples/todomvc/src/components/todo.umd.js"
+        "-f",
+        "iif"
+      ],
+      "useWSL": true
 		},
 		{
 			"type": "node",

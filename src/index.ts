@@ -15,6 +15,7 @@ const dest = `{
   _$removeChild, _$bindGroup, _$emptyElse, _$Ctor, _$bindMultiSelect, _$setAttr, _$removeEl,
   _$assignEl, _$el, _$bindStyle, _$forLoop, _$each, _$insertStyle, _$removeStyle, _$getAttr,
   _$addListener, _$updateListener, _$removeListener, _$bindClasses, _$destroyComponent, _$svg,
+  _$filters
 }`;
 const esDeps = `import ${dest} from 'trebor-tools';`;
 const cjsDeps = `const ${dest} = require('trebor-tools');`;

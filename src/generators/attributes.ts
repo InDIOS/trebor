@@ -25,10 +25,10 @@ export function genSetAttrs(target: string, node: NodeElement, scope: string, ar
 		} else if (attr[0] === '@') {
 			genEvent(target, name.slice(1), value, areas, scope);
 		} else if (attr[0] === ':') {
-			const type = node.getAttribute('type');
-			const classes = node.getAttribute('class');
+      const type = node.getAttribute('type') || null;
+      const classes = node.getAttribute('class') || null;
 			if (node.hasAttribute('class') && attr.slice(1) === 'class') node.removeAttribute('class');
-			genBind(target, attr.slice(1), value, areas, scope, type || null, classes || null);
+      genBind(target, name.slice(1), value, areas, scope, type, classes);
 		} else if (attr[0] === '#') {
 			genRefs(scope, areas, kebabToCamelCases(name.slice(1)), target);
 		} else {

@@ -10,8 +10,20 @@ export function escapeExp(str: string) {
   return str.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t').replace(/'/g, `\\'`);
 }
 
-export function createElement(variable: string, tag: string, isSVG: boolean) {
-  return `${variable} = ${isSVG ? '_$svg' : '_$el'}(${tag === 'div' || tag === 'svg' ? '' : `'${tag}'`});`;
+export function createElement(variable: string, tag: string, isSVG: boolean, content?: string) {
+  let create = `${variable} = `;
+  let tagName = tag === 'div' || tag === 'svg' ? '' : `'${tag}'`;
+  create += `${isSVG ? '_$svg' : '_$el'}(`;
+  if (content && tagName) {
+    create +=  `{c:${content}, t:${tagName}}`;
+  } else if (!content && tagName) {
+    create +=  `{t:${tagName}}`;
+  } else if (content && !tagName) {
+    create += `{c:${content}}`;
+  } else {
+    create += '';
+  }
+  return `${create});`;
 }
 
 export function createNode(variable: string, content?: string) {
@@ -54,7 +66,7 @@ function pad(hash: string, len: number) {
 }
 
 function fold(hash: number, text: string) {
-  let i, chr, len;
+  let i: number, chr: number, len: number;
   if (text.length === 0) {
     return hash;
   }

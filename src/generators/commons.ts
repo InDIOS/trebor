@@ -28,8 +28,9 @@ export function genBlockAreas(node: NodeElement, areas: BlockAreas, scope: strin
         return `'${clearText(entities.decode(int))}'`;
 			}).join('+').replace(/^'\s*'\+/, '').replace(/\+'\s*'$/, '');
       let params = areas.globals && areas.globals.length > 0 ? `, ${areas.globals.join(', ')}` : '';
-      const setTxt = `${setVariable}(${scope}${params})`;
-      areas.extras.push(`${setVariable} = (${scope}${params}) => ${code};`);
+      const txtParams = params ? `[${scope}${params}]` : scope;
+      const setTxt = `${setVariable}(${txtParams})`;
+      areas.extras.push(`${setVariable} = (${txtParams}) => ${code};`);
 			areas.create.push(`${createNode(variable)}
 			${variable}.data = ${setTxt};`);
 			areas.update.push(`_$textUpdate(${variable}, ${setTxt});`);

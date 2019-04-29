@@ -59,18 +59,17 @@ export function genHtml(node: NodeElement, areas: BlockAreas, scope?: string) {
 	const html = node.getAttribute('$html');
 	node.removeAttribute('$html');
 	const variable = getVarName(areas.variables, tag);
-	areas.create.push(createElement(variable, tag, node.isSVGElement));
 	let content = '';
 	if (html) {
-		const setContent = getVarName(areas.variables, `content${capitalize(variable)}`);
+    const setContent = getVarName(areas.variables, `content${capitalize(variable)}`);
 		content = `${setContent}(${scope})`;
 		areas.extras.push(`${setContent} = (${scope}) => ${ctx(html, scope.split(', ')[0], areas.globals)};`);
 		areas.update.push(`_$htmlUpdate(${variable}, ${content});`);
 	} else {
-		content = `'${node.innerHTML}'`;
+    content = `'${node.innerHTML}'`;
 	}
+  areas.create.push(createElement(variable, tag, node.isSVGElement, content));
 	genSetAttrs(variable, node, scope, areas);
-	areas.create.push(`${variable}.innerHTML = ${content};`);
 	return variable;
 }
 

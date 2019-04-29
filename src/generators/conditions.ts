@@ -14,8 +14,8 @@ export function genIf(node: NodeElement, areas: BlockAreas, scope: string) {
   areas.unmount.push(`_$append(${root || '_$frag'}, ${anchor});`);
   node.removeAttribute('$if');
   areas.outer.push(genItemCondition(scope, node, areas, condition.index, 'if'));
-  areas.extras.push(`${anchor} = _$text();`);
-  areas.create.push(`${block} = condition_${condition.index}(${scope});`);
+  areas.extras.push(`${anchor} = _$text();
+  ${block} = condition_${condition.index}(${scope});`);
   if (node.nextElementSibling) {
     if (node.nextElementSibling.hasAttribute('$else-if')) {
       genElseIf(scope, node.nextElementSibling, condition, areas);
