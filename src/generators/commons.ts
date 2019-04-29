@@ -115,7 +115,7 @@ export function genBody(funcName: string, scope: string, areas: BlockAreas, cond
 				${areas.mountDirt.join('\n')}`}
         ${condType || scope.includes(',') ? '' : `_$setElements(this, parent, sibling);`}
 			},
-			$update${!!areas.update.length ? `(${scope}) {
+			$update${!!areas.update.length ? `([${scope}]) {
         ${areas.update.join('\n')}
 			}` : ': _$noop'},
 			$unmount${!!areas.unmount.length ? `() {
