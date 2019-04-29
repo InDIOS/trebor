@@ -32,10 +32,15 @@ export class BlockAreas {
   }
 }
 
+interface Blocks {
+  loops: number;
+  conditions: { if: boolean, elseIf: number, else: boolean }[];
+}
+
 export class NodeElement {
-	isBlock: boolean;
-	varName: string;
-	dymTag: string;
+  isBlock: boolean;
+  varName: string;
+  dymTag: string;
   tagName: string;
   nodeType: number;
   isSVGElement: boolean;
@@ -46,7 +51,7 @@ export class NodeElement {
   attributes: Attribute[];
   isUnknownElement: boolean;
 
-  constructor(node: DefaultTreeNode, parent: NodeElement) {
+  constructor(node: DefaultTreeNode, parent: NodeElement, blocks?: Blocks) {
     this.nodeType = nodeType(node.nodeName);
     this.tagName = (<DefaultTreeElement>node).tagName || node.nodeName;
     this.isUnknownElement = false;
@@ -60,12 +65,33 @@ export class NodeElement {
     this.childNodes = [];
     this.parentElement = null;
     if (parent) this.parentElement = parent;
+    if (blocks && this.nodeType === 1) {
+      if (this.hasAttribute('$for')) {
+        blocks.loops++;
+      }
+      if (this.hasAttribute('$if')) {
+        let cond = { if: true, elseIf: 0, else: false };
+        let sibling = this.nextElementSibling;
+        if (sibling && sibling.hasAttribute('$else')) {
+          cond.else = true;
+        } else {
+          while (sibling && sibling.hasAttribute('$else-if')) {
+            cond.elseIf++;
+            sibling = sibling.nextElementSibling;
+          }
+          if (sibling && sibling.hasAttribute('$else')) {
+            cond.else = true;
+          }
+        }
+        blocks.conditions.push(cond);
+      }
+    }
     if ((<DefaultTreeElement>node).childNodes && this.tagName !== 'template') {
-      this.childNodes = (<DefaultTreeElement>node).childNodes.map(n => new NodeElement(n, this));
+      this.childNodes = (<DefaultTreeElement>node).childNodes.map(n => new NodeElement(n, this, blocks));
     }
     if (this.nodeType === 1 && this.tagName === 'template') {
       const childNodes = removeEmptyNodes(stripWhitespace(node['content'] ? node['content'].childNodes : (<DefaultTreeElement>node).childNodes));
-      this.content = new NodeElement(<DefaultTreeElement>{ nodeName: '#document-fragment', childNodes }, null);
+      this.content = new NodeElement(<DefaultTreeElement>{ nodeName: '#document-fragment', childNodes }, null, blocks);
     }
   }
 
