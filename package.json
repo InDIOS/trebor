@@ -9,12 +9,6 @@
 	"scripts": {
 		"build:src": "tsc -p ./src",
 		"build:tools": "tsc -p ./tools",
-		"build:example:clock": "webpack --config ./examples/clock/webpack.config.js --watch",
-		"build:example:todo": "webpack --config ./examples/todomvc/webpack.config.js --watch",
-		"build:example:counter": "webpack --config ./examples/counter/webpack.config.js --watch",
-		"build:example:calendar": "webpack --config ./examples/calendar/webpack.config.js --watch",
-		"build:example:animation": "webpack --config ./examples/animation/webpack.config.js --watch",
-		"build:example:dynamic": "webpack --config ./examples/dynamic-component/webpack.config.js --watch",
 		"build:test": "node ./specs/helpers/setup.js && phantomjs ./specs/run.js ./specs/test.html",
 		"build:test:src": "tsc -p ./test/src && node ./bin/trebor.js -i ./test/components -o ./specs/components -f iif",
 		"test": "npm run build:test:src && npm run build:test"
