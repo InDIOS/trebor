@@ -14,8 +14,8 @@ in it's [documentation](https://github.com/InDIOS/trebor/wiki).
 
 ### Why?
 
-In this days front-end frameworks are very populars comming to be an important part of a web application. Almost all of then have a runtime library that is part of the application, [Vue](https://github.com/vuejs/vue), [React](https://github.com/facebook/react), [Angular](https://github.com/angular/angular), but what if we can do a component that no need a runtime lib? 
-what if can create all components without useless code and can run it self?. That is what `TreborJS` do, a module that compile an structured html file in a javascript file with just the code you need and nothing more.
+In this days front-end frameworks are very populars comming to be an important part of a web application. Almost all of then have a runtime library that is part of the application, [Vue](https://github.com/vuejs/vue), [React](https://github.com/facebook/react), [Angular](https://github.com/angular/angular), but what if we can make a component that no need a runtime lib? 
+What if we can create all components without useless code and can run it self?. That is what `TreborJS` do, a module that compile an structured html file in a javascript file with just the code you need and nothing more.
 
 ## How to use
 
