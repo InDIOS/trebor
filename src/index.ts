@@ -1,159 +1,110 @@
-import glob = require('glob');
-import { promisify } from 'util';
-import { minify } from 'uglify-es';
-import { getDoc } from './utilities/html';
+import { snakeToCamel } from './utils';
 import { transpileModule } from 'typescript';
-import { basename, extname, dirname, join } from 'path';
-import { genTemplate, CompilerOptions } from './generators';
-import { readFileSync, statSync, writeFile, existsSync } from 'fs';
-import { kebabToCamelCases, capitalize, camelToKebabCase } from './utilities/tools';
-const dest = `{
-  _$bindUpdate, _$comment, _$setElements, _$emptySlot, _$appendToSlot, _$declareSlots,
-  _$updateMultiSelect, _$componentUpdate, _$htmlUpdate, _$tagUpdate, _$bindBooleanAttr,
-  _$removeReference, _$addChild, _$textUpdate, _$getValue, _$text, _$conditionalUpdate,
-  _$noop, _$toString, _$setReference, _$isType, _$isKey, _$select, _$docFragment, _$append,
-  _$removeChild, _$bindGroup, _$emptyElse, _$Ctor, _$bindMultiSelect, _$setAttr, _$removeEl,
-  _$assignEl, _$el, _$bindStyle, _$forLoop, _$each, _$insertStyle, _$removeStyle, _$getAttr,
-  _$addListener, _$updateListener, _$removeListener, _$bindClasses, _$destroyComponent, _$svg,
-  _$filters
-}`;
-const esDeps = `import ${dest} from 'trebor-tools';`;
-const cjsDeps = `const ${dest} = require('trebor-tools');`;
-const tools = readFileSync(join(__dirname, '../tools/index.js'), 'utf8');
+import { readFileSync, writeFile } from 'fs';
+import { minify, MinifyOptions } from 'terser';
+import { program } from './parsers/script/nodes';
+import { generate } from './parsers/script/generator';
+import { basename, join, resolve, dirname } from 'path';
+import compiler, { CompileSourceOptions, CompilerOptions } from './parsers';
 
-export function genSource(html: string, opts: CompilerOptions) {
-  const body = getDoc(html, !!opts.minify);
-  const { moduleName } = opts;
-  const { imports, template, extras, options } = genTemplate(body, '_$state', opts);
-  if (checkModule(opts.format)) {
-    imports.unshift(opts.format === 'es' ? esDeps : cjsDeps);
-  }
-  const source = [template, extras, `const ${moduleName} = _$Ctor(_$tpl${moduleName}, ${options});`]
-    .filter(c => !!c.length).join('\n');
-  return { imports, source };
-}
-
-function compileFile(options: CompilerOptions) {
-  options.format = options.format || 'umd';
-  const html = readFileSync(options.input, 'utf8');
-  const dir = dirname(options.input);
-  const file = basename(options.input, extname(options.input));
-  let moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
-  options.moduleName = options.moduleName || moduleName;
-  const fileName = `${file}${options.minify ? '.min' : ''}.js`;
-  if (!options.out) {
-    options.out = dir;
-  }
-  const { compilerOptions, uglifyOptions } = getOptions(options);
-  const { imports, source } = genSource(html, options);
-  const utilities = (checkModule(options.format) ? [...imports] : [...imports, tools]).join('\n');
-  const code = [utilities, source, exportFormat(options.format, moduleName)].join('\n');
-
-  let { outputText } = transpileModule(code, { compilerOptions, moduleName: camelToKebabCase(moduleName) });
-  outputText = minify(outputText, uglifyOptions).code;
-
-  if (options.format === 'umd') {
-    outputText = umdTpl(moduleName, outputText);
-  } else if (options.format === 'iif') {
-    outputText = iifTpl(moduleName, outputText);
-  }
-  
-  return [join(options.out, fileName), minify(outputText, uglifyOptions).code];
-}
-
-export function exportFormat(format: string, moduleName: string) {
-  return `${format === 'es' ? 'export default' : 'export ='} ${moduleName};`;
-}
-
-function getOptions(options: CompilerOptions) {
-  let uglifyOptions: { [key: string]: any } = {
-    compress: { toplevel: true }, output: { beautify: true }
+export interface CompileFileOptions extends CompileSourceOptions {
+  extension?: string;
+  compilerOptions: CompilerOptions & {
+    outDir?: string;
   };
-  let compilerOptions: { [key: string]: any } = {
-    sourceMap: false, importHelpers: false, target: 1, module: 1, removeComments: true
-  };
-  if (typeof options.noComments !== 'boolean') {
-    options.noComments = false;
+}
+
+export function parseFile(filePath: string, options?: CompileFileOptions, cb?: (err?: Error) => void) {
+  let { compilerOptions: { outDir }, extension } = options;
+  const htmlCode = readFileSync(resolve(filePath), 'utf8');
+
+  if (!extension) {
+    extension = 'html';
   }
-  if (options.format === 'es') {
-    compilerOptions.module = 5;
-  } else if (options.format === 'amd') {
-    compilerOptions.module = 2;
-  } else if (options.format === 'cjs') {
-    compilerOptions.module = 1;
-  } else if (options.format === 'system') {
-    compilerOptions.module = 4;
+
+  const fileName = basename(filePath, `.${extension}`);
+  options.compilerOptions.moduleName = snakeToCamel(fileName);
+
+  filePath = outDir || join(dirname(filePath), `${fileName}.js`);
+  if (!filePath.endsWith('.js')) {
+    join(filePath, `${fileName}.js`);
   }
-  uglifyOptions.mangle = false;
-  if (options.minify) {
-    uglifyOptions.output.beautify = false;
-    uglifyOptions.mangle = { toplevel: true };
+  options.filePath = filePath;
+  const jsCode = parseSource(htmlCode, options);
+
+  if (!cb) {
+    cb = err => err && console.log(err);
+  }
+
+  if (!jsCode.code) {
+    cb(jsCode.error);
   } else {
-    uglifyOptions.output.indent_level = 2;
-    uglifyOptions.output.bracketize = true;
-
-    uglifyOptions.compress.inline = false;
-    uglifyOptions.compress.if_return = false;
-    uglifyOptions.compress.join_vars = false;
-    uglifyOptions.compress.sequences = false;
-    uglifyOptions.compress.reduce_vars = false;
-    uglifyOptions.compress.reduce_funcs = false;
-    uglifyOptions.compress.collapse_vars = false;
+    writeFile(filePath, jsCode.code, 'utf8', cb);
   }
-  return { uglifyOptions, compilerOptions };
 }
 
-function umdTpl(moduleName: string, body: string) {
-  return `!function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define('${camelToKebabCase(moduleName)}', factory) :
-    (global.${moduleName} = factory());
-  }(this, function () {
-    ${body.replace('module.exports =', 'return')}
-  });`;
-}
-
-function iifTpl(moduleName: string, body: string) {
-  return `!function(glob) { 
-    ${body.replace('module.exports =', `glob.${moduleName} =`)} 
-  }(this);`;
-}
-
-function checkExistToolsModule() {
-  return existsSync(join(__dirname, '..', '..', 'trebor-tools', 'package.json'));
-}
-
-function checkModule(format: string) {
-  return /es|cjs/.test(format);
-}
-
-export default function cli(options: CompilerOptions) {
-  const info = statSync(options.input);
-  const time = start => `Compilation finished in ${Date.now() - start}ms`;
-  if (options.format && checkModule(options.format) && !checkExistToolsModule()) {
-    console.log('You must install `trebor-tools` or set it as dependency if you want use the components.');
-  }
-  if (info.isFile()) {
-    let start = Date.now();
-    let [path, code] = compileFile(options);
-    writeFile(path, code, 'utf8', err => {
-      if (err) throw err;
-      console.log(time(start));
-    });
-  } else if (info.isDirectory()) {
-    glob(`${options.input}/**/*.html`, async (err, files) => {
-      if (err) throw err;
-      let start = Date.now();
-      let codes = files.filter(f => !f.includes('node_modules')).map(file => {
-        let [path, code] = compileFile({ ...options, ...{ input: file } });
-        return promisify(writeFile)(path, code, 'utf8');
-      });
-      try {
-        await Promise.all(codes);
-        console.log(time(start));
-      } catch (error) {
-        throw error;
+export function parseSource(htmlCode: string, options?: CompileSourceOptions) {
+  let map = '';
+  let code = '';
+  let astBody = [];
+  let error = null;
+  try {
+    astBody = compiler(htmlCode, options);
+    const terserOptions = getTerserOptions(options.compilerOptions.minify);
+    const jsCode = <string>generate(program(astBody, 'module'), { semicolon: true, quotemark: `'` });
+    const result = transpileModule(jsCode, {
+      moduleName: options.compilerOptions.moduleName,
+      compilerOptions: {
+        target: 1,
+        sourceMap: true,
+        importHelpers: false,
+        module: getModuleKind(options.compilerOptions.format || 'esm'),
+        removeComments: true
       }
     });
+
+    if (options.compilerOptions.optimize) {
+      const output = minify(result.outputText, terserOptions);
+      code = output.code;
+      error = output.error;
+      map = <string>output.map;
+    } else {
+      code = result.outputText;
+      map = result.sourceMapText;
+    }
+  } catch (err) {
+    error = err;
   }
+  return { code, map, error };
+}
+
+function getModuleKind(modType: 'esm' | 'cjs' | 'iif') {
+  switch (modType) {
+    case 'cjs':
+      return 1;
+    case 'esm':
+      return 99;
+    default:
+      return 5;
+  }
+}
+
+function getTerserOptions(minify: boolean) {
+  const options: MinifyOptions = {
+    mangle: true,
+    module: true,
+    toplevel: true,
+    parse: { ecma: 9 },
+    output: { quote_style: 1 },
+    compress: { passes: 2, keep_fargs: false }
+  };
+  if (!minify) {
+    options.mangle = false;
+    Object.assign(options.compress, {
+      inline: false, if_return: false, sequences: false, reduce_vars: false, reduce_funcs: false,
+      conditionals: false, join_vars: false
+    });
+    Object.assign(options.output, { indent_level: 2, beautify: true, braces: true });
+  }
+  return options;
 }
