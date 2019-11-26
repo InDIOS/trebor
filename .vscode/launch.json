@@ -1,63 +1,28 @@
 {
-	// Utilizar IntelliSense para aprender acerca de los posibles atributos.
-	// Mantenga el puntero para ver las descripciones de los existentes atributos 
-	// Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch Tests",
-			"program": "${workspaceFolder}/test/index.js"
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch Context",
-			"program": "${workspaceFolder}/src/utilities/context.ts",
-			"outFiles": [
-				"${workspaceFolder}/build/**/*.js"
-			]
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch Generator",
-			"program": "${workspaceFolder}/src/index.ts",
-			"outFiles": [
-				"${workspaceFolder}/build/**/*.js"
-			]
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch CLI",
-			"program": "${workspaceFolder}/bin/trebor.js",
-			"cwd": "D:\\DEVELOP\\Work in Progress\\trebor-repos\\trebor\\examples\\sample",
-			"args": [
-				"-i",
-				// "app.html",
-				"donut.html",
-				// "./examples/counter/src/components/counter.html",
-				// "-o",
-				// "./examples/counter/src/components/counter.umd.js"
-				// "-i",
-				// "./examples/todomvc/src/components/todo.html",
-				// "-o",
-        // "./examples/todomvc/src/components/todo.umd.js"
-        "-f",
-        "iif"
-      ],
-      "useWSL": true
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch CSS",
-			"program": "${workspaceFolder}/src/utilities/cssToJson.ts",
-			"outFiles": [
-				"${workspaceFolder}/build/**/*.js"
-			]
-		}
-	]
+  // Use IntelliSense para saber los atributos posibles.
+  // Mantenga el puntero para ver las descripciones de los existentes atributos.
+  // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Iniciar parser",
+      "program": "${workspaceFolder}\\test.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Iniciar eslint parser",
+      "program": "${workspaceFolder}\\meriyahEslintParser.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Iniciar cli",
+      "program": "${workspaceFolder}\\bin\\trebor.js",
+      "cwd": "${workspaceFolder}",
+      "args": ["-i", "tests/testing.html"]
+    }
+  ],
 }
