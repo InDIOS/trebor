@@ -5,3 +5,5 @@ tests/
 test/index.html
 test/**/*.js
 test/**/*.map
+tools/*.js
+tools/*.map
