@@ -57,20 +57,20 @@ describe('Component Instance', () => {
 		instance.$mount('main');
 		let h1 = main.firstChild;
 		expect(h1.nodeName).toEqual('H1');
-		expect(h1.textContent).toBe('Hello, World!!');
+		expect(h1.textContent).toBe('Hello, World!');
 	});
 
 	it('should update the view correctly', () => {
 		instance.$mount('main');
 		let h1 = main.firstChild;
 		instance.$set('text', 'Somebody');
-		expect(h1.textContent).toBe('Hello, Somebody!!');
+		expect(h1.textContent).toBe('Hello, Somebody!');
 	});
 
 	it('should not update the view correctly if `$set` method is not used', () => {
 		instance.$mount('main');
     let h1 = main.firstChild;
     instance.text = 'Somebody';
-    expect(h1.textContent).toBe('Hello, World!!');
+    expect(h1.textContent).toBe('Hello, World!');
 	});
 });

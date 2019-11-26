@@ -28,7 +28,7 @@ describe('Component Html', () => {
   it('`$html` should escape expressions', () => {
     divs = document.querySelectorAll('div');
     let div_1 = divs.item(3), div_2 = divs.item(4);
-    expect(div_1.innerHTML).toBe('<p $some-attr="someVar">Some paragraph with text intentional {{escaped}}</p>');
-    expect(div_2.innerHTML).toBe('<p $some-attr="someVar">Some paragraph with text from {{model}}</p>');
+    expect(div_1.innerHTML).toBe('<p $some-attr="someVar">Some paragraph with text intentional {escaped}</p>');
+    expect(div_2.innerHTML).toBe('<p $some-attr="someVar">Some paragraph with text from {model}</p>');
   });
 });

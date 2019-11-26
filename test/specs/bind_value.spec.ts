@@ -8,7 +8,7 @@ function fireEvent(el: HTMLElement, name: string, type?: string) { // element to
 }
 
 describe('Component Bind', () => {
-  let instance;
+  let instance: Component;
 
   beforeEach(done => {
     instance = new Bind();
