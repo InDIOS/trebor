@@ -1,17 +1,15 @@
-<span>{{ `${text} ` | trim }}</span>
-<span>{{ 'some text uppercase' | upper }}</span>
+<span>{ `${text} ` | trim }</span>
+<span>{ 'some text uppercase' | upper }</span>
 <ul>
-  <li $for="item in items | filterBy(filter)">{{ item | upper | trim }}</li>
+  <li $for="item in items | filterBy(filter)">{ item | upper | trim }</li>
 </ul>
 
 <script>
-  export default {
-    model: {
-      items: [' ab', 'a c', 'bc ', '  de', 'fe  '],
-      text: 'some test text',
-      filter: ''
-    },
-    filters: {
+  export default class {
+    items = [' ab', 'a c', 'bc ', '  de', 'fe  '];
+    text = 'some test text';
+    filter = '';
+    static $filters = {
       upper(value) {
         return value.toUpperCase();
       },
@@ -21,6 +19,6 @@
       filterBy(items, filter) {
         return filter ? items.filter(item => !!~item.toLowerCase().indexOf(filter.toLowerCase())) : items;
       }
-    }
+    };
   };
 </script>

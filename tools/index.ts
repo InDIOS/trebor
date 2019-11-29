@@ -1,18 +1,6 @@
+type ObjectMap<T> = Record<string, T>;
 type AttrTypes = string | number | RegExp | null | boolean;
-type AttrParams = string[] | ObjectLike<AttrDefinition>;
-type DirectiveDefinition = (inst: Component, options: DirectiveOptions, node: HTMLElement) => void | DirectiveDefObject;
-type TemplateFn = (component: Component) => ComponentTemplate;
-type IterateKey<T> = T extends any[] ? number : string;
-type IterateValue<T> = T extends any[] ? T[number] : T[keyof T];
-type PluginFn = (this: Component, ctor: ComponentConstructor, pluginOptions?: ObjectLike<any>) => void;
-interface ObjectLike<T> { [key: string]: T; }
-
-interface DirectiveDefObject {
-  $init?(inst: Component, options: DirectiveOptions, node: HTMLElement): void;
-  $inserted?(inst: Component, options: DirectiveOptions, node: HTMLElement): void;
-  $update(inst: Component, options: DirectiveOptions, node: HTMLElement): void;
-  $destroy?(inst: Component, options: DirectiveOptions, node: HTMLElement): void;
-}
+type PluginFn = (this: Component, ctor: typeof Component, pluginOptions?: ObjectMap<any>) => void;
 
 interface AttrDefinition {
   required?: boolean;
@@ -21,359 +9,98 @@ interface AttrDefinition {
   default?: AttrTypes | (() => AttrTypes | Object);
 }
 
-interface DirectiveOptions {
-  value: any;
-  expression: string;
-  modifiers: ObjectLike<boolean>;
-}
-
 interface ComponentOptions {
-  model: ObjectLike<any>;
-  attrs: string[] | ObjectLike<AttrDefinition>;
-  filters: ObjectLike<(...args: any[]) => any>;
-  children: ObjectLike<ComponentConstructor>;
-  directives: ObjectLike<DirectiveDefinition>;
+  children?: ObjectMap<Component>;
+  filters?: ObjectMap<(...args: any[]) => any>;
+  attributes?: string[] | ObjectMap<AttrDefinition>;
 }
 
-interface ComponentTemplate {
-  $create(): void;
-  $mount(parent: string | Element, sibling?: string | boolean | Element): void;
-  $update(state: Component, ...args: any[]): void;
-  $unmount(): void;
-  $destroy(): void;
-}
-
-interface Component extends ComponentTemplate {
+declare class BaseComponent {
   $parent: Component;
   $parentEl: HTMLElement;
   $siblingEl: HTMLElement;
-  readonly $refs: ObjectLike<HTMLElement[]>;
-  readonly $slots: ObjectLike<DocumentFragment>;
-  readonly $filters: ObjectLike<(...args: any[]) => any>;
+  readonly $refs: ObjectMap<HTMLElement | HTMLElement[]>;
+  readonly $slots: ObjectMap<DocumentFragment>;
+  readonly $filters: ObjectMap<(...args: any[]) => any>;
   readonly $options: ComponentOptions;
   readonly $children: Component[];
-  readonly $directives: ObjectLike<DirectiveDefinition>;
-  $get<T>(path: string): T;
-  $set<T>(path: string, value: T): void;
-  $update(): void;
-  $on(event: string, handler: (data?: any) => void): { $off(): void };
+
+  $get<T extends any>(path: string): T;
+  $set<T extends any>(path: string, value: T): void;
+  $on(event: string, handler: (data?: any) => void): void;
+  $off(event: string, handler: (data?: any) => void): void;
   $once(event: string, handler: (data?: any) => void): void;
   $fire(event: string, data?: any): void;
   $notify(key: string): void;
   $observe(key: string | string[], handler: () => void): { $unobserve(): void };
   $watch(key: string, handler: (oldValue?: any, newValue?: any) => void): { $unwatch(): void };
+}
+
+declare class TemplateObject extends BaseComponent {
+  $create(): void;
+  $mount(parent: string | Element, sibling?: string | boolean | Element): void;
+  $update(this: Component, ...args: any[]): void;
+  $unmount(): void;
+  $destroy(): void;
+}
+
+declare class Component extends TemplateObject {
+  static $children?: ObjectMap<Component>;
+  static $filters?: ObjectMap<(...args: any[]) => any>;
+  static $attributes?: string[] | ObjectMap<AttrDefinition>;
+  static $plugin(fn: PluginFn, options?: ObjectMap<any>): void;
+
+  constructor(attrs?: ObjectMap<any>, parent?: Component);
+
+  willCreate?(this: Component): void;
+  willMount?(this: Component): void;
+  willUpdate?(this: Component): void;
+  willUnmount?(this: Component): void;
+  willDestroy?(this: Component): void;
+
+  didCreate?(this: Component): void;
+  didMount?(this: Component): void;
+  didUpdate?(this: Component): void;
+  didUnmount?(this: Component): void;
+  didDestroy?(this: Component): void;
+
   [key: string]: any;
 }
 
-interface ComponentConstructor {
-  new <T extends Component>(attrs?: string[] | ObjectLike<AttrDefinition>, parent?: Component): T;
-  plugin(fn: PluginFn, options?: ObjectLike<any>): void;
-  prototype: Component;
+function _$extends(d: Function, b: Function) {
+  _$assign(d, b);
+  function _() { this.constructor = d; }
+  d.prototype = b === null ? Object.create(b) : (_.prototype = b.prototype, new _());
 }
-
-const PROP_MAP = { p: '__TP__', v: 'value', _: '_value', s: '_subscribers', e: '_events', w: '_watchers', h: 'prototype' };
-const PROPS = ['$slots', '$refs', '$filters', '$directives', '_events', '_watchers'];
-let TPS: { options: ObjectLike<any>, fn: PluginFn }[] = window[PROP_MAP.p] || (window[PROP_MAP.p] = []);
-const _$assign = Object['assign'] || function (t: Object) {
-  for (let s, i = 1, n = arguments.length; i < n; i++) {
-    s = arguments[i];
-    for (const p in s) if (_$hasProp(s, p)) t[p] = s[p];
+function _$(selector: string | HTMLElement, parent?: Element): HTMLElement {
+  return _$isString(selector) ? (parent || document.body).querySelector(selector) : selector;
+}
+function _$type(obj: any) {
+  return _$lowerCase(Object.prototype.toString.call(obj).slice(8, -1));
+}
+function _$isType(obj: any, objType: string | Function) {
+  return _$isString(objType) ? _$type(obj) === objType : obj instanceof objType;
+}
+function _$isString(str: any): str is string {
+  return _$type(str) === 'string';
+}
+function _$isArray(array: any): array is Array<any> {
+  return _$type(array) === 'array' || array instanceof _$List;
+}
+function _$isObject(obj: any): obj is Object {
+  return _$type(obj) === 'object';
+}
+function _$isFunction(obj: any): obj is Function {
+  return _$type(obj) === 'function';
+}
+function _$toString(obj: any): string {
+  if (_$isString(obj)) {
+    return obj;
   }
-  return t;
-};
-function _$BaseComponent(attrs: AttrParams, template: TemplateFn, options: ComponentOptions, parent: Component) {
-  const self = this;
-  const _$set = (prop: string, value: any) => { _$define(self, prop, { value, writable: true }); };
-  if (!attrs) attrs = {};
-  _$each(PROPS, prop => { _$define(self, prop, { value: {} }); });
-  _$set('$parent', parent || null);
-  _$set('$children', []);
-  _$set(PROP_MAP.s, {});
-  _$set('$options', options);
-  const opts: ComponentOptions = self.$options;
-  if (!opts.attrs) opts.attrs = {};
-  if (!opts.children) opts.children = {};
-  _$each(TPS, (plugin) => { plugin.fn.call(self, _$BaseComponent, plugin.options); });
-  if (opts.filters) _$assign(self.$filters, opts.filters);
-  if (opts.directives) _$each(opts.directives, (drt, k) => { self.$directives[k] = _$directive(drt); });
-  _$each(opts.attrs, (attrOps, key) => {
-    _$define(self, <string>(_$isType(key, 'number') ? attrOps : key), {
-      get() {
-        if (_$isString(attrOps)) {
-          let value = attrs[<string>attrOps];
-          return _$isFunction(value) ? value() : value;
-        } else {
-          if (!_$hasProp(attrs, <string>key) && (<AttrDefinition>attrOps).required) {
-            return console.error(`Attribute '${key}' is required.`);
-          } else {
-            let value = _$isFunction(attrs[key]) ? attrs[key]() : attrs[key];
-            if (value === void 0 && _$hasProp(attrOps, 'default')) {
-              const def = (<AttrDefinition>attrOps).default;
-              value = _$isFunction(def) ? (<Function>def)() : def;
-            }
-            const typ = (<AttrDefinition>attrOps).type;
-            if (typ && !_$isType(value, typ) && (<AttrDefinition>attrOps).required) {
-              return console.error(`Attribute '${key}' must be type '${typ}'.`);
-            }
-            value = _$toType(value, value === void 0 ? 'undefined' : typ, self, <string>key);
-            if (value !== void 0 && _$hasProp(attrOps, 'validator')) {
-              const validator = (<AttrDefinition>attrOps).validator;
-              if (_$isFunction(validator) && !validator(value)) {
-                return console.error(`Assigment '${key}'='${JSON.stringify(value)}' invalid.`);
-              }
-            }
-            return value;
-          }
-        }
-      },
-      set() {
-        console.error(`'${key}' is read only.`);
-      },
-      enumerable: true, configurable: true
-    });
-  });
-  let data = opts.model || {};
-  for (const key in data) {
-    if (_$hasProp(data, key)) {
-      const desc = Object.getOwnPropertyDescriptor(data, key);
-      if (desc.value && _$isArray(desc.value)) {
-        desc.value = new _$List(desc.value, self, key);
-      } else {
-        if (desc.get) {
-          let getter = desc.get;
-          desc.get = function () {
-            let value = getter.call(self);
-            if (_$isArray(value)) value = new _$List(value, self, key);
-            return value;
-          };
-        }
-        if (desc.set) {
-          let setter = desc.set;
-          desc.set = function (v: any) {
-            if (_$isArray(v)) v = new _$List(v, self, key);
-            setter.call(self, v);
-          };
-        }
-      }
-      _$define(self, key, desc);
-    }
-  }
-  const tpl = template(self);
-  _$each(tpl, (value, key) => {
-    _$define(self, key, {
-      value: (function (key) {
-        const hook = key[1].toUpperCase() + key.slice(2);
-        const bhook = opts[`will${hook}`];
-        const ahook = opts[`did${hook}`];
-        return function () {
-          bhook && bhook.call(this);
-          key.slice(1) === 'update' ? value.call(this, this) : value.apply(this, arguments);
-          ahook && ahook.call(this);
-        };
-      })(<string>key)
-    });
-  });
-  _$define(self, '$data', {
-    get() {
-      return function plainObject(obj: Component) {
-        const data: ObjectLike<any> = {};
-        _$each<Component>(_$isObject(obj) ? obj : <any>{}, (value, k) => {
-          if (k[0] !== '$' && !_$isFunction(value)) {
-            if (_$isType(value, _$List)) {
-              data[k] = value.map(plainObject);
-            } else if (_$isObject(value)) {
-              data[k] = plainObject(value);
-            } else {
-              data[k] = value;
-            }
-          }
-        });
-        return _$isObject(obj) ? data : obj;
-      }(this);
-    }
-  });
+  var str = _$type(obj);
+  return /(^(null|undefined)$)/.test(str) ? str : obj.toString();
 }
-function _$isValueAttr(attr: string) {
-  return attr === 'value';
-}
-function _$subscribers(dep: string, listener: Function) {
-  if (!this[PROP_MAP.s][dep]) {
-    this[PROP_MAP.s][dep] = [];
-  }
-  return this[PROP_MAP.s][dep].push(listener.bind(this)) - 1;
-}
-function _$define(obj: Object, key: string, desc: PropertyDescriptor) {
-  Object.defineProperty(obj, key, desc);
-}
-_$assign(_$BaseComponent[PROP_MAP.h], {
-  $get(path: string) {
-    return _$accesor(this, path);
-  },
-  $set(path: string, value: any) {
-    _$accesor(this, path, value);
-  },
-  $on(event: string, handler: Function) {
-    if (!this[PROP_MAP.e][event]) {
-      this[PROP_MAP.e][event] = [];
-    }
-    const i = this[PROP_MAP.e][event].push(handler);
-    return {
-      $off: () => {
-        this[PROP_MAP.e][event].splice(i - 1, 1);
-      }
-    };
-  },
-  $once(event: string, handler: Function) {
-    const e = this.$on(event, args => {
-      handler(args);
-      e.$off();
-    });
-  },
-  $fire(event: string, data: any) {
-    if (this[PROP_MAP.e][event]) {
-      _$each(this[PROP_MAP.e][event], handler => { handler(data); });
-    }
-  },
-  $notify(key: string) {
-    if (this[PROP_MAP.s][key]) {
-      _$each(this[PROP_MAP.s][key], suscriber => { suscriber(); });
-    }
-  },
-  $observe(deps: string | string[], listener: Function) {
-    const subs: { sub: string, i: number }[] = [];
-    if (_$isArray(deps)) {
-      _$each(<string[]>deps, dep => {
-        subs.push({ sub: dep, i: _$subscribers.call(this, dep, listener) });
-      });
-    } else {
-      subs.push({ sub: <string>deps, i: _$subscribers.call(this, deps, listener) });
-    }
-    return {
-      $unobserve: () => {
-        _$each(subs, sub => {
-          this[PROP_MAP.s][sub.sub].splice(sub.i, 1);
-        });
-      }
-    };
-  },
-  $watch(key: string, watcher: Function) {
-    if (!this[PROP_MAP.w][key]) {
-      this[PROP_MAP.w][key] = [];
-    }
-    const i = this[PROP_MAP.w][key].push(watcher.bind(this));
-    return {
-      $unwatch: () => {
-        this[PROP_MAP.w][key].splice(i - 1, 1);
-      }
-    };
-  }
-});
-const array = Array[PROP_MAP.h];
-function _$toArgs(args: IArguments, start: number = 0): any[] {
-  return array.slice.call(args, start);
-}
-function _$arrayValues(list, value: any[], root: Component, key: string) {
-  array.push.apply(list, value.map((v, i) => {
-    if (list.length !== 0) i += list.length;
-    return !(_$isType(v, _$List)) && _$isArray(v) ? new _$List(v, root, `${key}.${i}`) : v;
-  }));
-}
-function _$List(value: any[], root: Component, key: string) {
-  let self = this;
-  Array.apply(self, [value.length]);
-  let desc = { writable: false, configurable: false, enumerable: false };
-  _$define(self, '_key', _$assign({ value: key }, desc));
-  _$define(self, '_root', _$assign({ value: root }, desc));
-  _$arrayValues(self, value, root, key);
-  desc.writable = true;
-  _$define(self, 'length', _$assign({ value: self.length }, desc));
-}
-_$extends(_$List, Array);
-['pop', 'push', 'reverse', 'shift', 'sort', 'fill', 'unshift', 'splice'].forEach(method => {
-  _$List[PROP_MAP.h][method] = function () {
-    let self = this;
-    const old = self.slice();
-    let result;
-    if (method === 'push') {
-      _$arrayValues(self, _$toArgs(arguments), self._root, self._key);
-      result = self.length;
-    } else {
-      result = array[method].apply(self, arguments);
-    }
-    _$dispatch(self._root, self._key, old, self.slice());
-    return result;
-  };
-});
-_$List[PROP_MAP.h].pull = function (index: number) {
-  let self = this;
-  let items = _$toArgs(arguments, 1);
-  let length = self.length;
-  if (index > length) {
-    length = index + 1;
-    const pull = new Array(index - self.length);
-    pull.push.apply(pull, items);
-    for (let i = 0; i < length; i++) {
-      if (i === index) {
-        self.push.apply(self, pull);
-      }
-    }
-  } else {
-    self.splice.apply(self, [index, 1].concat(items));
-  }
-};
-function _$dispatch(root: Component, key: string, oldVal, value) {
-  root.$notify(key);
-  if (root[PROP_MAP.w][key]) {
-    _$each(root[PROP_MAP.w][key], watcher => { watcher(oldVal, value); });
-  }
-  root.$update();
-}
-function _$extends(ctor: Function, exts: Function) {
-  ctor[PROP_MAP.h] = Object.create(exts[PROP_MAP.h]);
-  ctor[PROP_MAP.h].constructor = ctor;
-}
-export function _$Ctor(tpl: Function, options: Object) {
-	const ctor: ComponentConstructor = <any>function (_$attrs, _$parent) {
-		_$BaseComponent.call(this, _$attrs, tpl, options, _$parent);
-		!_$parent && this.$create();
-	};
-	ctor.plugin = (fn: PluginFn, options?: ObjectLike<any>) => {
-		TPS.push({ options, fn });
-	};
-  _$extends(ctor, _$BaseComponent);
-  return ctor;
-}
-export function _$isType(value: any, type: string | Function) {
-  return _$type(type) === 'string' ? (<string>type).split('|').some(t => t.trim() === _$type(value)) : value instanceof <Function>type;
-}
-export function _$destroyComponent(component: Component) {
-  component.$unmount();
-  component.$parent = null;
-  component.$parentEl = null;
-  component.$siblingEl = null;
-  component.$children.splice(0, component.$children.length);
-}
-export function _$setElements(component: Component, parent: HTMLElement, sibling?: HTMLElement) {
-  let brother = _$select(sibling);
-  component.$siblingEl = brother;
-  component.$parentEl = sibling && brother.parentElement || _$select(parent);
-}
-function _$apply(callee: Function, args: any[], globs: any[], thisArg: any = null) {
-  return callee.apply(thisArg, args.concat(globs));
-}
-function _$isObject(obj) {
-  return _$isType(obj, 'object');
-}
-function _$isArray(obj) {
-  return Array.isArray ? Array.isArray(obj) : _$isType(obj, 'array');
-}
-function _$isFunction(obj) {
-  return _$isType(obj, 'function');
-}
-function _$isString(obj) {
-  return _$isType(obj, 'string');
-}
-function _$toType(value, type, root: Component, key: string) {
+function _$toType(value: any, type: any, component: Component, key: string) {
   switch (type) {
     case 'date':
       return new Date(value);
@@ -384,69 +111,99 @@ function _$toType(value, type, root: Component, key: string) {
     case 'boolean':
       return _$isString(value) && !value ? true : !!value;
     case 'array':
-      return _$isType(value, _$List) ? value : new _$List(value, root, key);
+      return _$isType(value, _$List) ? value : new _$List(value, component, key);
     default:
       return value;
   }
 }
-function _$type(obj: any) {
-  return / (\w+)/.exec(({}).toString.call(obj))[1].toLowerCase();
+function _$slice<T>(array: { length: number, [key: number]: T }, from?: number) {
+  const args: T[] = [];
+  from = from || 0;
+  for (let i = from; i < array.length; i++) {
+    args[i - from] = array[i];
+  }
+  return args;
 }
 function _$hasProp(obj: Object, prop: string) {
   return obj.hasOwnProperty(prop);
 }
-function _$directive(dd: DirectiveDefinition): DirectiveDefObject {
-  const hasProp = (prop, instance, options, element) =>
-    _$isObject(dd) && dd[prop] && dd[prop](instance, options, element);
-  return {
-    $init(instance, options, element) {
-      hasProp('$init', instance, options, element);
-    },
-    $inserted(instance, options, element) {
-      hasProp('$inserted', instance, options, element);
-    },
-    $update(instance, options, element) {
-      if (_$isFunction(dd)) {
-        dd(instance, options, element);
-      } else {
-        hasProp('$update', instance, options, element);
-      }
-    },
-    $destroy(instance, options, element) {
-      hasProp('$destroy', instance, options, element);
-    }
-  };
+function _$define(obj: Object, mapDesc: PropertyDescriptorMap) {
+  Object.defineProperties(obj, mapDesc);
 }
-export function _$noop() { }
-export function _$addChild(inst: Component, Child: ComponentConstructor, attrs: string[] | ObjectLike<AttrDefinition>) {
-  let child: Component = null;
-  if (Child) {
-    child = new Child(attrs, inst);
-    inst.$children.push(child);
+function _$each<T extends any[]>(obj: T, cb: (item: T[number], key: number) => void): void;
+function _$each<T extends any>(obj: T, cb: (item: T[string], key: string, index: number) => void): void;
+function _$each(obj: Object, cb: (item: any, key: any, index?: number) => void) {
+  if (_$isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) {
+      cb(obj[i], i);
+    }
+  }
+  else if (_$isObject(obj)) {
+    const keys = Object.keys(obj);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      cb(obj[key], key, i);
+    }
+  }
+}
+function _$lowerCase(str: string) {
+  return str.toLowerCase();
+}
+function _$camelToSnake(str: string) {
+  var result = str.replace(/([A-Z])/g, w => '-' + _$lowerCase(w));
+  return result[0] === '-' ? result.slice(1) : result;
+}
+function _$apply(callee: Function, args: any[], globs?: any, thisArg?: any) {
+  if (globs && !_$isArray(globs)) {
+    thisArg = globs;
+    globs = [];
+  } else if (globs === void 0) {
+    globs = [];
+  } else if (thisArg === void 0) {
+    thisArg = null;
+  }
+  return callee.apply(thisArg, args.concat(globs));
+}
+function _$removeItem<T>(list: T[], item: T) {
+  var index = list.indexOf(item);
+  if (~index) {
+    list.splice(index, 1);
+  }
+}
+function _$treborPlugins(): { plugin: Function, options: ObjectMap<any> }[] {
+  var TREBOR_PK = '__TREBOR_PLUGINS__';
+  if (!window[TREBOR_PK]) {
+    _$define(window, {
+      [TREBOR_PK]: { value: [], configurable: true, writable: true, enumerable: false }
+    });
+  }
+  return window[TREBOR_PK];
+}
+function _$assign(child: Object, parent: Object) {
+  for (const property in parent) {
+    if (parent.hasOwnProperty(property)) {
+      child[property] = parent[property];
+    }
   }
   return child;
 }
-export function _$removeChild(inst: Component, child: Component) {
-  let index = inst.$children.indexOf(child);
-  index >= 0 && inst.$children.splice(index, 1);
+function _$plainObject(obj: any) {
+  const data = {};
+  _$each(_$isObject(obj) ? obj : {}, function (value, k) {
+    if (k[0] !== '$' && !_$isFunction(value)) {
+      if (_$isType(value, _$List)) {
+        data[k] = value.map(_$plainObject);
+      } else if (_$isObject(value)) {
+        data[k] = _$plainObject(value);
+      } else {
+        data[k] = value;
+      }
+    }
+  });
+  return _$isObject(obj) ? data : obj;
 }
-export function _$toString(obj: any): string {
-  const str: string = _$type(obj);
-  return !/null|undefined/.test(str) ? obj.toString() : str;
-}
-export function _$setReference(refs: Object, prop: string, node: HTMLElement) {
-  if (!_$hasProp(refs, prop)) {
-    const value = [];
-    _$define(refs, prop, {
-      get: () => value.length <= 1 ? value[0] : value,
-      set: val => { val && !~value.indexOf(val) && value.push(val); },
-      enumerable: true, configurable: true
-    });
-  }
-  refs[prop] = node;
-}
-function _$accesor(object: Component, path: string, value?: any) {
-  return path.split('.').reduce((obj, key, i, arr) => {
+function _$accesor(component: Component, path: string, value?: any) {
+  return path.split('.').reduce((obj: any, key: string, i: number, arr) => {
     if (_$isType(value, 'undefined')) {
       if (obj == null) {
         arr.splice(0, arr.length);
@@ -457,258 +214,558 @@ function _$accesor(object: Component, path: string, value?: any) {
         if (_$isType(obj, _$List) && _$toString(+key) === key) {
           obj.pull(+key, value);
         } else {
-          let oldVal = obj[key];
-          obj[key] = !_$isType(value, _$List) && _$isArray(value) ? new _$List(value, object, key) : value;
-          _$dispatch(object, path, oldVal, obj[key]);
+          const oldVal = obj[key];
+          obj[key] = Array.isArray(value) ? new _$List(value, component, key) : value;
+          _$dispatch(component, path, oldVal, obj[key]);
         }
       } else if (!_$isObject(obj[key])) {
         obj[key] = {};
       }
     }
     return obj ? obj[key] : null;
-  }, object);
+  }, component);
 }
-export function _$emptyElse() {
-  return { type: 'empty-else', $create: _$noop, $mount: _$noop, $update: _$noop, $destroy: _$noop };
-}
-export function _$emptySlot(inst: Component, slot: string) {
-	let slots = inst.$slots;
-	return slots[slot] && !slots[slot].hasChildNodes() ? (slots[slot] = _$docFragment()) : null;
-}
-export function _$isKey(event: KeyboardEvent, key: string) {
-  return event.key.toLowerCase() === key || !!event[`${key}Key`];
-}
-export function _$bindGroup(input: HTMLInputElement, selection: string[]) {
-  let _value = _$getValue(input);
-  let _$index = selection.indexOf(_value);
-  input.checked && !~_$index ? selection.push(_value) : selection.splice(_$index, 1);
-}
-export function _$bindMultiSelect(select: HTMLSelectElement, selections: any[]) {
-  if (!selections.length) return;
-  let { options } = select;
-  for (let i = 0; i < options.length; i++) {
-    options[i].selected = !!~selections.indexOf(_$getValue(options[i]));
+function _$dispatch(component: Component, key: string, oldVal: any, value: any) {
+  component.$notify(key);
+  if (component._watchers[key]) {
+    _$each(component._watchers[key], function (watcher) { watcher(oldVal, value); });
   }
+  component.$update();
 }
-export function _$updateMultiSelect(select: HTMLSelectElement, obj: Component, prop: string) {
-  let items = [];
-  let selection = obj[prop];
-  let { selectedOptions } = select;
-  for (let i = 0; i < selectedOptions.length; i++) {
-    items.push(_$getValue(selectedOptions[i]));
+function _$subscribers(dep: string, handler: () => void) {
+  if (!this._subscribers[dep]) {
+    this._subscribers[dep] = [];
   }
-  obj[prop] = new _$List(items, selection['_root'], selection['_key']);
-  obj.$update();
+  return this._subscribers[dep].push(handler.bind(this)) - 1;
 }
-export function _$select(selector: string | Element, parent?: Element): HTMLElement {
-  return _$isString(selector) ? (parent || document).querySelector(<string>selector) : <HTMLElement>selector;
-}
-export function _$docFragment() {
-  return document.createDocumentFragment();
-}
-export function _$append(parent: Element, child: Element, sibling?: boolean | Element) {
-  if (_$isType(sibling, 'boolean') && sibling) parent.parentElement.replaceChild(child, parent);
-  else if (!sibling) parent.appendChild(child);
-  else parent.insertBefore(child, <Element>sibling);
-}
-export function _$appendToSlot(slots: ObjectLike<DocumentFragment>, slot: string, el: HTMLElement) {
-	!slots[slot].firstChild && _$append(<any>slots[slot], el);
-}
-export function _$declareSlots($slots: ObjectLike<DocumentFragment>, slots: string[]) {
-	_$each(slots, slot => { $slots[slot] = _$docFragment(); });
-}
-export function _$assignEl(source: Element, dest: Element) {
-  const { childNodes, attributes } = source;
-  for (let i = 0; i < childNodes.length; i++) {
-    _$append(dest, <Element>childNodes[i]);
-  }
-  for (let i = 0; i < attributes.length; i++) {
-    const attr = attributes[i];
-    dest.setAttributeNS(source.namespaceURI, attr.name, attr.value);
-  }
-  source.parentElement.replaceChild(dest, source);
-  return dest;
-}
-export function _$removeEl(el: Element, parent: Element) {
-  let root = parent || el.parentElement;
-  if (root) root.removeChild(el);
-}
-export function _$el<T extends keyof HTMLElementTagNameMap>(tagName?: T) {
-  return document.createElement(tagName || 'div');
-}
-export function _$svg<T extends keyof SVGElementTagNameMap>(tagName?: T) {
-  return document.createElementNS('http://www.w3.org/2000/svg', tagName || 'svg');
-}
-export function _$text(content?: string) {
-  return document.createTextNode(content || '');
-}
-export function _$comment(content?: string) {
-  return document.createComment(content || '');
-}
-export function _$setAttr(el: Element & { _value?: any }, attrAndValue: [string, any]) {
-  let [attr, value] = attrAndValue;
-  el.setAttribute(attr, _$toString(value));
-  if (_$isValueAttr(attr) && !_$isString(value)) el[PROP_MAP._] = value;
-}
-export function _$getAttr(el: Element, attr: string) {
-  return _$isValueAttr(attr) ? _$getValue(<HTMLInputElement>el) : el.getAttribute(attr);
-}
-export function _$getValue(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | HTMLOptionElement) & { _value?: any }) {
-  return _$hasProp(el, PROP_MAP._) ? el[PROP_MAP._] : el[PROP_MAP.v];
-}
-export function _$addListener(el: HTMLElement, event: string, handler: EventListenerOrEventListenerObject) {
-  el.addEventListener(event, handler, false);
-}
-export function _$updateListener(el: HTMLElement, event: string, oldHandler: EventListenerOrEventListenerObject, newHandler: EventListenerOrEventListenerObject) {
-  _$removeListener(el, event, oldHandler);
-  _$addListener(el, event, oldHandler = newHandler);
-  return oldHandler;
-}
-export function _$removeListener(el: HTMLElement, event: string, handler: EventListenerOrEventListenerObject) {
-  el.removeEventListener(event, handler, false);
-}
-export function _$filters(instance: Component, value: any) {
-  let filterArgs: any[][] = _$toArgs(arguments, 2);
-  _$each(filterArgs, args => {
-    const filter: string = args.splice(0, 1, value)[0];
-    value = _$apply(instance.$filters[filter], args, []);
-  });
-  return value;
-}
-export function _$bindClasses(value: string | ObjectLike<boolean> | (string | ObjectLike<boolean>)[]) {
-  let classes = '';
-  if (_$isString(value)) {
-    classes += ` ${value}`;
-  } else if (_$isArray(value)) {
-    classes = (<any[]>value).map(_$bindClasses).join(' ');
-  } else if (_$isObject(value)) {
-    for (let key in <Object>value)
-      if (_$hasProp(value, key) && value[key]) classes += ` ${key}`;
-  }
-  return classes.trim();
-}
-export function _$bindStyle(value: string | ObjectLike<any>) {
-  let el = _$el();
-  if (_$isObject(value)) {
-    const { style } = <HTMLElement>el;
-    _$each(value, (val, prop) => {
-      if (val !== style[prop]) style[prop] = val;
+const _$Component = (function () {
+  function _$Component(attrs: ObjectMap<any>, compCtor: typeof Component, parent: Component) {
+    const self = this;
+    if (!attrs)
+      attrs = {};
+    const propMap: ObjectMap<PropertyDescriptor> = {
+      $refs: { value: {}, enumerable: false, configurable: true },
+      $slots: { value: {}, enumerable: false, configurable: true },
+      $parent: { value: parent || null, enumerable: false, configurable: true },
+      $children: { value: [], enumerable: false, configurable: true },
+      $filters: { value: {}, enumerable: false, configurable: true },
+      $options: {
+        value: {
+          filters: compCtor.$filters || {},
+          children: compCtor.$children || {},
+          attributes: compCtor.$attributes || {}
+        }, enumerable: false, configurable: true
+      },
+    };
+    _$each(compCtor.$attributes || [], (attrOps: string | AttrDefinition, key: string) => {
+      key = _$isType(key, 'number') ? <string>attrOps : key;
+      propMap[key] = {
+        get() {
+          if (_$isString(attrOps)) {
+            const value = attrs[attrOps];
+            return _$isFunction(value) ? value() : value;
+          } else {
+            if (!_$hasProp(attrs, key) && attrOps.required) {
+              return console.error('Attribute \'' + key + '\' is required.');
+            } else {
+              let value = _$isFunction(attrs[key]) ? attrs[key]() : attrs[key];
+              if (value === void 0 && _$hasProp(attrOps, 'default')) {
+                const def = attrOps.default;
+                value = _$isFunction(def) ? def() : def;
+              }
+              const typ = attrOps.type;
+              if (typ && !_$isType(value, typ) && attrOps.required) {
+                return console.error('Attribute \'' + key + '\' must be type \'' + typ + '\'.');
+              }
+              value = _$toType(value, value === void 0 ? 'undefined' : typ, self, key);
+              if (value !== void 0 && _$hasProp(attrOps, 'validator')) {
+                const validator = attrOps.validator;
+                if (_$isFunction(validator) && !validator(value)) {
+                  return console.error('Assigment \'' + key + '\'=\'' + JSON.stringify(value) + '\' invalid.');
+                }
+              }
+              return value;
+            }
+          }
+        },
+        set() {
+          console.error('\'' + key + '\' is read only.');
+        },
+        enumerable: true, configurable: true
+      };
     });
-    return style.cssText;
-  } else if (_$isString(value)) {
-    return value;
+    const desc = { enumerable: false, configurable: false };
+    propMap._events = _$assign({ value: {}, }, desc);
+    propMap._watchers = _$assign({ value: {}, }, desc);
+    propMap._subscribers = _$assign({ value: {}, }, desc);
+    _$define(self, propMap);
+    _$assign(self.$filters, compCtor.$filters || {});
+  }
+  const prototype = _$Component.prototype;
+  _$define(prototype, {
+    $data: {
+      get() {
+        return _$plainObject(this);
+      },
+      enumerable: true,
+      configurable: true
+    }
+  });
+  prototype.$get = function (path: string) {
+    return _$accesor(this, path);
+  };
+  prototype.$set = function (path: string, value: any) {
+    _$accesor(this, path, value);
+  };
+  prototype.$on = function (event: string, handler: (data: any) => void) {
+    if (!this._events[event]) {
+      this._events[event] = [];
+    }
+    this._events[event].push(handler);
+  };
+  prototype.$off = function (event: string, handler: (data: any) => void) {
+    const index = this._events[event].indexOf(handler);
+    !!~index && this._events[event].splice(index, 1);
+  };
+  prototype.$once = function (event: string, handler: (data: any) => void) {
+    const _this = this;
+    const _handler = function (args: any) {
+      handler(args);
+      _this.$off(event, _handler);
+    };
+    this.$on(event, _handler);
+  };
+  prototype.$fire = function (event: string, data: any) {
+    if (this._events[event]) {
+      _$each(this._events[event], function (handler) { handler(data); });
+    }
+  };
+  prototype.$notify = function (key: string) {
+    if (this._subscribers[key]) {
+      _$each(this._subscribers[key], function (suscriber) { suscriber(); });
+    }
+  };
+  prototype.$observe = function (keyOrKeys: string | string[], handler: () => void) {
+    const _this = this;
+    const subs: { subscrition: string, index: number }[] = [];
+    if (_$isArray(keyOrKeys)) {
+      _$each(keyOrKeys, key => {
+        subs.push({ subscrition: key, index: _$subscribers.call(_this, key, handler) });
+      });
+    } else {
+      subs.push({
+        subscrition: keyOrKeys, index: _$subscribers.call(this, keyOrKeys, handler)
+      });
+    }
+    return {
+      $unobserve() {
+        _$each(subs, ({ subscrition, index }) => {
+          _this._subscribers[subscrition].splice(index, 1);
+        });
+      }
+    };
+  };
+  prototype.$watch = function (key: string, handler: () => void) {
+    const _this = this;
+    if (!this._watchers[key]) {
+      this._watchers[key] = [];
+    }
+    const i = this._watchers[key].push(handler.bind(this));
+    return {
+      $unwatch() {
+        _this._watchers[key].splice(i - 1, 1);
+      }
+    };
+  };
+  return _$Component;
+}());
+const _$List = (function (_super) {
+  _$extends(List, _super);
+  function List(value: any[], component: Component, key: string) {
+    _super.call(this, value.length);
+    const self = this;
+    _$define(self, {
+      _key: { value: key, enumerable: false },
+      _root: { value: component, enumerable: false }
+    });
+    _$apply(_super.prototype.push, value.map((val, i) => {
+      if (self.length !== 0)
+        i += self.length;
+      return !_$isType(val, List) && _$isArray(val) ? new List(val, component, key + '.' + i) : val;
+    }), [], self);
+  }
+  List.prototype.pull = function (index: number) {
+    const self = this;
+    const args = _$slice(arguments, 1);
+    let length = self.length;
+    if (index > length) {
+      length = index + 1;
+      const pull = new Array(index - self.length);
+      _$apply(pull.push, args, [], pull);
+      for (let i = 0; i < length; i++) {
+        if (i === index) {
+          _$apply(self.push, pull, [], self);
+        }
+      }
+    } else {
+      _$apply(self.splice, [index, 1].concat(args), [], self);
+    }
+  };
+  ['pop', 'push', 'reverse', 'shift', 'sort', 'fill', 'unshift', 'splice'].forEach(function (method) {
+    List.prototype[method] = function () {
+      const self = this;
+      const args = _$slice(arguments);
+      const old = self.slice();
+      let result = void 0;
+      if (method === 'push') {
+        _$apply([].push, args.map(function (v, i) {
+          if (self.length !== 0)
+            i += self.length;
+          return !(_$isType(v, List)) && _$isArray(v) ? new List(v, self._root, `${self._key}.${i}`) : v;
+        }), [], self);
+        result = self.length;
+      } else {
+        result = _$apply(Array.prototype[method], args, [], self);
+      }
+      _$dispatch(self._root, self._key, old, self.slice());
+      return result;
+    };
+  });
+  return List;
+}(Array));
+function _$createComponent($ComponentClass: Function, templateFn: (ctx: Component) => TemplateObject) {
+  function $ComponentCtor(attrs: Record<string, any>, parent: Component) {
+    const self: Component = this;
+    _$apply(_$Component, [attrs, $ComponentCtor, parent], [], self);
+    $ComponentClass.call(self);
+    const descriptors = {};
+    _$each(self, (_, key) => {
+      if (_$hasProp(self, key)) {
+        const descriptor = Object.getOwnPropertyDescriptor(self, key);
+        if (descriptor.value && _$isArray(descriptor.value)) {
+          descriptor.value = new _$List(descriptor.value, self, key);
+        } else {
+          if (descriptor.get) {
+            const getter_1 = descriptor.get;
+            descriptor.get = function () {
+              let value = getter_1.call(this);
+              if (_$isArray(value))
+                value = new _$List(value, this, key);
+              return value;
+            };
+          }
+          if (descriptor.set) {
+            const setter_1 = descriptor.set;
+            descriptor.set = function (value) {
+              if (_$isArray(value))
+                value = new _$List(value, this, key);
+              setter_1.call(this, value);
+            };
+          }
+        }
+        descriptors[key] = descriptor;
+      }
+    });
+    _$define(self, descriptors);
+    const tpl = templateFn(self);
+    const tplDesc = {};
+    _$each(tpl, (value: (...args: any[]) => void, key) => {
+      tplDesc[key] = ((key, value) => {
+        const hook = key[1].toUpperCase() + _$slice(key, 2);
+        return {
+          enumerable: false, configurable: false, writable: false,
+          value() {
+            const args = _$slice(arguments);
+            const ahook = this['did' + hook];
+            const bhook = this['will' + hook];
+            bhook && bhook.call(this);
+            _$apply(value, key === '$update' ? [this, _$slice(args, 1)] : args, this);
+            ahook && ahook.call(this);
+          }
+        };
+      })(key, value);
+    });
+    _$define(self, tplDesc);
+    _$each(_$treborPlugins(), ({ plugin, options }) => { plugin.call(self, $ComponentCtor, options); });
+    !parent && this.$create();
+  }
+  const proto = [$ComponentClass.prototype, _$Component.prototype].reduceRight((superProto, proto) => {
+    const inheritedProto = Object.create(superProto);
+    for (const key in proto) {
+      if (proto.hasOwnProperty(key)) {
+        const desc = Object.getOwnPropertyDescriptor(proto, key);
+        Object.defineProperty(inheritedProto, key, desc);
+      }
+    }
+    _$assign($ComponentCtor, proto.constructor);
+    inheritedProto.constructor = proto.constructor;
+    return inheritedProto;
+  }, Object.prototype);
+
+  $ComponentCtor.prototype = Object.create(proto);
+  $ComponentCtor.prototype.constructor = $ComponentCtor;
+  $ComponentCtor.$plugin = function (plugin: Function, options: Record<string, any>) {
+    _$treborPlugins().push({ options, plugin });
+  };
+  return $ComponentCtor;
+}
+function _$setReference(refs: Record<string, HTMLElement | HTMLElement[]>, prop: string, node: HTMLElement) {
+  if (!_$hasProp(refs, prop)) {
+    const value: HTMLElement[] = [];
+    _$define(refs, {
+      [prop]: {
+        get() { return value.length <= 1 ? value[0] : value; },
+        set(val: HTMLElement) { val && !~value.indexOf(val) && value.push(val); },
+        enumerable: true, configurable: true
+      }
+    });
+  }
+  refs[prop] = node;
+}
+function _$removeReference(refs: Record<string, HTMLElement[]>, prop: string, node: HTMLElement) {
+  const nodes = refs[prop];
+  _$isArray(nodes) ? _$removeItem(nodes, node) : (delete refs[prop]);
+}
+function _$fragTpl(...htmlParts: string[]) {
+  const template = document.createElement('template');
+  template.innerHTML = htmlParts.join('<!---->');
+  const fragment = template.content;
+  const nodes = <Node[]>_$slice(fragment.childNodes);
+  nodes.unshift(fragment);
+  return nodes;
+}
+function _$prepareFragment(frag: DocumentFragment, els: Node[]) {
+  if (!frag.hasChildNodes()) {
+    _$each(els, el => frag.append(el));
+  }
+}
+function _$updateTxt(txt: Text, newData: string) {
+  if (txt.data !== newData) {
+    txt.data = newData;
+  }
+}
+function _$noop() { }
+function _$child(el: Node, index?: number) {
+  if (index === void 0) { index = 0; }
+  var node = el.childNodes[index];
+  if (node.nodeType === 3) {
+    (<Text>node).data = '';
+  }
+  return node;
+}
+function _$append(parent: Node, child: Node, sibling?: Node | boolean) {
+  if (sibling === true)
+    parent.parentElement.replaceChild(child, parent);
+  else if (!sibling)
+    parent.appendChild(child);
+  else
+    parent.insertBefore(child, sibling);
+}
+function _$attr(el: HTMLElement, attribute?: string, value?: any) {
+  if (attribute === void 0) { attribute = 'value'; }
+  var isValueAttr = attribute === 'value';
+  var _value = isValueAttr ? `_${attribute}` : null;
+  if (value === void 0) {
+    if (isValueAttr) {
+      return _$hasProp(el, _value) ? el[_value] : el[attribute];
+    } else {
+      return el.getAttribute(attribute);
+    }
   } else {
-    return '';
+    el.setAttribute(attribute, _$toString(value));
   }
 }
-export function _$conditionalUpdate(block: { type: string } & ComponentTemplate, condition: Function, parent: Element, anchor: Element, inst: Component) {
-  let globs = _$toArgs(arguments, 5);
-  if (block && block.type === _$apply(condition, [inst], globs).type) {
-    _$apply(block.$update, [inst], globs, block);
+function _$eventKeys(event: KeyboardEvent) {
+  var keys = _$slice(arguments, 1);
+  var i = 0;
+  while (i < keys.length) {
+    var key = keys[i];
+    if (!(_$lowerCase(event.key) === key || !!event[`${key}Key`])) {
+      return false;
+    }
+    i++;
+  }
+  return true;
+}
+function _$eventStop(event: Event) {
+  event.stopPropagation();
+}
+function _$eventPrevent(event: Event) {
+  event.preventDefault();
+}
+function _$addEvent(node: Node | Component, event: string, listener: (...args: any[]) => void) {
+  if (_$type(node).indexOf('html') === 0) {
+    node.addEventListener(event, listener, false);
+  }
+  else {
+    (<Component>node).$on(event, listener);
+  }
+}
+function _$removeEvent(node: Node | Component, event: string, listener: (...args: any[]) => void) {
+  if (_$type(node).indexOf('html') === 0) {
+    node.removeEventListener(event, listener, false);
   } else {
-    block && block.$destroy();
-    block = _$apply(condition, [inst], globs);
-    block.$create();
-    block.$mount(parent || inst.$parentEl, anchor);
-  }
-  return block;
-}
-export function _$bindBooleanAttr(el: HTMLElement, attrAndValue: [string, any]) {
-  let [attr, value] = attrAndValue;
-  el[attr] = value == null || value === false ? (el.removeAttribute(attr), false) : (_$setAttr(el, [attr, '']), true);
-}
-export function _$bindUpdate(el: (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) & { _value: any }, binding: [string, any]) {
-  let [attr, value] = binding;
-  let _value: string = _$toString(value);
-  if (_$isValueAttr(attr)) {
-    if (el[attr] !== _value) el[attr] = _value;
-    el[PROP_MAP._] = value;
-  } else if (_$getAttr(el, attr) !== _value) {
-    _$setAttr(el, [attr, _value]);
+    (<Component>node).$off(event, listener);
   }
 }
-export function _$textUpdate(text: Text, value: string) {
-  if (text.data !== (value = _$toString(value))) text.data = value;
+function _$initSlot(slots: Record<string, DocumentFragment>, slotName: string, children: string[]) {
+  if (!slots[slotName].hasChildNodes()) {
+    slots[slotName] = _$apply(_$fragTpl, children)[0];
+  }
 }
-export function _$tagUpdate<T extends keyof HTMLElementTagNameMap>(node: HTMLElement, tag: T) {
-  return tag.toUpperCase() !== node.tagName ? _$assignEl(node, _$el(tag)) : node;
+function _$declareSlots(slots: Record<string, DocumentFragment>, slotsList: string[]) {
+  _$each(slotsList, slotName => {
+    slots[slotName] = _$apply(_$fragTpl, [])[0];
+  });
 }
-export function _$removeReference(refs: Object, prop: string, node: HTMLElement) {
-  let nodes = refs[prop];
-  _$isArray(nodes) ? refs[prop].splice(nodes.indexOf(node), 1) : (delete refs[prop]);
+function _$appendSlots(slots: Record<string, DocumentFragment>, parent: Node) {
+  _$each(slots, slot => {
+    _$append(parent, slot);
+  });
 }
-export function _$htmlUpdate(node: HTMLElement, value: string) {
-  if (node.innerHTML !== (value = _$toString(value))) node.innerHTML = value;
+function _$emptySlot(component: Component, slot: string) {
+  var slots = component.$slots;
+  return slots[slot] && !slots[slot].hasChildNodes() ? (slots[slot] = _$apply(_$fragTpl, [])[0]) : null;
 }
-export function _$componentUpdate(parent: Component, Ctor: ComponentConstructor, inst: Component, value: ComponentConstructor, attrs: AttrParams, el: HTMLElement, sibling: HTMLElement) {
-  if (value === Ctor) {
+function _$setSlotContent(slot: DocumentFragment, content: string[]) {
+  slot && _$append(slot, _$apply(_$fragTpl, content)[0]);
+}
+function _$setElements(component: Component, parent: HTMLElement, sibling: boolean | HTMLElement) {
+  var brother = _$(<HTMLElement>sibling);
+  if (brother && _$type(brother) !== 'boolean') {
+    component.$siblingEl = brother;
+    component.$parentEl = brother.parentElement;
+  }
+  else {
+    component.$parentEl = _$(parent);
+  }
+}
+function _$getComponent(parent: Component, tag: string, globName: string) {
+  return !tag && !globName ? parent.constructor : parent.$options.children[tag] || window[globName];
+}
+function _$callHook(component: Component, hook: string) {
+  const args = _$slice(arguments, 2);
+  component && _$apply(component[hook], args, component);
+}
+function _$addChild(component: Component, Child: typeof Component, attrs: Record<string, any>) {
+  let child = null;
+  if (Child) {
+    child = new Child(attrs, component);
+    component.$children.push(child);
+  }
+  return child;
+}
+function _$componentUpdate(parent: Component, inst: Component, ctor: typeof Component, value: typeof Component, attrs: Record<string, any>, el: HTMLElement, sibling: boolean | HTMLElement) {
+  if (value === ctor) {
     inst && inst.$update();
-  } else {
-    Ctor = value;
+  }
+  else {
+    ctor = value;
     if (inst) {
       inst.$destroy();
-      _$removeChild(parent, inst);
-    }
-    if (inst) {
-      inst = _$addChild(parent, Ctor, attrs);
+      _$removeItem(parent.$children, inst);
+      inst = _$addChild(parent, ctor, attrs);
       inst.$create();
       inst.$mount(el || parent.$parentEl, sibling);
     }
   }
-  return [inst, Ctor];
+  return [inst, ctor];
 }
-export function _$forLoop(root: Component, obj: any[], loop: (...args: any[]) => ComponentTemplate) {
-  let items: ObjectLike<ComponentTemplate> = {}, loopParent: Element, loopSibling: Element;
-  let globs = _$toArgs(arguments, 3);
-  _$each(obj, (item, i, index) => { items[i] = _$apply(loop, [root, item, i, index], globs); });
-  return {
-    $create() {
-      _$each(items, item => { item.$create(); });
-    },
-    $mount(parent, sibling) {
-      loopParent = _$select(parent);
-      loopSibling = _$select(sibling);
-      _$each(items, item => { item.$mount(loopParent, loopSibling); });
-    },
-    $update(root: Component, obj: any[]) {
-      let globs = _$toArgs(arguments, 2);
-      _$each(items, (item, i, index) => {
-        if (obj[i]) {
-          _$apply(item.$update, [root, obj[i], i, index], globs, item);
-        } else {
-          item.$destroy();
-          delete items[i];
-        }
-      });
-      _$each(obj, (item, i, index) => {
-        if (!items[i]) {
-          items[i] = _$apply(loop, [root, item, i, index], globs);
-          items[i].$create();
-          items[i].$mount(loopParent, loopSibling);
-        }
-      });
-    },
-    $destroy() {
-      _$each(items, item => { item.$destroy(); });
-    }
-  };
+function _$destroyComponent(component: Component) {
+  component.$unmount();
+  component.$parent = null;
+  component.$parentEl = null;
+  component.$siblingEl = null;
+  component.$children.splice(0);
 }
-export function _$each<T>(obj: T, cb: (value: IterateValue<T>, key: IterateKey<T>, index?: number) => void) {
-  let i = 0;
-  for (const key in obj) {
-    if (_$hasProp(obj, key)) {
-      cb(<any>obj[key], <any>(isNaN(+key) ? key : +key), i++);
+function _$bindClass(classes: string, classValue: string | string[] | Record<string, boolean>) {
+  function parseClasses(classes: string, classValue: string | string[] | Record<string, boolean>) {
+    let classList = classes.split(' ');
+    if (_$isString(classValue)) {
+      classList = classList.concat(classValue.split(' '));
     }
+    else if (_$isArray(classValue)) {
+      classValue.forEach(c => {
+        classList = classList.concat(parseClasses('', c));
+      });
+    }
+    else if (_$isObject(classValue)) {
+      _$each(classValue, (value, prop) => {
+        value && classList.push(prop);
+      });
+    }
+    return classList.filter((c, i) => classList.indexOf(c) === i);
+  }
+  return parseClasses(classes, classValue).join(' ');
+}
+function _$bindStyle(style: string, styles: string | Record<string, string>) {
+  if (_$isObject(styles)) {
+    _$each(styles, (value, prop) => {
+      style += `;${_$camelToSnake(prop)}:${value}`;
+    });
+    return style;
+  } else if (_$isString(styles)) {
+    return `${style};${styles}`;
+  }
+  return style;
+}
+function _$bindBooleanAttr(node: HTMLElement, attr: string, value: boolean) {
+  if (value == null || value === false) {
+    node.removeAttribute(attr);
+    node[attr] = false;
+  } else {
+    _$attr(node, attr, '');
+    node[attr] = true;
   }
 }
-export function _$insertStyle(id: string, css: string) {
+function _$bindUpdate(node: HTMLElement, attr: any, value?: any) {
+  if (value === void 0) {
+    value = attr;
+    attr = 'value';
+  }
+  var _value = _$toString(value);
+  if (attr === 'value') {
+    if (node[attr] !== _value) {
+      node[attr] = _value;
+      node[`_${attr}`] = value;
+    }
+  } else if (_$attr(node, attr) !== _value) {
+    _$attr(node, attr, _value);
+  }
+}
+function _$bindMultiSelect(select: HTMLSelectElement, selections) {
+  if (!selections.length) {
+    return;
+  }
+  const options = select.options;
+  _$each(options, (option: HTMLOptionElement) => {
+    option.selected = !!~selections.indexOf(_$attr(option));
+  });
+}
+function _$filters(component: Component, value) {
+  const filterArgs = _$slice(arguments, 2);
+  _$each(filterArgs, (args: any[]) => {
+    const filter = args.splice(0, 1, value)[0];
+    value = _$apply(component.$filters[filter], args, component);
+  });
+  return value;
+}
+function _$context(ctx: Component, cb: (args?: any[]) => any) {
+  const props = _$slice(arguments, 2);
+  const args = props.map(prop => {
+    const value = prop in ctx ? ctx[prop] : window[prop];
+    return _$isFunction(value) ? value.bind(ctx) : value;
+  });
+  return args.length ? cb(args) : cb();
+}
+function _$insertStyle(id: string, css: string) {
   let isNew = false;
-  let style = _$select(`#${id}`, document.head);
+  let style = _$('#' + id, document.head);
   if (!style) {
     isNew = true;
-    style = _$el('style');
+    style = document.createElement('style');
     style.id = id;
-    _$setAttr(style, ['refs', 1]);
+    _$attr(style, 'refs', 1);
   }
   if (style.textContent !== css) {
     style.textContent = css;
@@ -716,18 +773,26 @@ export function _$insertStyle(id: string, css: string) {
   if (isNew) {
     _$append(document.head, style);
   } else {
-    let count = +_$getAttr(style, 'refs');
-    _$setAttr(style, ['refs', ++count]);
+    let count = +_$attr(style, 'refs');
+    _$attr(style, 'refs', ++count);
   }
 }
-export function _$removeStyle(id: string) {
-  let style = _$select(`#${id}`, document.head);
+function _$removeStyle(id: string) {
+  const style = _$('#' + id, document.head);
   if (style) {
-    let count = +_$getAttr(style, 'refs');
+    let count = +_$attr(style, 'refs');
     if (--count === 0) {
-      _$removeEl(style, document.head);
+      document.head.removeChild(style);
     } else {
-      _$setAttr(style, ['refs', count]);
+      _$attr(style, 'refs', count);
     }
   }
 }
+
+export {
+  _$, _$attr, _$declareSlots, _$initSlot, _$bindBooleanAttr, _$bindMultiSelect, _$appendSlots, _$emptySlot,
+  _$addEvent, _$removeEvent, _$noop, _$eventStop, _$eventPrevent, _$child, _$append, _$updateTxt, _$bindClass,
+  _$bindStyle, _$eventKeys, _$fragTpl, _$setReference, _$removeReference, _$filters, _$type, _$each, _$apply,
+  _$bindUpdate, _$getComponent, _$addChild, _$componentUpdate, _$destroyComponent, _$setElements, _$callHook,
+  _$prepareFragment, _$context, _$createComponent, _$insertStyle, _$removeStyle, _$setSlotContent, _$slice, _$toString
+};

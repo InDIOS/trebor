@@ -9,7 +9,7 @@
 ### Overview
 
 [TreborJS](https://npmjs.org/package/trebor) is a [NodeJS](http://nodejs.org) module to compile `component declarated files` into `stand-alone web component` javascript files to be used
-in the browser. The format of a [component declaration file](https://github.com/InDIOS/trebor/wiki/Component-declaration) is specified be the module and described 
+in the browser. The format of a [single file component](https://github.com/InDIOS/trebor/wiki/Component-declaration) is specified be the module and described 
 in it's [documentation](https://github.com/InDIOS/trebor/wiki).
 
 ### Why?
