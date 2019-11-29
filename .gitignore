@@ -1,10 +1,8 @@
-# Dependency directories
+.vscode/
 node_modules/
-specs/*
-!specs/components
-specs/components/*
-!specs/components/readme.txt
 build/
+tests/
+test/**/*.js
+test/**/*.map
 tools/*.js
 tools/*.map
-test/index.js

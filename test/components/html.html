@@ -3,20 +3,18 @@
   <p>Any kind of content here. Such as &lt;p&gt;, &lt;table&gt;. You name it!</p>
 </div>
 <div>
-  <p>Some paragraph with text {{expression}}</p>
+  <p>Some paragraph with text {expression}</p>
 </div>
 <div>
-  <p #some-attr="someVar">Some paragraph with {{text}} and {{attribute}} expressions</p>
+  <p #SomeAttr="someVar">Some paragraph with {text} and {attribute} expressions</p>
 </div>
 <div $html>
-  <p $some-attr="someVar">Some paragraph with text intentional {{escaped}}</p>
+  <p $some-attr="someVar">Some paragraph with text intentional {escaped}</p>
 </div>
 <div $html="html"></div>
 
 <script>
-	export default {
-		model: {
-			html: '<p $some-attr="someVar">Some paragraph with text from {{model}}</p>'
-		}
+	export default class {
+	html = '<p $some-attr="someVar">Some paragraph with text from {model}</p>';
 	};
 </script>

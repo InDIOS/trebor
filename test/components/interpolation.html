@@ -1,13 +1,11 @@
-<div id="text_1">Test interpolation with {{ text_1 }}.</div>
-<span id="text_2">Test interpolation with {{ text_1 }} {{ text_2 }} {{ text_3 }}</span>
-<p id="text_3">Test {{ text_1 }} with {{ text_3 }} and some expresions with {{ text_2.toUpperCase() }}</p>
+<div id="text_1">Test interpolation with {text_1}.</div>
+<span id="text_2">Test interpolation with {text_1} {text_2} {text_3}</span>
+<p id="text_3">Test {text_1} with {text_3} and some expresions with {text_2.toUpperCase()}</p>
 
 <script>
-	export default {
-		model: {
-			text_1: 'some text',
-			text_2: 'and',
-			text_3: `some text with quote ' and double quote "`
-		}
-	};
+  export default class {
+    text_1 = 'some text';
+    text_2 = 'and';
+    text_3 = `some text with quote ' and double quote "`;
+  };
 </script>

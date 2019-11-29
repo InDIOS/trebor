@@ -1,23 +1,24 @@
+const { parseSource } = require('./build');
 const { extname, basename } = require('path');
 const { getOptions } = require('loader-utils');
-const { transpileModule } = require('typescript');
-const { genSource, exportFormat } = require('./build');
-const { optimize } = require('./build/utilities/context');
-const { kebabToCamelCases, capitalize } = require('./build/utilities/tools');
+const { snakeToCamel, capitalize } = require('./build/utils');
 
-module.exports = function (code, map, meta) {
-  const format = 'es';
+module.exports = function (html, sourceMap, meta) {
+  let { comments = false, format = 'esm', directives = [] } = getOptions(this) || {};
   const ext = extname(this.resourcePath);
-  const file = basename(this.resourcePath, ext);
-  const moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
-  const { comments } = getOptions(this) || {};
-  const { imports, source } = genSource(code, {
-    noComments: !comments, moduleName, format, input: this.resourcePath
-  });
-  const src = [source, exportFormat(format, moduleName)].join('\n');
-  const { outputText, sourceMapText } = transpileModule(src, {
-    compilerOptions: { target: 1, module: 5, removeComments: !comments }
+  const moduleName = capitalize(snakeToCamel(basename(this.resourcePath, ext)));
+  const { code, map, error } = parseSource(html, {
+    filePath: this.resourcePath,
+    compilerOptions: {
+      comments, format: /^(esm|cjs)$/i.test(format) ? format : 'esm',
+      minify: false, moduleName, optimize: false
+    },
+    directives
   });
 
-  this.callback(null, optimize([...imports, outputText].join('\n')), sourceMapText, meta);
+  if (error) {
+    throw error;
+  }
+
+  this.callback(null, code, map, meta);
 };

@@ -1,0 +1,141 @@
+<style scoped>
+  .view label {
+    user-select: none;
+    -wmso-user-select: none;
+  }
+</style>
+
+<section class="todoapp">
+  <header class="header">
+    <h1>todos</h1>
+    <input class="new-todo" placeholder="What needs to be done?" autofocus $value="newTodo" @keyup.enter="addTodo()">
+  </header>
+  <section class="main" $show="todos.length">
+    <input id="toggle-all" class="toggle-all" type="checkbox" :checked="allDone" @change="markAll($el.checked)">
+    <label for="toggle-all">Mark all as complete</label>
+    <ul class="todo-list">
+      <li class="todo" $for="(todo, i) in todos | filterByView(view)"
+        :class="{completed: todo.completed, editing: todo === editedTodo}">
+        <div class="view">
+          <input class="toggle" type="checkbox" :checked="todo.completed" @change="mark(i, $el.checked)">
+          <label @dblclick="editTodo(todo, i)">{ todo.title }</label>
+          <button class="destroy" @click="removeTodo(todo)"></button>
+        </div>
+        <input type="text" $focus-edit="todo === editedTodo" class="edit" $value="todo.title" @blur="editedTodo = null"
+          @keyup="doneEdit(todo, $event)">
+      </li>
+    </ul>
+  </section>
+  <footer class="footer" $show="todos.length">
+    <span class="todo-count">{ remaining } { 'item' | pluralize(remaining) } left</span>
+    <ul class="filters">
+      <li>
+        <a href="#" :class="{selected: view === ''}" @click="view = ''">All</a>
+      </li>
+      <li>
+        <a href="#active" :class="{selected: view === 'active'}" @click="view = 'active'">Active</a>
+      </li>
+      <li>
+        <a href="#completed" :class="{selected: view === 'completed'}" @click="view = 'completed'">Completed</a>
+      </li>
+    </ul>
+    <button class="clear-completed" @click="removeCompleted()" $show="todos.length > remaining">
+      Clear completed
+    </button>
+  </footer>
+</section>
+
+<script>
+  export default class {
+    static $filters = {
+      actives(todos) {
+        return todos.filter(todo => !todo.completed);
+      },
+      filterByView(todos, view) {
+        switch (view) {
+          case 'active':
+            return todos.filter(todo => !todo.completed);
+          case 'completed':
+            return todos.filter(todo => todo.completed);
+          default:
+            return todos;
+        }
+      },
+      pluralize(word, count) {
+        return `${word}${count !== 1 ? 's' : ''}`;
+      }
+    };
+
+    todos = [];
+    newTodo = '';
+    oldTitle = '';
+    _allDone = false;
+    editedTodo = null;
+
+    get allDone() {
+      return this._allDone || this.remaining === 0;
+    }
+
+    set allDone(value) {
+      this._allDone = value;
+    }
+
+    get remaining() {
+      return this.$filters.actives(this.todos).length;
+    }
+
+    addTodo() {
+      const title = this.newTodo && this.newTodo.trim();
+      if (!title) return;
+      this.newTodo = '';
+      this.todos.push({ title: title, completed: false });
+      $: this.allDone = this.remaining === 0;
+    }
+
+    editTodo(todo) {
+      this.editedTodo = todo;
+      this.oldTitle = todo.title;
+      this.$update();
+    }
+
+    doneEdit(todo, e) {
+      if (e.key === 'Enter') {
+        todo.title = todo.title.trim();
+        if (!todo.title) {
+          this.removeTodo(todo);
+        }
+        this.clearTmps();
+      } else if (e.key === 'Escape') {
+        todo.title = this.oldTitle;
+        this.clearTmps();
+      }
+    }
+
+    removeTodo(todo) {
+      const index = this.todos.indexOf(todo);
+      this.todos.splice(index, 1);
+      $: this.allDone = this.remaining === 0;
+    }
+
+    mark(item, value) {
+      this.$filters.filterByView(this.todos, this.view)[item].completed = value;
+      this.allDone = this.remaining === 0;
+      this.$update();
+    }
+
+    markAll(value) {
+      this.todos.forEach(todo => { todo.completed = value; });
+      $: this.allDone = value;
+    }
+
+    removeCompleted() {
+      $: this.todos = this.$filters.actives(this.todos);
+    }
+
+    clearTmps() {
+      this.editedTodo = null;
+      this.oldTitle = '';
+      this.$update();
+    }
+  };
+</script>

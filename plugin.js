@@ -1,32 +1,26 @@
+const { parseSource } = require('./build');
 const { extname, basename } = require('path');
-const { transpileModule } = require('typescript');
 const { createFilter } = require('rollup-pluginutils');
-const { genSource, exportFormat } = require('./build');
-const { optimize } = require('./build/utilities/context');
-const { kebabToCamelCases, capitalize } = require('./build/utilities/tools');
+const { snakeToCamel, capitalize } = require('./build/utils');
 
-module.exports = function ({ include, exclude, comments } = {}) {
-  const format = 'es';
-	const filter = createFilter(include || './**/*.html', exclude);
+module.exports = function ({ include, exclude, comments = false, format = 'esm', directives = [] } = {}) {
+  format = /^(esm|cjs)$/i.test(format) ? format : 'esm';
+  const filter = createFilter(include || './**/*.html', exclude);
   return {
     name: 'rollup-plugin-trebor',
-    transform(code, id) {
-      if (!filter(id)) return;
-      const ext = extname(id);
-      const file = basename(id, ext);
-      const moduleName = kebabToCamelCases(capitalize(file).replace(/\./g, '_'));
-      const { imports, source } = genSource(code, {
-        noComments: !comments, moduleName, format, input: id
-      });
-      const src = [source, exportFormat(format, moduleName)].join('\n');
-      const { outputText, sourceMapText } = transpileModule(src, {
-        compilerOptions: { sourceMap: true, target: 1, module: 5, removeComments: !comments }
+    transform(html, filePath) {
+      if (!filter(filePath)) return;
+      const ext = extname(filePath);
+      const file = basename(filePath, ext);
+      const moduleName = capitalize(snakeToCamel(file));
+
+      const { code, map } = parseSource(html, {
+        filePath: this.resourcePath,
+        compilerOptions: { comments, format, minify: false, moduleName },
+        directives, optimize: false
       });
 
-      return {
-        code: optimize([...imports, outputText].join('\n')),
-        map: sourceMapText
-      };
+      return { code, map };
     }
   };
 };
