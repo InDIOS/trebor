@@ -1,3 +1,6 @@
+1.0.1
+- Fixed missing typescript as dependency
+
 1.0.0
 - Full rewrote of core.
 - Component declarations export a class now.
