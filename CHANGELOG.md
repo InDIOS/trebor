@@ -1,3 +1,13 @@
+1.0.0
+- Full rewrote of core.
+- Component declarations export a class now.
+- Changed interpolation expression from `{{ ... }}` to `{ ... }`.
+- Added the ability to bind `name` slot attribute.
+- Use `puppeteer` for test and drop `PhantomJS`.
+- Dirctives are now NodeJS modules and work in compile time.
+- NodeJS API change and now support parsers for javascript, html and css.
+- Added tools inside Trebor again for more maintainability.
+
 0.3.3
 - Added project descriptions to Readme.
 - Fixed bug when template elements are condition or loop blocks.
