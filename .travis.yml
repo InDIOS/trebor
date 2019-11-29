@@ -1,3 +1,5 @@
+dist: bionic
+sudo: true
 language: node_js
 node_js:
   - "13"
@@ -5,10 +7,6 @@ node_js:
   - "11"
   - "10"
   - "9"
-  - "8"
-sudo: required
-addons:
-  chrome: stable
 install:
   - npm i
 script:
