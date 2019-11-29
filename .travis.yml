@@ -6,7 +6,7 @@ node_js:
   - "10"
   - "9"
   - "8"
-  sudo: required
+sudo: required
 addons:
   chrome: stable
 install:
