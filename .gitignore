@@ -2,7 +2,6 @@
 node_modules/
 build/
 tests/
-test/index.html
 test/**/*.js
 test/**/*.map
 tools/*.js

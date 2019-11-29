@@ -1,6 +1,6 @@
 declare type MountParam = string | HTMLElement;
 
-declare interface Component {
+declare class Component {
 	$set(key: string, value: any): void;
 	$destroy(): void;
   $mount(parent: MountParam, sibling?: MountParam | boolean): void;

@@ -32,6 +32,7 @@
     "eslint": "^6.7.1",
     "eslint-plugin-html": "^6.0.0",
     "jasmine": "^3.5.0",
+    "jasmine-console-reporter": "^3.1.0",
     "puppeteer": "^2.0.0",
     "rollup": "^1.26.5",
     "rollup-plugin-terser": "^5.1.2",
@@ -47,8 +48,8 @@
     "build:webpack-example": "webpack --config examples/02-Webpack/webpack.config.js",
     "build:rollup-example": "rollup --config examples/03-Rollup/rollup.config.js",
     "build:todomvc-example": "webpack --config examples/04-ToDoMVC/webpack.config.js",
-    "build:test": "tsc -p ./test && node bin/trebor.js -i test/components/*.html",
-    "test": "npm run build:test && node test/index.js"
+    "build:test:components": "node bin/trebor.js -i test/components/*.html",
+    "test": "tsc -p ./test && node test/index.js"
   },
   "keywords": [
     "single-file-component",

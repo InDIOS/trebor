@@ -19,6 +19,13 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Iniciar test",
+      "program": "${workspaceFolder}\\test\\index.ts",
+      "outFiles": ["${workspaceFolder}\\test\\**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Iniciar cli",
       "program": "${workspaceFolder}\\bin\\trebor.js",
       "cwd": "${workspaceFolder}",

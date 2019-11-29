@@ -1,38 +1,46 @@
+import { Page, Browser, JSHandle, ElementHandle } from 'puppeteer';
+import { getBrowser, getPage, getComponent, exec } from '../utils';
+
 describe('Component Filters', () => {
-  let instance;
+  let page: Page;
+  let browser: Browser;
+  let instance: JSHandle<Component>;
 
-  beforeEach(done => {
-    instance = new Filters();
-    instance.$mount('main');
-    done();
+  beforeAll(async () => {
+    browser = await getBrowser();
+    page = await getPage(browser, 'filters');
+    [, instance] = await getComponent<typeof Component, Component>(page, 'Filters');
   });
 
-  afterEach(done => {
-    instance && instance.$destroy();
-    done();
+  afterAll(async () => {
+    await browser.close();
   });
 
-  it('should be declared', () => {
-    const { $filters } = instance;
-    expect($filters.upper).toBeDefined();
-    expect($filters.trim).toBeDefined();
-    expect($filters.filterBy).toBeDefined();
+  it('should be declared', async () => {
+    const filters = await instance.getProperty('$filters');
+    expect(await exec(filters, f => f.trim)).toBeDefined();
+    expect(await exec(filters, f => f.upper)).toBeDefined();
+    expect(await exec(filters, f => f.filterBy)).toBeDefined();
   });
 
-  it('should be functions', () => {
-    const { $filters } = instance;
-    expect(typeof $filters.upper).toBe('function');
-    expect(typeof $filters.trim).toBe('function');
-    expect(typeof $filters.filterBy).toBe('function');
+  it('should be functions', async () => {
+    const filters = await instance.getProperty('$filters');
+    expect(await exec(filters, f => typeof f.trim)).toBe('function');
+    expect(await exec(filters, f => typeof f.upper)).toBe('function');
+    expect(await exec(filters, f => typeof f.filterBy)).toBe('function');
   });
 
-  it('should be filter correctly', () => {
-    const [span, span1, ul]: [HTMLSpanElement, HTMLSpanElement, HTMLUListElement] = [].slice.call(document.querySelector('main').children);
-    expect(span.textContent).toBe('some test text');
-    expect(span1.textContent).toBe('some text uppercase'.toUpperCase());
-    instance.$set('filter', 'a');
-    expect(ul.children.length).toBe(2);
-    expect(ul.children[0].textContent).toBe('AB');
-    expect(ul.children[1].textContent).toBe('A C');
+  it('should be filtered correctly', async () => {
+    const main = await page.$('main');
+    const children: JSHandle<HTMLElement[]> = await main.getProperty('children');
+    const ul: JSHandle<HTMLElement> = await children.getProperty('2');
+    const span: JSHandle<HTMLElement> = await children.getProperty('0');
+    const span1: JSHandle<HTMLElement> = await children.getProperty('1');
+    expect(await exec(span, s => s.textContent)).toBe('some test text');
+    expect(await exec(span1, s => s.textContent)).toBe('some text uppercase'.toUpperCase());
+    await exec(instance, i => i.$set('filter', 'a'));
+    expect(await exec(ul, u => u.children.length)).toBe(2);
+    expect(await exec(ul, u => u.children[0].textContent)).toBe('AB');
+    expect(await exec(ul, u => u.children[1].textContent)).toBe('A C');
   });
 });

@@ -1,23 +1,26 @@
+import { Page, Browser } from 'puppeteer';
+import { getBrowser, getPage, getComponent, exec } from '../utils';
+
 describe('Component Text interpolation', () => {
-	let instance;
+  let page: Page;
+  let browser: Browser;
 
-	beforeEach(done => {
-		instance = new Interpolation();
-		instance.$mount('main');
-		done();
-	});
+  beforeAll(async () => {
+    browser = await getBrowser();
+    page = await getPage(browser, 'interpolation');
+    await getComponent<typeof Component, Component>(page, 'Interpolation');
+  });
 
-	afterEach(done => {
-		instance && instance.$destroy();
-		done();
-	});
+  afterAll(async () => {
+    await browser.close();
+  });
 
-	it('should render text correctly', () => {
-		let text_1 = document.querySelector('#text_1');
-		let text_2 = document.querySelector('#text_2');
-		let text_3 = document.querySelector('#text_3');
-		expect(text_1.textContent).toBe('Test interpolation with some text.');
-		expect(text_2.textContent).toBe('Test interpolation with some text and some text with quote \' and double quote "');
-		expect(text_3.textContent).toBe('Test some text with some text with quote \' and double quote " and some expresions with AND');
-	});
+  it('should render text correctly', async () => {
+    const text_1 = await page.$('#text_1');
+    const text_2 = await page.$('#text_2');
+    const text_3 = await page.$('#text_3');
+    expect(await exec(text_1, t => t.textContent)).toBe('Test interpolation with some text.');
+    expect(await exec(text_2, t => t.textContent)).toBe('Test interpolation with some text and some text with quote \' and double quote "');
+    expect(await exec(text_3, t => t.textContent)).toBe('Test some text with some text with quote \' and double quote " and some expresions with AND');
+  });
 });

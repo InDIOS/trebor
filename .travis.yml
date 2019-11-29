@@ -5,6 +5,7 @@ install:
   - npm i
 script:
   - npm run build
+  - npm run build:test:components
   - npm test
 cache:
   directories:
