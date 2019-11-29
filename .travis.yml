@@ -1,11 +1,8 @@
-dist: bionic
-sudo: true
+dist: trusty
+sudo: required
 language: node_js
 node_js:
-  - "13"
-  - "12"
-  - "11"
-  - "10"
+  - "node"
   - "9"
 install:
   - npm i
