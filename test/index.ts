@@ -15,7 +15,7 @@ jasmine.jasmine['DEFAULT_TIMEOUT_INTERVAL'] = 15000;
 // setup console reporter
 const reporter = new JasmineConsoleReporter({
   colors: 1,
-  emoji: true,
+  emoji: false,
   verbosity: 4,
   cleanStack: 1,
   timeUnit: 'ms',
