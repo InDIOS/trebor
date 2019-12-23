@@ -5,8 +5,8 @@ import name from './name';
 import html from './html';
 import value from './value';
 import condition from './condition';
+import Parser from '../parsers/script';
 import { Element } from '../parsers/html/element';
-import { Statement } from '../parsers/script/estree';
 import { Segments } from '../parsers/script/segments';
 
 interface Directive {
@@ -17,7 +17,7 @@ interface Directive {
   reference?: true;
   walkChildren?: false;
   ctx?(source: string, params?: Set<string>, extras?: string[]): string;
-  createTpl?(nodes: Element[], segmts: Segments, tplName?: string, varName?: string): string | Statement[];
+  parser?: Parser;
 }
 
 let directives: Directive[] = [

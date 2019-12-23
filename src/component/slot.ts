@@ -1,6 +1,6 @@
 import { Element } from '../parsers/html/element';
-import { Segments } from '../parsers/script/segments';
 import { snakeToCamel, capitalize } from '../utils';
+import { Segments } from '../parsers/script/segments';
 import {
   Identifier, CallExpression, ExpressionStatement, ArrayExpression
 } from '../parsers/script/estree';
@@ -8,11 +8,12 @@ import {
   callExpression, literal, assignmentExpression, memberExpression, arrayExpression, isCallExpression,
   isExpressionStatement
 } from '../parsers/script/nodes';
+import Parser from '../parsers/script';
 import ctx from '../parsers/script/context';
-import { expression } from '../parsers/script/context/expression';
 import { generate } from '../parsers/script/generator';
+import { expression } from '../parsers/script/context/expression';
 
-export function processSlot(node: Element, segmts: Segments, parentVarName: string, createTpl: Function) {
+export function processSlot(node: Element, segmts: Segments, parentVarName: string, parser: Parser) {
   const slot = `_$slots`;
   const init = assignmentExpression(slot, memberExpression('_$ctx', '$slots'));
   const isDinamycName = node.hasAttribute(':name');
@@ -45,12 +46,12 @@ export function processSlot(node: Element, segmts: Segments, parentVarName: stri
     segmts.unmount.add(appendSlots);
     appendSlotsIndex = 0;
   }
-  const html = createTpl(node.childNodes, segmts, null, slotDec);
+  const html = parser.parse(node.childNodes, segmts, null, <string>generate(slotDec));
   segmts.addImport('trebor/tools', '_$initSlot');
   segmts.unmount.insert(`_$initSlot(${slot}, ${slotName}, ['${html}'])`, appendSlotsIndex);
 }
 
-export function processElementSlot(node: Element, segmts: Segments, component: string, createTpl: Function) {
+export function processElementSlot(node: Element, segmts: Segments, component: string, parser: Parser) {
   const type = node.nodeType;
   if (type !== 8) {
     const slotName = node.getAttribute('slot') || 'default';
@@ -64,7 +65,7 @@ export function processElementSlot(node: Element, segmts: Segments, component: s
     }
     const slot = segmts.addVar(type === 1 ? node.tagName : 'txt');
     const _node = node.tagName === 'template' ? node : { childNodes: [node] };
-    const html = createTpl(_node.childNodes, segmts, null, slot);
+    const html = parser.parse(_node.childNodes, segmts, null, slot);
     segmts.addImport('trebor/tools', '_$setSlotContent');
     segmts.unmount.add(`_$setSlotContent(${slotVar}, ['${html}']);`);
   }

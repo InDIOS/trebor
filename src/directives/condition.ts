@@ -13,7 +13,7 @@ interface ConditionExpressions {
   elseIfExps: string[];
 }
 
-export default function conditionDirective(node: Element, expression: string, segmts: Segments, parentVarName: string) {
+export default function conditionDirective(this: Directive, node: Element, expression: string, segmts: Segments, parentVarName: string) {
   const index = ++segmts.conditions;
   const anchor = `_$conditionAnchor_${index}`;
   const condition = `_$conditionBlock_${index}`;
@@ -76,13 +76,13 @@ function createCondition(node: Element, type: string, index: number, segmts: Seg
   subSegmts.globals = new Set(filterPlaceholders([...segmts.globals]));
   subSegmts.destroy.replace(callExpression(memberExpression(thisExpression(), '$unmount')));
   const conditionName = `${condType}${condName}_${index}`;
-  const conditionFunc = (<Function>directive.createTpl)(_node.childNodes, subSegmts, conditionName);
+  const conditionFunc = directive.parser.parse(_node.childNodes, subSegmts, conditionName);
 
   segmts.loops = subSegmts.loops;
   segmts._imports = subSegmts._imports;
   segmts.conditions = subSegmts.conditions;
 
-  return conditionFunc;
+  return <any[]>conditionFunc;
 }
 
 function conditionTpl({ ifExp, elseIfExps, elseExp }, index: number, parameters: Set<string>) {

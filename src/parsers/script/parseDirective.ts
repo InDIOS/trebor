@@ -1,10 +1,11 @@
+import Parser from './index';
 import { each } from '../../utils';
 import { Segments } from './segments';
 import { Element } from '../html/element';
 import ctx from './context';
 import { directives } from '../../directives';
 
-export default function parseDirectives(node: Element, segmts: Segments, parentVarName: string, createTpl: any) {
+export default function parseDirectives(node: Element, segmts: Segments, parentVarName: string, parser: Parser) {
   const attrs = node.attributes.filter(({ name }) => name[0] === '$');
   if (attrs.length) {
     each(directives, directive => {
@@ -14,7 +15,7 @@ export default function parseDirectives(node: Element, segmts: Segments, parentV
         node.removeAttribute(attr);
         segmts.globalTools = [];
         directive.ctx = ctx;
-        directive.createTpl = createTpl;
+        directive.parser = parser;
         directive.action(node, expression, segmts, parentVarName);
         delete segmts.globalTools;
         if (directive.tools) {

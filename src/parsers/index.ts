@@ -6,9 +6,9 @@ import { hash, capitalize } from '../utils';
 import parseHtml, { Element } from './html';
 import { join, dirname, resolve } from 'path';
 import parseScript from './script/parseScript';
+import SourceParser, { Segments } from './script';
 import prepareDirectives, { Directive } from '../directives';
 import { callExpression, exportDefaultDeclaration } from './script/nodes';
-import createTpl, { Segments, setSpecialAttrs, setNonWalkAttrs } from './script';
 
 type ObjectMap<T> = Record<string, T>;
 
@@ -86,11 +86,10 @@ export default function compiler(html: string, option: CompileSourceOptions) {
   const { imports, extras, options } = parseScript(ast);
   const { specialAttrs, nonWalkAttrs } = prepareDirectives(directives || []);
 
-  setSpecialAttrs(specialAttrs);
-  setNonWalkAttrs(nonWalkAttrs);
+  const parser = new SourceParser(specialAttrs, nonWalkAttrs);
 
   const tplName = `tpl${moduleName}`;
-  const tpl = createTpl(document.childNodes, segmts, tplName);
+  const tpl = parser.parse(document.childNodes, segmts, tplName);
   const compCreator = '_$createComponent';
   segmts.addImport('trebor/tools', compCreator);
   const moduleClass = options.declaration;
@@ -99,7 +98,7 @@ export default function compiler(html: string, option: CompileSourceOptions) {
   if (compilerOptions.format === 'iif') {
     if (!tools) {
       tools = parseJs(readFileSync(join(__dirname, '../../tools/index.js'), 'utf8'));
-     tools.body.pop();
+      tools.body.pop();
     }
     code.push(iif(moduleName, moduleClass, [...tools.body, ...segmts.getTools(), ...extras, ...tpl]));
   } else {
