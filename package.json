@@ -7,7 +7,7 @@
   },
   "main": "./build/index.js",
   "engines": {
-    "node": ">=8"
+    "node": ">=9"
   },
   "dependencies": {
     "commander": "^2.20.0",
@@ -26,17 +26,17 @@
     "@types/css": "0.0.31",
     "@types/glob": "^7.1.1",
     "@types/html-entities": "^1.2.16",
-    "@types/jasmine": "^3.4.6",
+    "@types/jest": "^24.9.0",
     "@types/node": "^12.12.7",
     "@types/puppeteer": "^1.20.2",
     "@typescript-eslint/parser": "^2.8.0",
     "eslint": "^6.7.1",
     "eslint-plugin-html": "^6.0.0",
-    "jasmine": "^3.5.0",
-    "jasmine-console-reporter": "^3.1.0",
+    "jest": "^24.9.0",
+    "jest-puppeteer": "^4.4.0",
     "puppeteer": "^2.0.0",
     "rollup": "^1.26.5",
-    "rollup-plugin-terser": "^5.1.2",
+    "rollup-plugin-terser": "^5.2.0",
     "terser-webpack-plugin": "^2.2.1",
     "ts-loader": "^6.2.1",
     "webpack": "^4.41.2",
@@ -49,7 +49,7 @@
     "build:rollup-example": "rollup --config examples/03-Rollup/rollup.config.js",
     "build:todomvc-example": "webpack --config examples/04-ToDoMVC/webpack.config.js",
     "build:test:components": "node bin/trebor.js -i test/components/*.html",
-    "test": "tsc -p ./test && node test/index.js"
+    "test": "tsc -p ./test && jest -c test/jest.config.js --runInBand"
   },
   "keywords": [
     "single-file-component",
