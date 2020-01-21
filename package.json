@@ -7,7 +7,7 @@
   },
   "main": "./build/index.js",
   "engines": {
-    "node": ">=9"
+    "node": ">=11"
   },
   "dependencies": {
     "commander": "^2.20.0",
