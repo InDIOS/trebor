@@ -27,6 +27,7 @@
     "@types/glob": "^7.1.1",
     "@types/html-entities": "^1.2.16",
     "@types/jest": "^23.3.14",
+    "@types/jest-environment-puppeteer": "^4.3.1",
     "@types/node": "^12.12.7",
     "@types/puppeteer": "^1.20.2",
     "@typescript-eslint/parser": "^2.8.0",
@@ -49,7 +50,7 @@
     "build:rollup-example": "rollup --config examples/03-Rollup/rollup.config.js",
     "build:todomvc-example": "webpack --config examples/04-ToDoMVC/webpack.config.js",
     "build:test:components": "node bin/trebor.js -i test/components/*.html",
-    "test": "tsc -p ./test && jest -c test/jest.config.js --runInBand"
+    "test": "tsc -p ./test && jest -c test/jest.config.js --maxWorkers=2"
   },
   "keywords": [
     "single-file-component",

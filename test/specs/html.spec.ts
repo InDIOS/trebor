@@ -1,18 +1,16 @@
-import { Page, Browser } from 'puppeteer';
-import { getBrowser, getPage, getComponent, exec } from '../utils';
+import { Page } from 'puppeteer';
+import { getPage, getComponent, exec } from '../utils';
 
 describe('Component Html', () => {
   let page: Page;
-  let browser: Browser;
 
   beforeAll(async () => {
-    browser = await getBrowser();
     page = await getPage(browser, 'html');
     await getComponent<typeof Component, Component>(page, 'html');
   });
 
   afterAll(async () => {
-    await browser.close();
+    await jestPuppeteer.resetBrowser();
   });
 
   it('nodes without expression should be normally rendered', async () => {

@@ -1,20 +1,18 @@
-import { Page, Browser, JSHandle, ElementHandle } from 'puppeteer';
-import { getBrowser, getPage, getComponent, exec } from '../utils';
+import { Page, JSHandle } from 'puppeteer';
+import { getPage, getComponent, exec } from '../utils';
 
 describe('Component', () => {
   let page: Page;
-  let browser: Browser;
   let instance: JSHandle<Component>;
   let Init: JSHandle<typeof Component>;
 
   beforeAll(async () => {
-    browser = await getBrowser();
     page = await getPage(browser, 'init');
     [Init, instance] = await getComponent<typeof Component, Component>(page, 'Init');
   });
 
   afterAll(async () => {
-    await browser.close();
+    await jestPuppeteer.resetBrowser();
   });
 
   it('should be a function constructor', async () => {

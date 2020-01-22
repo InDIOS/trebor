@@ -1,19 +1,17 @@
-import { Page, Browser, JSHandle, ElementHandle } from 'puppeteer';
-import { getBrowser, getPage, getComponent, exec } from '../utils';
+import {  getPage, getComponent, exec } from '../utils';
+import { Page, JSHandle, ElementHandle } from 'puppeteer';
 
 describe('Component Conditions', () => {
   let page: Page;
-  let browser: Browser;
   let instance: JSHandle<Component>;
 
   beforeAll(async () => {
-    browser = await getBrowser();
     page = await getPage(browser, 'condition');
     [, instance] = await getComponent<typeof Component, Component>(page, 'Condition');
   });
 
   afterAll(async () => {
-    await browser.close();
+    await jestPuppeteer.resetBrowser();
   });
 
   it('`$if` should be rendered', async () => {
