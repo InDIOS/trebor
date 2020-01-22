@@ -1,17 +1,9 @@
 import { resolve } from 'path';
 import { readFileSync } from 'fs';
-import puppeteer, { LaunchOptions, Browser, Page, JSHandle, ScriptTagOptions } from 'puppeteer';
+import { Browser, Page, JSHandle, ScriptTagOptions } from 'puppeteer';
 
 const width = 1366;
 const height = 768;
-
-export async function getBrowser(options: LaunchOptions = {}) {
-  const browser = await puppeteer.launch(Object.assign({
-    headless: true,
-    args: [`--window-size=${width},${height}`, '--no-sandbox', '--disable-setuid-sandbox']
-  }, options));
-  return browser;
-}
 
 export async function getPage(browser: Browser, ...files: string[]) {
   const page = await browser.newPage();
