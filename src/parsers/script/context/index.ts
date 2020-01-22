@@ -1,7 +1,7 @@
 import parse from '../parser';
-import findGlobals, { Node as BaseNode } from './globals';
 import { generate } from '../generator';
 import { assignNode, expression } from './expression';
+import findGlobals, { Node as BaseNode } from './globals';
 import {
   memberExpression, literal, binaryExpression, callExpression, isLiteral, isAssignmentExpression,
   isIdentifier, isUpdateExpression, isMemberExpression, ExpressionParameter, arrowFunctionExpression,

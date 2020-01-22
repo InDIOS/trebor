@@ -1,3 +1,4 @@
+import Parser from '../parsers/script';
 import ctx from '../parsers/script/context';
 import { processElementSlot } from './slot';
 import { Element } from '../parsers/html/element';
@@ -10,7 +11,7 @@ import {
 
 const COMP_NAME = 'component';
 
-export default function parseComponent(node: Element, segmts: Segments, parentVarName: string, createTpl: Function, index: number) {
+export default function parseComponent(node: Element, segmts: Segments, parentVarName: string, parser: Parser, index: number) {
   const tag = node.tagName;
   const isComp = tag === COMP_NAME;
   const component = snakeToCamel(tag);
@@ -27,7 +28,7 @@ export default function parseComponent(node: Element, segmts: Segments, parentVa
   }
 
   let attrs = '{';
-  parseDirectives(node, segmts, parentVarName, createTpl);
+  parseDirectives(node, segmts, parentVarName, parser);
   const extras: string[] = [];
   node.attributes.forEach(({ name, value }) => {
     const [type, attr] = [name[0], name.slice(1)];
@@ -92,7 +93,7 @@ export default function parseComponent(node: Element, segmts: Segments, parentVa
   segmts.create.add(calls('create'));
   extras.forEach(stmt => segmts.extras.add(stmt));
   each(node.childNodes, node => {
-    processElementSlot(node, segmts, varName, createTpl);
+    processElementSlot(node, segmts, varName, parser);
   });
   segmts.unmount.add(calls('mount', [parentVarName, anchor]));
   if (isComp) {

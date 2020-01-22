@@ -8,7 +8,7 @@ const height = 768;
 export async function getBrowser(options: LaunchOptions = {}) {
   const browser = await puppeteer.launch(Object.assign({
     headless: true,
-    args: [`--window-size=${width},${height}`, '--no-sandbox']
+    args: [`--window-size=${width},${height}`, '--no-sandbox', '--disable-setuid-sandbox']
   }, options));
   return browser;
 }

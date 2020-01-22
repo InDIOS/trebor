@@ -2,8 +2,8 @@ import ctx from '../parsers/script/context';
 import { Element } from '../parsers/html/element';
 import { Segments } from '../parsers/script/segments';
 import { CallExpression, Literal } from '../parsers/script/estree';
-import { replaceItem, replaceVar, capitalize, filters, filterPlaceholders } from '../utils';
 import { callExpression, assignmentExpression, literal } from '../parsers/script/nodes';
+import { replaceItem, replaceVar, capitalize, filters, filterPlaceholders } from '../utils';
 
 export default function tagDirective(node: Element, expression: string, segmts: Segments) {
   if (expression) {

@@ -13,7 +13,7 @@ import { isBuildIn } from './buildins';
 
 export type Node = BaseNode & {
   parent?: Node;
-}
+};
 
 const locals = Symbol('locals');
 
@@ -96,7 +96,7 @@ function initLocals(node: Node) {
 }
 
 function isGlobal(globals: Set<string>, { name }: { name: string }) {
-  return globals.has(name) || isBuildIn(name)
+  return globals.has(name) || isBuildIn(name);
 }
 
 export default function findGlobals(source: string | Program, globals: Set<string> = new Set()) {
@@ -171,8 +171,10 @@ export default function findGlobals(source: string | Program, globals: Set<strin
   });
 
   const result: { name: string; nodes: (Node & Identifier)[] }[] = [];
+
   globalMap.forEach((nodes, name) => {
-    return result.push({ name, nodes });
+    result.push({ name, nodes });
   });
+  
   return result;
 }

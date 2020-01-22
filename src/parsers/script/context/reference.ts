@@ -19,23 +19,23 @@ export default function isReferenced(node: Node, parent: Node, grandparent?: Nod
     // yes: PARENT[NODE]
     // yes: NODE.child
     // no: parent.NODE
-    case "MemberExpression":
+    case 'MemberExpression':
       if (parent.property === node) {
         return !!parent.computed;
       }
       return parent.object === node;
     // no: let NODE = init;
     // yes: let id = NODE;
-    case "VariableDeclarator":
+    case 'VariableDeclarator':
       return parent.init === node;
     // yes: () => NODE
     // no: (NODE) => {}
-    case "ArrowFunctionExpression":
+    case 'ArrowFunctionExpression':
       return parent.body === node;
     // no: export { foo as NODE };
     // yes: export { NODE as foo };
     // no: export { NODE as foo } from "foo";
-    case "ExportSpecifier":
+    case 'ExportSpecifier':
       if (!grandparent || grandparent.source) {
         return false;
       }
@@ -45,58 +45,58 @@ export default function isReferenced(node: Node, parent: Node, grandparent?: Nod
     // yes: class { [NODE]() {} }
     // no: class { NODE() {} }
     // no: class { NODE = value; }
-    case "MethodDefinition":
+    case 'MethodDefinition':
       if (parent.key === node) {
         return !!parent.computed;
       }
       if (parent.value === node) {
-        return !grandparent || grandparent.type !== "ObjectPattern";
+        return !grandparent || grandparent.type !== 'ObjectPattern';
       }
       return true;
     // no: class NODE {}
     // yes: class Foo extends NODE {}
-    case "ClassDeclaration":
-    case "ClassExpression":
+    case 'ClassDeclaration':
+    case 'ClassExpression':
       return parent.superClass === node;
     // no: [NODE = foo] = [];
     // yes: [foo = NODE] = [];
-    case "AssignmentPattern":
+    case 'AssignmentPattern':
       return parent.right === node;
     // no: NODE: for (;;) {}
-    case "LabeledStatement":
+    case 'LabeledStatement':
       return false;
     // no: try {} catch (NODE) {}
-    case "CatchClause":
+    case 'CatchClause':
       return false;
     // no: function foo(...NODE) {}
-    case "RestElement":
+    case 'RestElement':
       return false;
     // no: function NODE() {}
     // no: function foo(NODE) {}
-    case "FunctionDeclaration":
-    case "FunctionExpression":
+    case 'FunctionDeclaration':
+    case 'FunctionExpression':
       return false;
     // no: export NODE from "foo";
     // no: export * as NODE from "foo";
-    case "ExportNamespaceSpecifier":
+    case 'ExportNamespaceSpecifier':
       return false;
     // no: import NODE from "foo";
     // no: import * as NODE from "foo";
     // no: import { NODE as foo } from "foo";
     // no: import { foo as NODE } from "foo";
     // no: import NODE from "bar";
-    case "ImportDefaultSpecifier":
-    case "ImportNamespaceSpecifier":
-    case "ImportSpecifier":
+    case 'ImportDefaultSpecifier':
+    case 'ImportNamespaceSpecifier':
+    case 'ImportSpecifier':
       return false;
     // no: [NODE] = [];
     // no: ({ NODE }) = [];
-    case "ObjectPattern":
-    case "ArrayPattern":
+    case 'ObjectPattern':
+    case 'ArrayPattern':
       return false;
     // no: new.NODE
     // no: NODE.target
-    case "MetaProperty":
+    case 'MetaProperty':
       return false;
   }
   return true;

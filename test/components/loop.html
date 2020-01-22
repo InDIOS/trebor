@@ -24,8 +24,8 @@
 
 <ul id="loop_7">
   <li $for="(value, key, index) in object">
-		{ index + 1 }. { key }: { value }
-	</li>
+    { index + 1 }. { key }: { value }
+  </li>
 </ul>
 
 <ul id="loop_8">
@@ -42,10 +42,10 @@
 
 <ul id="loop_11">
   <li $for="(item, i) in items">
-		<span $for="(value, key, index) in object">
-			{ `${i + 1}.${item}.${index + 1} - ${key}: ${value}` }
-		</span>
-	</li>
+    <span $for="(value, key, index) in object">
+      { `${i + 1}.${item}.${index + 1} - ${key}: ${value}` }
+    </span>
+  </li>
 </ul>
 
 <script>

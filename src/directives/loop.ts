@@ -1,10 +1,11 @@
+import { Directive } from './index';
 import ctx from '../parsers/script/context';
 import { Element } from '../parsers/html/element';
 import { Segments } from '../parsers/script/segments';
 import { replaceItem, replaceVar, filters, filterPlaceholders } from '../utils';
 import { callExpression, memberExpression, thisExpression } from '../parsers/script/nodes';
 
-export default function loopDirective(node: Element, expression: string, segmts: Segments, parentVarName: string) {
+export default function loopDirective(this: Directive, node: Element, expression: string, segmts: Segments, parentVarName: string) {
   this.tools = tools;
   const loopIndex = ++segmts.loops;
   const loopItem = `loop_${loopIndex}`;
@@ -43,7 +44,7 @@ export default function loopDirective(node: Element, expression: string, segmts:
   subSegmts.globals.add(value).add(key || '_$v').add(index || '_$i');
   args.forEach(arg => subSegmts.globals.add(arg));
   subSegmts.destroy.replace(callExpression(memberExpression(thisExpression(), '$unmount')));
-  const loopItemFunc = this.createTpl(_node.childNodes, subSegmts, loopItem);
+  const loopItemFunc: any = this.parser.parse(_node.childNodes, subSegmts, loopItem);
 
   segmts.loops = subSegmts.loops;
   segmts.body.add(...loopItemFunc);
