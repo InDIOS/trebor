@@ -1,6 +1,6 @@
 {
   "name": "trebor",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Nodejs module to make standalone web components.",
   "bin": {
     "trebor": "./bin/trebor.js"
